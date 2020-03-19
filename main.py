@@ -6,8 +6,11 @@ import sys
 visfile = sys.argv[3]
 output = sys.argv[4]
 
-clean_imager = Clean(specmode="mfs", deconvolver="hogbom", gridder="standard", pbcor=True, savemodel="modelcolumn", inputvis=visfile, output=output,
-                     niter=100, M=1024, N=1024, deltax="0.02arcsec", stokes="I", datacolumn="corrected", robust=0.5)
+imager = Imager(inputvis=visfile, output=output,
+                niter=100, M=1024, N=1024, deltax="0.02arcsec", stokes="I", datacolumn="corrected", robust=0.5)
+
+clean_imager = Clean(specmode="mfs", deconvolver="hogbom", gridder="standard", pbcor=True, savemodel="modelcolumn", imager)
+
 parent_selfcal = Selfcal(visfile=clean_imager.inputvis,
                          imagename=clean_imager.output, minblperant=3, refant="Kn,Mk2,Cm,Pi,De,Da", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], clean_imager)
 
