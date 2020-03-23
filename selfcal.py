@@ -46,7 +46,7 @@ class Ampcal(Selfcal):
 
             imagename = self.imagename + '_ap' + str(i)
 
-            Imager.run(imagename)
+            self.run(imagename)
 
 
 class Phasecal(Selfcal):
@@ -65,7 +65,7 @@ class Phasecal(Selfcal):
         caltable = ""
         for i in range(0, self.loops):
             imagename = self.imagename + '_ph' + str(i)
-            Imager.run(imagename)
+            self.run(imagename)
             caltable = 'pcal' + str(i)
             rmtables(caltable)
 
