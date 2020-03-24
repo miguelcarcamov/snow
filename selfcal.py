@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Selfcal:
+class Selfcal(object):
 
     def __init__(self, visfile="", imagename="", minblperant=0, refant="", spwmap=[], Imager=None, want_plot=False):
         self.visfile = visfile

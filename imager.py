@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Imager:
+class Imager(object):
 
     def __init__(self, inputvis="", output="", niter=0, M=0, N=0, deltax="", stokes="", datacolumn="", robust=0, field=""):
         self.inputvis = inputvis
