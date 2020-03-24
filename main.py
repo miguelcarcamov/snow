@@ -1,6 +1,6 @@
 import numpy as np
-from imager import Imager, Clean
-from selfcal import Selfcal, Ampcal, Phasecal
+from imager import *
+from selfcal import *
 import sys
 
 visfile = sys.argv[3]
