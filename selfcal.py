@@ -60,8 +60,7 @@ class Phasecal(Selfcal):
         self.loops = len(self.solint)
 
     def run(self):
-        flagmanager(vis=self.visfile, mode='save',
-                    versionname='before_phasecal', merge='replace')
+        flagmanager(vis=self.visfile, mode='save', versionname='before_phasecal', merge='replace')
         caltable = ""
         for i in range(0, self.loops):
             imagename = self.imagename + '_ph' + str(i)
