@@ -1,7 +1,8 @@
+import sys
 import numpy as np
+sys.path.append('./')
 from imager import *
 from selfcal import *
-import sys
 
 visfile = sys.argv[3]
 output = sys.argv[4]
