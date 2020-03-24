@@ -22,4 +22,4 @@ solint_ap = ['inf']
 
 phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                   combine="spw", selfcal_object=parent_selfcal)
-ampcal = Ampcal(minsnr=2.0, solint=solint_ap, combine="spw")
+ampcal = Ampcal(minsnr=2.0, solint=solint_ap, combine="spw", selfcal_object=parent_selfcal)
