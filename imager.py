@@ -22,7 +22,7 @@ class Imager:
 class Clean(Imager):
     def __init__(self, specmode="", deconvolver="", nterms=1, threshold=0.0, interactive=False, gridder="", pbcor=False,
                  savemodel="", usepointing=False, imager_object=None):
-        super(Imager, self).__init__(imager_object.inputvis, imager_object.output, imager_object.niter, imager_object.M, imager_object.N,
+        super(Clean, self).__init__(imager_object.inputvis, imager_object.output, imager_object.niter, imager_object.M, imager_object.N,
                          imager_object.deltax, imager_object.stokes, imager_object.datacolumn, imager_object.robust, imager_object.field)
         self.specmode = specmode
         self.deconvolver = deconvolver
