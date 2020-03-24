@@ -50,7 +50,7 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, selfcal_object, insnr=1.0, solint=[], combine=""):
+    def __init__(self, selfcal_object, minsnr=1.0, solint=[], combine=""):
         super(Phasecal, self).__init__(selfcal_object.visfile, selfcal_object.imagename, selfcal_object.minblperant,
                          selfcal_object.refant, selfcal_object.spwmap, selfcal_object.Imager, selfcal_object.want_plot)
         self.calmode = 'p'
