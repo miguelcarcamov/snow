@@ -35,4 +35,6 @@ if __name__ == '__main__':
     apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
                         selfcal_object=parent_selfcal, phs_caltable=amp_caltable)
 
+    apcal.run()
+
     parent_selfcal.selfcal_output()

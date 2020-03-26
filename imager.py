@@ -1,6 +1,7 @@
 import numpy as np
 from tclean import tclean
 
+
 class Imager(object):
 
     def __init__(self, inputvis="", output="", niter=0, M=0, N=0, deltax="", stokes="", datacolumn="", robust=0, field="", spw=""):
@@ -14,20 +15,20 @@ class Imager(object):
         self.datacolumn = datacolumn
         self.robust = robust
         self.field = field
-	self.spw = spw
+        self.spw = spw
 
     def getField(self):
         return self.field
 
     def getSpw(self):
-	return self.spw
+        return self.spw
 
 
 class Clean(Imager):
     def __init__(self, specmode="", deconvolver="", nterms=1, threshold=0.0, interactive=False, gridder="", pbcor=False,
                  savemodel="", usepointing=False, imager_object=None):
         super(Clean, self).__init__(imager_object.inputvis, imager_object.output, imager_object.niter, imager_object.M, imager_object.N,
-                         imager_object.deltax, imager_object.stokes, imager_object.datacolumn, imager_object.robust, imager_object.field)
+                                    imager_object.deltax, imager_object.stokes, imager_object.datacolumn, imager_object.robust, imager_object.field)
         self.specmode = specmode
         self.deconvolver = deconvolver
         self.nterms = nterms
