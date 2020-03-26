@@ -1,9 +1,9 @@
 import numpy as np
-
+from tclean import tclean
 
 class Imager(object):
 
-    def __init__(self, inputvis="", output="", niter=0, M=0, N=0, deltax="", stokes="", datacolumn="", robust=0, field=""):
+    def __init__(self, inputvis="", output="", niter=0, M=0, N=0, deltax="", stokes="", datacolumn="", robust=0, field="", spw=""):
         self.inputvis = inputvis
         self.output = output
         self.niter = niter
@@ -14,9 +14,13 @@ class Imager(object):
         self.datacolumn = datacolumn
         self.robust = robust
         self.field = field
+	self.spw = spw
 
     def getField(self):
         return self.field
+
+    def getSpw(self):
+	return self.spw
 
 
 class Clean(Imager):
