@@ -44,7 +44,7 @@ class Ampcal(Selfcal):
             caltable = 'acal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=minblperant, gaintable=self.phs_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.phs_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, self.want_plot)
 
@@ -109,12 +109,12 @@ class AmpPhasecal(Selfcal):
             caltable = 'acal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=minblperant, gaintable=self.amp_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.amp_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     self.phs_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
+                     self.amp_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
 
             flagmanager(vis=self.visfile, mode='save',
                         versionname='after_apcal' + str(i))
