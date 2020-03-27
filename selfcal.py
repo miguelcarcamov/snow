@@ -29,30 +29,31 @@ class Selfcal(object):
 
 
 class Ampcal(Selfcal):
-    def __init__(self, selfcal_object, minsnr=1.0, solint=[], combine="", phs_caltable=""):
+    def __init__(self, selfcal_object, minsnr=1.0, solint=[], combine="", input_caltable=""):
         super(Ampcal, self).__init__(selfcal_object.visfile, selfcal_object.imagename, selfcal_object.minblperant,
                                      selfcal_object.refant, selfcal_object.spwmap, selfcal_object.Imager, selfcal_object.want_plot)
         self.calmode = 'a'
         self.minsnr = minsnr
         self.solint = solint
         self.combine = combine
-        self.phs_caltable = phs_caltable
+        self.input_caltable = input_caltable
         self.loops = len(self.solint)
 
     def run(self):
+        caltable = ""
         for i in range(0, self.loops):
-            caltable = 'acal_' + str(i)
+            caltable = 'ampcal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.phs_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     self.phs_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
+                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
 
             flagmanager(vis=self.visfile, mode='save',
-                        versionname='after_apcal' + str(i))
+                        versionname='after_ampcal' + str(i))
 
             imagename = self.imagename + '_a' + str(i)
 
@@ -94,27 +95,28 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, selfcal_object, minsnr=1.0, solint=[], combine="", amp_caltable=""):
+    def __init__(self, selfcal_object, minsnr=1.0, solint=[], combine="", input_caltable=""):
         super(AmpPhasecal, self).__init__(selfcal_object.visfile, selfcal_object.imagename, selfcal_object.minblperant,
                                           selfcal_object.refant, selfcal_object.spwmap, selfcal_object.Imager, selfcal_object.want_plot)
         self.calmode = 'ap'
         self.minsnr = minsnr
         self.solint = solint
         self.combine = combine
-        self.amp_caltable = amp_caltable
+        self.input_caltable = input_caltable
         self.loops = len(self.solint)
 
     def run(self):
+        caltable = ""
         for i in range(0, self.loops):
-            caltable = 'acal_' + str(i)
+            caltable = 'apcal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.amp_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     self.amp_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
+                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
 
             flagmanager(vis=self.visfile, mode='save',
                         versionname='after_apcal' + str(i))

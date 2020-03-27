@@ -28,12 +28,12 @@ if __name__ == '__main__':
     phs_caltable = phscal.run()
 
     ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
-                    selfcal_object=parent_selfcal, phs_caltable=phs_caltable)
+                    selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
     amp_caltable = ampcal.run()
 
     apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
-                        selfcal_object=parent_selfcal, amp_caltable=amp_caltable)
+                        selfcal_object=parent_selfcal, input_caltable=amp_caltable)
 
     apcal.run()
 
