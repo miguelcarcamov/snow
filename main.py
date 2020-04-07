@@ -16,7 +16,7 @@ if __name__ == '__main__':
                          pbcor=True, savemodel="modelcolumn", imager_object=imager_obj, interactive=True)
 
     parent_selfcal = Selfcal(visfile=clean_imager.inputvis,
-                             imagename=clean_imager.output, minblperant=3, refant="Kn,Mk2,Cm,Pi,De,Da", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
+                             imagename=clean_imager.output, minblperant=2, refant="Kn,Mk2,Cm,Pi,De,Da", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
 
     solint_phs = ['128s', '64s', '32s', '16s']
     solint_amp = ['1h']

@@ -45,3 +45,9 @@ class Clean(Imager):
                datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, nterms=self.nterms,
                imsize=imsize, cell=self.deltax, weighting="briggs", robust=self.robust, niter=self.niter, threshold=self.threshold,
                interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, savemodel=self.savemodel, usepointing=self.usepointing)
+
+
+class WSClean(Imager):
+    def __init__(self, imager_object=None):
+        super(Clean, self).__init__(imager_object.inputvis, imager_object.output, imager_object.niter, imager_object.M, imager_object.N,
+                                    imager_object.deltax, imager_object.stokes, imager_object.datacolumn, imager_object.robust, imager_object.field)
