@@ -18,10 +18,10 @@ class Selfcal(object):
         self.Imager = Imager
         self.want_plot = want_plot
 
-    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", subplot=111, plotrange=[], want_plot=False):
+    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False):
         if want_plot:
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
-                    iteration=iteration, subplot=subplot, plotrange=plotrange)
+                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange)
 
     def selfcal_output(self):
         split(vis=self.visfile, outputvis=self.visfile +
