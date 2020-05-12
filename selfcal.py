@@ -47,7 +47,8 @@ class Ampcal(Selfcal):
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
-            self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna", subplot=421, plotrange=[0, 0, 0.2, 1.8], self.want_plot)
+            self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
+                              subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
@@ -84,7 +85,8 @@ class Phasecal(Selfcal):
             gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype='G', refant=self.refant,
                     calmode=self.calmode, combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant)
 
-            self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna", subplot=421, plotrange=[0, 0, -180, 180], self.want_plot)
+            self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
+                              subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
             applycal(vis=self.visfile, field=self.Imager.getField(), spwmap=self.spwmap, gaintable=[
                      caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
@@ -113,7 +115,8 @@ class AmpPhasecal(Selfcal):
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
-            self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna", subplot=421, plotrange=[0, 0, 0.2, 1.8], self.want_plot)
+            self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
+                              subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
