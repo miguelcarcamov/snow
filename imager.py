@@ -44,7 +44,7 @@ class Clean(Imager):
         tclean(vis=self.inputvis, imagename=imagename, field=self.field,
                datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, nterms=self.nterms,
                imsize=imsize, cell=self.deltax, weighting="briggs", robust=self.robust, niter=self.niter, threshold=self.threshold,
-               interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, savemodel=self.savemodel, usepointing=self.usepointing)
+               interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, savemodel=self.savemodel, usepointing=self.usepointing, usemask='auto-multithresh', negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=8.0, sidelobethreshold=1.0)
 
 
 class WSClean(Imager):

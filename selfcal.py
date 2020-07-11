@@ -24,8 +24,9 @@ class Selfcal(object):
                     iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange)
 
     def selfcal_output(self):
-        split(vis=self.visfile, outputvis=self.visfile +
-              '.selfcal', datacolumn='corrected')
+        outputvis = self.visfile + '.selfcal'
+        split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
+        return outputvis
 
 
 class Ampcal(Selfcal):
