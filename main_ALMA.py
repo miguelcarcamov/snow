@@ -21,9 +21,10 @@ if __name__ == '__main__':
                          minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
     parent_selfcal = Selfcal(visfile=clean_imager.inputvis,
-                             imagename=clean_imager.output, minblperant=2, refant="Kn,Mk2,Cm,Pi,De,Da", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
+                             imagename=clean_imager.output, minblperant=6, refant="DV03", spwmap=[0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
 
-    solint_phs = ['128s', '64s', '32s', '16s']
+    #solint_phs = ['128s', '64s', '32s', '16s']
+    solint_phs = ['32s', '16s']
     solint_amp = ['1h']
     solint_ap = ['inf']
 
@@ -32,10 +33,10 @@ if __name__ == '__main__':
 
     phs_caltable = phscal.run()
 
-    ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
-                    selfcal_object=parent_selfcal, input_caltable=phs_caltable)
+    #ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
+    #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
-    amp_caltable = ampcal.run()
+    #amp_caltable = ampcal.run()
 
     apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
                         selfcal_object=parent_selfcal, input_caltable=amp_caltable)
