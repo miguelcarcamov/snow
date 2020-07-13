@@ -10,7 +10,7 @@ if __name__ == '__main__':
     want_plot = eval(sys.argv[5])
 
     imager_obj = Imager(inputvis=visfile, output=output,
-                        niter=100, M=1024, N=1024, deltax="0.02arcsec", stokes="I", datacolumn="corrected", robust=0.5)
+                        niter=100, M=1024, N=1024, deltax="0.005arcsec", stokes="I", datacolumn="corrected", robust=0.5)
 
     # Table for long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
     # The default clean object will use automasking values for short baselines
