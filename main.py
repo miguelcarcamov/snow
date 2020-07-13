@@ -37,4 +37,4 @@ if __name__ == '__main__':
 
     apcal.run()
 
-    parent_selfcal.selfcal_output()
+    parent_selfcal.selfcal_output(overwrite=True)

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from flagmanager import flagmanager
 from rmtables import rmtables
@@ -20,8 +21,11 @@ class Selfcal(object):
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
                     iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange)
 
-    def selfcal_output(self):
+    def selfcal_output(self, overwrite=False):
         outputvis = self.visfile + '.selfcal'
+
+        if overwrite:
+            os.system('rm -rf '+outputvis)
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         return outputvis
 

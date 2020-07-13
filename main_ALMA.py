@@ -10,7 +10,7 @@ if __name__ == '__main__':
     visfile = sys.argv[3]
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
-    
+
     imager_obj = Imager(inputvis=visfile, output=output,
                         niter=100, M=1024, N=1024, deltax="0.005arcsec", stokes="I", datacolumn="corrected", robust=0.5)
 
@@ -45,4 +45,4 @@ if __name__ == '__main__':
 
     #apcal.run()
 
-    parent_selfcal.selfcal_output()
+    parent_selfcal.selfcal_output(overwrite=True)
