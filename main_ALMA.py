@@ -1,14 +1,16 @@
+import sys
+import os
+import numpy as np
+sys.path.append('/home/miguel.carcamo/SELFCAL_TEST/objectoriented_selfcal')
+print os.path.abspath('.')
 from selfcal import *
 from imager import *
-import sys
-import numpy as np
-sys.path.append('./')
 
 if __name__ == '__main__':
     visfile = sys.argv[3]
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
-
+    
     imager_obj = Imager(inputvis=visfile, output=output,
                         niter=100, M=1024, N=1024, deltax="0.005arcsec", stokes="I", datacolumn="corrected", robust=0.5)
 
@@ -25,8 +27,8 @@ if __name__ == '__main__':
 
     #solint_phs = ['128s', '64s', '32s', '16s']
     solint_phs = ['32s', '16s']
-    solint_amp = ['1h']
-    solint_ap = ['inf']
+    #solint_amp = ['1h']
+    solint_ap = ['32s']
 
     phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                       combine="spw", selfcal_object=parent_selfcal)
@@ -38,9 +40,9 @@ if __name__ == '__main__':
 
     #amp_caltable = ampcal.run()
 
-    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
-                        selfcal_object=parent_selfcal, input_caltable=amp_caltable)
+    #apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
+    #                    selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
-    apcal.run()
+    #apcal.run()
 
     parent_selfcal.selfcal_output()
