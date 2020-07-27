@@ -1,8 +1,7 @@
-from selfcal import *
-from imager import *
+from selfcalframework.selfcal import *
+from selfcalframework.imager import *
 import sys
 import numpy as np
-sys.path.append('./')
 
 if __name__ == '__main__':
     visfile = sys.argv[3]

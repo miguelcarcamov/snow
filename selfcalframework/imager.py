@@ -19,7 +19,7 @@ class Imager(object):
 
 class Clean(Imager):
     def __init__(self, specmode="", deconvolver="", nterms=1, threshold=0.0, interactive=False, gridder="", pbcor=False,
-                 savemodel="", usemask="", negativethreshold=0.0, lownoisethreshold=1.5 , noisethreshold=4.25 ,
+                 savemodel="", usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5 , noisethreshold=4.25 ,
                  sidelobethreshold=2.0, minbeamfrac=0.3 , imager_object=None):
         super(Clean, self).__init__(imager_object.inputvis, imager_object.output, imager_object.niter, imager_object.M, imager_object.N,
                                     imager_object.deltax, imager_object.stokes, imager_object.datacolumn, imager_object.robust, imager_object.field)

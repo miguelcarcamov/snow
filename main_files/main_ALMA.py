@@ -1,10 +1,8 @@
 import sys
 import os
 import numpy as np
-sys.path.append('/home/miguel.carcamo/SELFCAL_TEST/objectoriented_selfcal')
-print os.path.abspath('.')
-from selfcal import *
-from imager import *
+from selfcalframework.selfcal import *
+from selfcalframework.imager import *
 
 if __name__ == '__main__':
     visfile = sys.argv[3]

@@ -1,11 +1,9 @@
-from selfcal import *
-from imager import *
+from selfcalframework.selfcal import *
+from selfcalframework.imager import *
 import sys
 import numpy as np
 from concat import concat
-from selfcal_utils import *
-
-sys.path.append('./')
+from selfcalframework.selfcal_utils import *
 
 if __name__ == '__main__':
     visfiles = sys.argv[3].split(',')
