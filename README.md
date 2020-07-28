@@ -102,3 +102,5 @@ if __name__ == '__main__':
     # The parent selfcal object outputs your selfcal measurement set
     parent_selfcal.selfcal_output(overwrite=True)
 ```
+
+Then you can simply run the main script using `casa -c yourscript.py`
