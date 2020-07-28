@@ -9,13 +9,12 @@ if __name__ == '__main__':
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
 
-    imager_obj = Imager(inputvis=visfile, output=output,
-                        niter=100, M=1024, N=1024, deltax="0.005arcsec", stokes="I", datacolumn="corrected", robust=0.5)
-
-    # Table for long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
+    # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
     # The default clean object will use automasking values for short baselines
     # In this case we will use automasking values for long baselines
-    clean_imager = Clean(specmode="mfs", deconvolver="hogbom", gridder="standard",
+    clean_imager = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, deltax="0.005arcsec",
+                         stokes="I", datacolumn="corrected", robust=0.5,
+                         specmode="mfs", deconvolver="hogbom", gridder="standard",
                          pbcor=True, savemodel="modelcolumn", imager_object=imager_obj,
                          usemask='auto-multithresh', sidelobethreshold=3.0, noisethreshold=5.0,
                          minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)

@@ -8,7 +8,7 @@ if __name__ == '__main__':
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
 
-    # Table for long or short baselines can be found here: https://casaguides.nrao.edu/index.php/        Automasking_Guide
+    # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/        Automasking_Guide
     # The default clean object will use automasking values for short baselines
     # In this case we will use automasking values for long baselines
     clean_imager = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, deltax="0.2arcsec", stokes="I", datacolumn="corrected",

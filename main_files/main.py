@@ -8,10 +8,8 @@ if __name__ == '__main__':
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
 
-    imager_obj = Imager(inputvis=visfile, output=output,
-                        niter=100, M=1024, N=1024, deltax="0.02arcsec", stokes="I", datacolumn="corrected", robust=0.5)
-
-    clean_imager = Clean(specmode="mfs", deconvolver="hogbom", gridder="standard",
+    clean_imager = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, deltax="0.02arcsec",
+                         stokes="I", datacolumn="corrected", robust=0.5specmode="mfs", deconvolver="hogbom", gridder="standard",
                          pbcor=True, savemodel="modelcolumn", imager_object=imager_obj, interactive=True)
 
     parent_selfcal = Selfcal(visfile=clean_imager.inputvis,
