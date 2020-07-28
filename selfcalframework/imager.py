@@ -5,11 +5,12 @@ from tclean import tclean
 class Imager(object):
 
     def __init__(self, robust=2.0, field="", spw="", *args, **kwargs):
-        initlocals=locals()
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
+
     def getField(self):
         return self.field
 
@@ -22,14 +23,15 @@ class Imager(object):
     def getOutputPath(self):
         return self.output
 
+
 class Clean(Imager):
-    def __init__(self, nterms=1, threshold=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5 , noisethreshold=4.25 ,
+    def __init__(self, nterms=1, threshold=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, *args, **kwargs):
         super(Clean, self).__init__(*args, **kwargs)
-        initlocals=locals()
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
 
     def run(self, imagename=""):
@@ -45,9 +47,8 @@ class Clean(Imager):
 class WSClean(Imager):
     def __init__(self, *args, **kwargs):
         super(Clean, self).__init__(*args, **kwargs)
-        initlocals=locals()
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
-

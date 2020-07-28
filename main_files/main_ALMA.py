@@ -32,14 +32,14 @@ if __name__ == '__main__':
 
     phs_caltable = phscal.run()
 
-    #ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
+    # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
     #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
     #amp_caltable = ampcal.run()
 
-    #apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
+    # apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
     #                    selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
-    #apcal.run()
+    # apcal.run()
 
     parent_selfcal.selfcal_output(overwrite=True)
