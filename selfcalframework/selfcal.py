@@ -54,7 +54,7 @@ class Ampcal(Selfcal):
     def run(self):
         caltable = ""
         for i in range(0, self.loops):
-            caltable = self.Imager.getOutputPath()+'ampcal_' + str(i)
+            caltable = self.Imager.getOutputPath()+'/ampcal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
@@ -100,7 +100,7 @@ class Phasecal(Selfcal):
         for i in range(0, self.loops):
             imagename = self.imagename + '_ph' + str(i)
             self.Imager.run(imagename)
-            caltable = self.Imager.getOutputPath()+'pcal' + str(i)
+            caltable = self.Imager.getOutputPath()+'/pcal' + str(i)
             rmtables(caltable)
 
             gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype='G', refant=self.refant,
@@ -140,7 +140,7 @@ class AmpPhasecal(Selfcal):
     def run(self):
         caltable = ""
         for i in range(0, self.loops):
-            caltable = self.Imager.getOutputPath()+'apcal_' + str(i)
+            caltable = self.Imager.getOutputPath()+'/apcal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
