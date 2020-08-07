@@ -12,7 +12,7 @@ if __name__ == '__main__':
     # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
     # The default clean object will use automasking values for short baselines
     # In this case we will use automasking values for long baselines
-    clean_imager = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, deltax="0.005arcsec",
+    clean_imager = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, cell="0.005arcsec",
                          stokes="I", datacolumn="corrected", robust=0.5,
                          specmode="mfs", deconvolver="hogbom", gridder="standard",
                          pbcor=True, savemodel="modelcolumn", imager_object=imager_obj,
