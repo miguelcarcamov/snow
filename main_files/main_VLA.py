@@ -20,11 +20,12 @@ if __name__ == '__main__':
     parent_selfcal = Selfcal(visfile=clean_imager.getVis(), minblperant=4, refant="VA05", spwmap=[
                              0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
 
-    solint_phs = ['128s', '64s', '32s', '16s']
+    #solint_phs = ['128s', '64s', '32s', '16s']
+    solint_phs = ['inf']
     solint_amp = ['1h']
     solint_ap = ['inf']
 
-    phscal = Phasecal(minsnr=2.0, solint=solint_phs,
+    phscal = Phasecal(minsnr=3.0, solint=solint_phs,
                       combine="spw", selfcal_object=parent_selfcal)
 
     phs_caltable = phscal.run()
@@ -34,7 +35,7 @@ if __name__ == '__main__':
 
     #amp_caltable = ampcal.run()
 
-    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
+    apcal = AmpPhasecal(minsnr=3.0, solint=solint_ap, combine="",
                         input_caltable=phs_caltable, selfcal_object=parent_selfcal)
 
     apcal.run()

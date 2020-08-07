@@ -10,7 +10,7 @@ from split import split
 
 class Selfcal(object):
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, **kwargs):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -34,7 +34,7 @@ class Selfcal(object):
 class Ampcal(Selfcal):
     def __init__(self, solint=[], selfcal_object=None, **kwargs):
         super(Ampcal, self).__init__(selfcal_object.visfile, selfcal_object.Imager, selfcal_object.refant,
-                                     selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, **kwargs)
+                                     selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, selfcal_object.interp, **kwargs)
 
         initlocals = locals()
         initlocals.pop('self')
@@ -48,13 +48,14 @@ class Ampcal(Selfcal):
         self.minblperant = selfcal_object.minblperant
         self.refant = selfcal_object.refant
         self.spwmap = selfcal_object.spwmap
+        self.interp = selfcal_object.interp
         self.want_plot = selfcal_object.want_plot
         self.imagename = self.Imager.getOutputPath()
 
     def run(self):
         caltable = ""
         for i in range(0, self.loops):
-            caltable = self.Imager.getOutputPath()+'/ampcal_' + str(i)
+            caltable = 'ampcal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
@@ -63,7 +64,7 @@ class Ampcal(Selfcal):
                               subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
+                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
             flagmanager(vis=self.visfile, mode='save',
                         versionname='after_ampcal' + str(i))
@@ -77,7 +78,7 @@ class Ampcal(Selfcal):
 class Phasecal(Selfcal):
     def __init__(self, solint=[], selfcal_object=None, **kwargs):
         super(Phasecal, self).__init__(selfcal_object.visfile, selfcal_object.Imager, selfcal_object.refant,
-                                       selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, **kwargs)
+                                       selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, selfcal_object.interp, **kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -91,6 +92,7 @@ class Phasecal(Selfcal):
         self.refant = selfcal_object.refant
         self.spwmap = selfcal_object.spwmap
         self.want_plot = selfcal_object.want_plot
+        self.interp = selfcal_object.interp
         self.imagename = self.Imager.getOutputPath()
 
     def run(self):
@@ -100,7 +102,7 @@ class Phasecal(Selfcal):
         for i in range(0, self.loops):
             imagename = self.imagename + '_ph' + str(i)
             self.Imager.run(imagename)
-            caltable = self.Imager.getOutputPath()+'/pcal' + str(i)
+            caltable = 'pcal' + str(i)
             rmtables(caltable)
 
             gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype='G', refant=self.refant,
@@ -110,7 +112,7 @@ class Phasecal(Selfcal):
                               subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
             applycal(vis=self.visfile, field=self.Imager.getField(), spwmap=self.spwmap, gaintable=[
-                     caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
+                     caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
             flagmanager(vis=self.visfile, mode='save',
                         versionname='after_' + caltable)
@@ -120,7 +122,7 @@ class Phasecal(Selfcal):
 class AmpPhasecal(Selfcal):
     def __init__(self, solint=[], selfcal_object=None, **kwargs):
         super(AmpPhasecal, self).__init__(selfcal_object.visfile, selfcal_object.Imager, selfcal_object.refant,
-                                          selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, **kwargs)
+                                          selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, selfcal_object.interp, **kwargs)
 
         initlocals = locals()
         initlocals.pop('self')
@@ -135,21 +137,23 @@ class AmpPhasecal(Selfcal):
         self.refant = selfcal_object.refant
         self.spwmap = selfcal_object.spwmap
         self.want_plot = selfcal_object.want_plot
+        self.interp = selfcal_object.interp
         self.imagename = self.Imager.getOutputPath()
 
     def run(self):
         caltable = ""
         for i in range(0, self.loops):
-            caltable = self.Imager.getOutputPath()+'/apcal_' + str(i)
+            caltable = 'apcal_' + str(i)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap,
+                    solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp='linearperobs')
+                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
             flagmanager(vis=self.visfile, mode='save',
                         versionname='after_apcal' + str(i))
