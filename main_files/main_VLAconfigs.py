@@ -42,7 +42,7 @@ if __name__ == '__main__':
                                    deconvolver="hogbom", gridder="standard", pbcor=True, savemodel="modelcolumn", interactive=True))
 
         selfcal_objects.append(Selfcal(visfile=clean_objects[i].inputvis,
-                                       imagename=clean_objects[i].output, minblperant=2, refant="VA05", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], Imager=clean_objects[i], want_plot=want_plot))
+                                       minblperant=2, refant="VA05", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], Imager=clean_objects[i], want_plot=want_plot))
 
         phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                           combine="spw", selfcal_object=selfcal_objects[i])
