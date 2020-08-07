@@ -10,14 +10,14 @@ from split import split
 
 class Selfcal(object):
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, *args, **kwargs):
-        initlocals=locals()
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, **kwargs):
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
 
-    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, *args, **kwargs):
+    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
         if want_plot:
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
                     iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange)
@@ -26,20 +26,20 @@ class Selfcal(object):
         outputvis = self.visfile + '.selfcal'
 
         if overwrite:
-            os.system('rm -rf '+outputvis)
+            os.system('rm -rf ' + outputvis)
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         return outputvis
 
 
 class Ampcal(Selfcal):
-    def __init__(self, solint=[], selfcal_object=None, *args, **kwargs):
+    def __init__(self, solint=[], selfcal_object=None, **kwargs):
         super(Ampcal, self).__init__(selfcal_object.visfile, selfcal_object.Imager, selfcal_object.refant,
-                                     selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, *args, **kwargs)
+                                     selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, **kwargs)
 
-        initlocals=locals()
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
         self.calmode = 'a'
         self.loops = len(self.solint)
@@ -50,6 +50,7 @@ class Ampcal(Selfcal):
         self.spwmap = selfcal_object.spwmap
         self.want_plot = selfcal_object.want_plot
         self.imagename = self.Imager.getOutputPath()
+
     def run(self):
         caltable = ""
         for i in range(0, self.loops):
@@ -74,13 +75,13 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, solint=[], selfcal_object=None, *args, **kwargs):
+    def __init__(self, solint=[], selfcal_object=None, **kwargs):
         super(Phasecal, self).__init__(selfcal_object.visfile, selfcal_object.Imager, selfcal_object.refant,
-                                        selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, *args, **kwargs)
-        initlocals=locals()
+                                       selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, **kwargs)
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
         self.calmode = 'p'
         self.loops = len(self.solint)
@@ -117,14 +118,14 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, solint=[], selfcal_object=None, *args, **kwargs):
+    def __init__(self, solint=[], selfcal_object=None, **kwargs):
         super(AmpPhasecal, self).__init__(selfcal_object.visfile, selfcal_object.Imager, selfcal_object.refant,
-                                            selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, *args, **kwargs)
+                                          selfcal_object.spwmap, selfcal_object.minblperant, selfcal_object.want_plot, **kwargs)
 
-        initlocals=locals()
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
-            setattr(self,a_attribute,initlocals[a_attribute])
+            setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
         self.calmode = 'ap'
         self.loops = len(self.solint)
@@ -135,6 +136,7 @@ class AmpPhasecal(Selfcal):
         self.spwmap = selfcal_object.spwmap
         self.want_plot = selfcal_object.want_plot
         self.imagename = self.Imager.getOutputPath()
+
     def run(self):
         caltable = ""
         for i in range(0, self.loops):

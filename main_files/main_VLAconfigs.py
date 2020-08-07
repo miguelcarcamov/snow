@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
         spwmap = [0] * getTableRows(vis_imaging[i] + '/SPECTRAL_WINDOW')
 
-        clean_objects.append(Clean(inputvis=vis_imaging[i], output=outputs[i], niter=100, M=1024N=1024, deltax=deltax_vector[i], stokes="I", datacolumn="corrected", robust=0.0, specmode="mfs",
+        clean_objects.append(Clean(inputvis=vis_imaging[i], output=outputs[i], niter=100, M=1024, N=1024, cell=deltax_vector[i], stokes="I", datacolumn="corrected", robust=0.0, specmode="mfs",
                                    deconvolver="hogbom", gridder="standard", pbcor=True, savemodel="modelcolumn", interactive=True))
 
         selfcal_objects.append(Selfcal(visfile=clean_objects[i].inputvis,
