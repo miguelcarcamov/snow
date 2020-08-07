@@ -15,10 +15,10 @@ if __name__ == '__main__':
     imager_objects = []
     clean_objects = []
     selfcal_objects = []
-    outputs = ["D_img", "DC_img", "DCB_img", output]
-    arrays = ["B", "C", "D"]
-    vis_imaging = []
-    vis_imaging.append(first_data)
+    outputs = [output+"/D_img", output+"/DC_img", output+"/DCBA_img"]
+    arrays = ["D", "C", "DCBA"]
+    vis_imaging = ""
+    vis_imaging.append(arrays[0])
     visnames = []
     visnames.append(first_data)
 
@@ -38,11 +38,11 @@ if __name__ == '__main__':
 
         spwmap = [0] * getTableRows(vis_imaging[i] + '/SPECTRAL_WINDOW')
 
-        clean_objects.append(Clean(inputvis=vis_imaging[i], output=outputs[i], niter=100, M=1024N=1024, deltax=deltax_vector[i], stokes="I", datacolumn="corrected", robust=0.0specmode="mfs",
-                                   deconvolver="hogbom", gridder="standard", pbcor=True, savemodel="modelcolumn", imager_object=imager_objects[i], interactive=True))
+        clean_objects.append(Clean(inputvis=vis_imaging[i], output=outputs[i], niter=100, M=1024N=1024, deltax=deltax_vector[i], stokes="I", datacolumn="corrected", robust=0.0, specmode="mfs",
+                                   deconvolver="hogbom", gridder="standard", pbcor=True, savemodel="modelcolumn", interactive=True))
 
         selfcal_objects.append(Selfcal(visfile=clean_objects[i].inputvis,
-                                       imagename=clean_objects[i].output, minblperant=2, refant="VA05", spwmap=[0, 0, 0, 0, 0, 0, 0, 0], Imager=clean_objects[i], want_plot=want_plot))
+                                       imagename=clean_objects[i].output, minblperant=4, refant="VA05", spwmap=spwmap, Imager=clean_objects[i], want_plot=want_plot))
 
         phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                           combine="spw", selfcal_object=selfcal_objects[i])
