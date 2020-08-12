@@ -1,8 +1,9 @@
 import numpy as np
-import tb as tb
+from __casac__.table import table
 
-
+tb = table()
 def getTableRows(mstable=""):
-    tb.open(mstable)
+    tb.open(tablename=mstable)
     rows = len(tb.rownumbers())
     tb.close()
+    return rows
