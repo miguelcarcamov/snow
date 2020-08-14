@@ -56,7 +56,7 @@ if __name__ == '__main__':
                                  pbcor=True, savemodel="modelcolumn", usemask='auto-multithresh', sidelobethreshold=1.25, noisethreshold=5.0,
                                  minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
 
-        parent_selfcal = Selfcal(visfile=clean_imager.getVis(), minblperant=4, refant="VA05", spwmap=spwmap, Imager=clean_imager, want_plot=want_plot)
+        parent_selfcal = Selfcal(visfile=clean_imager.getVis(), minblperant=4, refant="VA05", spwmap=spwmap, Imager=clean_imager, gaintype='G', want_plot=want_plot)
 
         phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                           combine="spw", selfcal_object=parent_selfcal)
