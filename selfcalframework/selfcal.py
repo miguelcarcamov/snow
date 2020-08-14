@@ -57,7 +57,7 @@ class Ampcal(Selfcal):
         for i in range(0, self.loops):
             caltable = 'ampcal_' + str(i)
             rmtables(caltable)
-            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
+            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='T', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
@@ -105,7 +105,7 @@ class Phasecal(Selfcal):
             caltable = 'pcal' + str(i)
             rmtables(caltable)
 
-            gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype='G', refant=self.refant,
+            gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype='T', refant=self.refant,
                     calmode=self.calmode, combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
@@ -145,7 +145,7 @@ class AmpPhasecal(Selfcal):
         for i in range(0, self.loops):
             caltable = 'apcal_' + str(i)
             rmtables(caltable)
-            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='G', refant=self.refant, calmode=self.calmode,
+            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype='T', refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap,
                     solnorm=True)
 
