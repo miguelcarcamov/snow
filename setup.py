@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
         long_description = fh.read()
 
 setup(name='selfcalframework',
-version='0.1.1',
+version='0.1.3',
 url='https://github.com/miguelcarcamov/objectoriented_selfcal',
 description='A Python object oriented framework to do self-calibration',
 author='Miguel Carcamo',
