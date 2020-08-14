@@ -52,3 +52,12 @@ class WSClean(Imager):
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(kwargs)
+
+class GPUvmem(Imager):
+    def __init (self, **kwargs):
+        super(GPUvmem, self).__unut__(**kwargs)
+        initlocals = locals()
+        initlocals.pop('self')
+        for a_attribute in initlocals.keys():
+            setattr(self, a_attribute, initlocals[a_attribute])
+        self.__dict__.update(kwargs)

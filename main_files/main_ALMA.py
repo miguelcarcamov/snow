@@ -18,7 +18,7 @@ if __name__ == '__main__':
                          pbcor=True, savemodel="modelcolumn", usemask='auto-multithresh', sidelobethreshold=3.0, noisethreshold=5.0,
                          minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
-    parent_selfcal = Selfcal(visfile=clean_imager.inputvis, minblperant=6, refant="DV03", spwmap=[0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
+    parent_selfcal = Selfcal(visfile=clean_imager.inputvis, minblperant=6, refant="DV03", spwmap=[0, 0, 0, 0], Imager=clean_imager, gaintype='T', want_plot=want_plot)
 
     #solint_phs = ['128s', '64s', '32s', '16s']
     solint_phs = ['32s', '16s']
@@ -35,9 +35,9 @@ if __name__ == '__main__':
 
     #amp_caltable = ampcal.run()
 
-    # apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
-    #                    selfcal_object=parent_selfcal, input_caltable=phs_caltable)
+    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
+                        selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
-    # apcal.run()
+    apcal.run()
 
     parent_selfcal.selfcal_output(overwrite=True)
