@@ -57,7 +57,7 @@ if __name__ == '__main__':
                                  minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
 
         shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 4, 'refant': "VA05", 'spwmap': [
-            0, 0, 0, 0] 'gaintype': 'G', 'want_plot': want_plot}
+            0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
 
         phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                           combine="spw", selfcal_object=parent_selfcal, Imager=clean_imager, **shared_vars_dict)

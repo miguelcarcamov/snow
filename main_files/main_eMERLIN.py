@@ -12,7 +12,7 @@ if __name__ == '__main__':
                          stokes="I", datacolumn="corrected", robust=0.5specmode="mfs", deconvolver="hogbom", gridder="standard",
                          pbcor=True, savemodel=True, interactive=True)
 
-    shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 2, 'refant': "Kn,Mk2,Cm,Pi,De,Da", 'spwmap': [0, 0, 0, 0, 0, 0, 0, 0] 'gaintype': 'G', 'want_plot': want_plot}
+    shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 2, 'refant': "Kn,Mk2,Cm,Pi,De,Da", 'spwmap': [0, 0, 0, 0, 0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
 
     solint_phs = ['128s', '64s', '32s', '16s']
     solint_amp = ['1h']

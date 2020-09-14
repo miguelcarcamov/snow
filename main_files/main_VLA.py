@@ -18,7 +18,7 @@ if __name__ == '__main__':
                          minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
 
     shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 4, 'refant': "VA05", 'spwmap': [
-        0, 0, 0, 0] 'gaintype': 'G', 'want_plot': want_plot}
+        0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
 
     #solint_phs = ['128s', '64s', '32s', '16s']
     solint_phs = ['inf']
