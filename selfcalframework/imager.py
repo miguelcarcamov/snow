@@ -10,7 +10,7 @@ class Imager(object):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(kwargs)
+        self.__dict__.update(**kwargs)
 
     def getField(self):
         return self.field
@@ -27,13 +27,13 @@ class Imager(object):
 
 class Clean(Imager):
     def __init__(self, nterms=1, threshold=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
-                 sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", scales=[], pbcor=False, clean_savemodel = None, **kwargs):
+                 sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", scales=[], pbcor=False, cycleniter=-1, savemodel=True, clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(kwargs)
+        self.__dict__.update(**kwargs)
 
         if(self.savemodel):
             self.clean_savemodel = "modelcolumn"
@@ -46,7 +46,7 @@ class Clean(Imager):
                imsize=imsize, cell=self.cell, weighting="briggs", robust=self.robust, niter=self.niter, threshold=self.threshold,
                interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, savemodel=self.clean_savemodel, usemask=self.usemask,
                negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
-               sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, verbose=self.verbose)
+               sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
 
 class WSClean(Imager):
     def __init__(self, **kwargs):
@@ -55,7 +55,7 @@ class WSClean(Imager):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(kwargs)
+        self.__dict__.update(**kwargs)
 
 
 class GPUvmem(Imager):
@@ -65,4 +65,4 @@ class GPUvmem(Imager):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(kwargs)
+        self.__dict__.update(**kwargs)

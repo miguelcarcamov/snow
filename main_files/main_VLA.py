@@ -26,7 +26,7 @@ if __name__ == '__main__':
     solint_ap = ['inf']
 
     phscal = Phasecal(minsnr=3.0, solint=solint_phs,
-                      combine="spw", selfcal_object=parent_selfcal, Imager=clean_imager, **shared_vars_dict)
+                      combine="spw", Imager=clean_imager, **shared_vars_dict)
 
     phs_caltable = phscal.run()
 

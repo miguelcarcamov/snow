@@ -17,7 +17,7 @@ if __name__ == '__main__':
     imager_objects = []
     clean_objects = []
     selfcal_objects = []
-    outputs = [output+"/D_img", output+"/DC_img", output+"/DCBA_img"]
+    outputs = [output + "/D_img", output + "/DC_img", output + "/DCBA_img"]
     configs = ["D", "C", "BA"]
     visnames = []
     visnames.append(visfiles[0])
@@ -40,39 +40,39 @@ if __name__ == '__main__':
     for i in range(0, len(visfiles)):
 
         if(i > 0):
-            concatname += "+" +configs[i]
+            concatname += "+" + configs[i]
             visnames.append(concatname + ".ms")
             concatvis.append(visfiles[i])
             print("Selfcal is going to concat: ", concatvis)
             concat(concatvis=visnames[i], vis=concatvis)
-            concatvis=[]
+            concatvis = []
             concatvis.append(visnames[i])
         print("Concat name:", concatname)
         print("Visnames: ", visnames)
         spwmap = [0] * getTableRows(visnames[i] + '/SPECTRAL_WINDOW')
 
         clean_imager = Clean(inputvis=visnames[i], output=outputs[i], niter=100, M=1024, N=1024, cell=deltax_vector[i], stokes="I", datacolumn="corrected",
-                                 robust=0.5, specmode="mfs", deconvolver="hogbom", gridder="standard",
-                                 pbcor=True, savemodel=True, usemask='auto-multithresh', sidelobethreshold=1.25, noisethreshold=5.0,
-                                 minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
+                             robust=0.5, specmode="mfs", deconvolver="hogbom", gridder="standard",
+                             pbcor=True, savemodel=True, usemask='auto-multithresh', sidelobethreshold=1.25, noisethreshold=5.0,
+                             minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
 
         shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 4, 'refant': "VA05", 'spwmap': [
             0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
 
         phscal = Phasecal(minsnr=2.0, solint=solint_phs,
-                          combine="spw", selfcal_object=parent_selfcal, Imager=clean_imager, **shared_vars_dict)
+                          combine="spw", Imager=clean_imager, **shared_vars_dict)
 
         phs_caltable = phscal.run()
 
-        #ampcal=Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
+        # ampcal=Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
         #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
-        #amp_caltable=ampcal.run()
+        # amp_caltable=ampcal.run()
 
         apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
-                            selfcal_object=parent_selfcal, input_caltable=phs_caltable, Imager=clean_imager, **shared_vars_dict)
+                            input_caltable=phs_caltable, Imager=clean_imager, **shared_vars_dict)
 
         apcal.run()
 
-        if(i == len(visfiles)-1):
+        if(i == len(visfiles) - 1):
             apcal.selfcal_output(overwrite=True)
