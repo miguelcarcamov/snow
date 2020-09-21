@@ -63,44 +63,43 @@ if __name__ == '__main__':
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
 
-    # Create your clean object with the arguments that tclean would receive
-    # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/        Automasking_Guide
-    # The default clean object will use automasking values for short baselines
-    # In this case we will use automasking values for long baselines
-    clean_imager = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, deltax="0.2arcsec", stokes="I", datacolumn="corrected",
-                         robust=0.5, specmode="mfs", deconvolver="hogbom", gridder="standard",
-                         pbcor=True, savemodel="modelcolumn", usemask='auto-multithresh', sidelobethreshold=1.25, noisethreshold=5.0,
-                         minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
+    # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
+      # The default clean object will use automasking values for short baselines
+      # In this case we will use automasking values for long baselines
+      clean_imager_phs = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, cell="0.005arcsec",
+                               stokes="I", datacolumn="corrected", robust=0.5,
+                               specmode="mfs", deconvolver="hogbom", gridder="standard",
+                               savemodel=True, usemask='auto-multithresh', threshold="0.1mJy", sidelobethreshold=3.0, noisethreshold=5.0,
+                               minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
-    # Here you will create a parent selfcal object which receives the shared arguments between different kind of self-calibrations
-    parent_selfcal = Selfcal(visfile=clean_imager.getVis(), minblperant=2, refant="VA05", spwmap=[
-                             0, 0, 0, 0], Imager=clean_imager, want_plot=want_plot)
+      clean_imager_ampphs = Clean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, cell="0.005arcsec",
+                                  stokes="I", datacolumn="corrected", robust=0.5,
+                                  specmode="mfs", deconvolver="hogbom", gridder="standard",
+                                  savemodel=True, usemask='auto-multithresh', threshold="0.025mJy", sidelobethreshold=3.0, noisethreshold=5.0,
+                                  minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
-    # Declare your solution intervals, in this case we will not do an amplitude self-calibration so that lines are commented.
-    solint_phs = ['128s', '64s', '32s', '16s']
-    # solint_amp = ['1h']
-    solint_ap = ['inf']
+      shared_vars_dict = {'visfile': visfile, 'minblperant': 6, 'refant': "DA51", 'spwmap': [
+          0, 0, 0, 0], 'gaintype': 'T', 'want_plot': want_plot}
 
-    # Create child objects that inherit variables and methods from the parent
-    # Create a child phasecal object and run it
-    phscal = Phasecal(minsnr=2.0, solint=solint_phs,
-                      combine="spw", selfcal_object=parent_selfcal)
+      #solint_phs = ['128s', '64s', '32s', '16s']
+      solint_phs = ['600s', 'inf']
+      #solint_amp = ['1h']
+      solint_ap = ['inf']
 
-    phs_caltable = phscal.run()
+      phscal = Phasecal(minsnr=3.0, solint=solint_phs, combine="spw", Imager=clean_imager_phs, **shared_vars_dict)
 
-    # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
-    #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
+      phscal.run()
 
-    #amp_caltable = ampcal.run()
+      # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
+      #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
 
-    # Create another child, but in this case will be an amplitude-phasecal object
-    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
-                        input_caltable=phs_caltable, selfcal_object=parent_selfcal)
+      #amp_caltable = ampcal.run()
 
-    apcal.run()
+      apcal = AmpPhasecal(minsnr=3.0, solint=solint_ap, combine="", selfcal_object=phscal, Imager=clean_imager_ampphs, **shared_vars_dict)
 
-    # The parent selfcal object outputs your selfcal measurement set
-    parent_selfcal.selfcal_output(overwrite=True)
+      apcal.run()
+
+      apcal.selfcal_output(overwrite=True)
 ```
 
-Then you can simply run the main script using `casa -c yourscript.py`
+Then you can simply run the main script using `casa -c yourscript.py <arguments>`

@@ -29,9 +29,9 @@ if __name__ == '__main__':
         0, 0, 0, 0], 'gaintype': 'T', 'want_plot': want_plot}
 
     #solint_phs = ['128s', '64s', '32s', '16s']
-    solint_phs = ['32s', '16s']
+    solint_phs = ['600s', 'inf']
     #solint_amp = ['1h']
-    solint_ap = ['32s']
+    solint_ap = ['inf']
 
     phscal = Phasecal(minsnr=3.0, solint=solint_phs, combine="spw", Imager=clean_imager_phs, **shared_vars_dict)
 
