@@ -42,10 +42,8 @@ class Imager(object):
             signal_fits_name, residual_fits_name, stdv_pixels)
 
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=80):
-        exportMStoFITS(msname=signal_ms_name)
-        exportMStoFITS(msname=residual_ms_name)
-        self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
-            signal_fits_name, residual_fits_name, stdv_pixels)
+        self.psnr, self.peak, self.stdv = calculatePSNR_MS(
+            signal_ms_name, residual_ms_name, stdv_pixels)
 
 
 class Clean(Imager):
@@ -71,13 +69,14 @@ class Clean(Imager):
                sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
 
         if(self.deconvolver != "mtmfs"):
-           restored_image = imagename + ".image"
-           residual_image = imagename + ".residual"
+            restored_image = imagename + ".image"
+            residual_image = imagename + ".residual"
         else:
-           restored_image = imagename + ".image.tt0"
-           residual_image = imagename + ".residual.tt0"
+            restored_image = imagename + ".image.tt0"
+            residual_image = imagename + ".residual.tt0"
 
-        self.calculateStatistics_MSImage(signal_ms_name=restored_image, residual_ms_name=residual_image)
+        self.calculateStatistics_MSImage(
+            signal_ms_name=restored_image, residual_ms_name=residual_image)
 
 
 class WSClean(Imager):
