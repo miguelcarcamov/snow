@@ -5,7 +5,7 @@ import numpy as np
 
 
 def get_data(fits_name=""):
-    image_data = fits.getdata(name)
+    image_data = fits.getdata(fits_name)
     image_data = np.nan_to_num(image_data)
     return image_data.squeeze()
 
