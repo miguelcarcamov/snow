@@ -28,7 +28,7 @@ if __name__ == '__main__':
     phscal = Phasecal(minsnr=3.0, solint=solint_phs,
                       combine="spw", Imager=clean_imager, **shared_vars_dict)
 
-    phs_caltable = phscal.run()
+    phscal.run()
 
     # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
     #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     #amp_caltable = ampcal.run()
 
     apcal = AmpPhasecal(minsnr=3.0, solint=solint_ap, combine="",
-                        input_caltable=phs_caltable, Imager=clean_imager, **shared_vars_dict)
+                        selfcal_object=phscal, Imager=clean_imager, **shared_vars_dict)
 
     apcal.run()
 
