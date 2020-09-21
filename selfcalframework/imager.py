@@ -38,17 +38,18 @@ class Imager(object):
         return self.stdv
 
     def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=80):
-        self.psnr, self.peak, self.stdv = calculatePSNR_FITS(signal_fits_name, residual_fits_name, stdv_pixels)
-
+        self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+            signal_fits_name, residual_fits_name, stdv_pixels)
 
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=80):
         exportMStoFITS(msname=signal_ms_name)
         exportMStoFITS(msname=residual_ms_name)
-        self.psnr, self.peak, self.stdv = calculatePSNR_FITS(signal_fits_name, residual_fits_name, stdv_pixels)
+        self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+            signal_fits_name, residual_fits_name, stdv_pixels)
 
 
 class Clean(Imager):
-    def __init__(self, nterms=1, threshold=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
+    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", scales=[], pbcor=False, cycleniter=-1, savemodel=True, clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
         initlocals = locals()
@@ -64,11 +65,11 @@ class Clean(Imager):
         imsize = [self.M, self.N]
         tclean(vis=self.inputvis, imagename=imagename, field=self.field,
                datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, scales=self.scales, nterms=self.nterms,
-               imsize=imsize, cell=self.cell, weighting="briggs", robust=self.robust, niter=self.niter, threshold=self.threshold,
+               imsize=imsize, cell=self.cell, weighting="briggs", robust=self.robust, niter=self.niter, threshold=self.threshold, nsigma=self.nsigma,
                interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, savemodel=self.clean_savemodel, usemask=self.usemask,
                negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
                sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
-       if(deconvolver="hogbom"):
+       if(self.deconvolver!="mtmfs"):
            restored_image = imagename + ".image"
            residual_image = imagename + ".residual"
        else:
