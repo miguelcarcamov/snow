@@ -69,10 +69,11 @@ class Clean(Imager):
                interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, savemodel=self.clean_savemodel, usemask=self.usemask,
                negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
                sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
-       if(self.deconvolver!="mtmfs"):
+
+        if(self.deconvolver != "mtmfs"):
            restored_image = imagename + ".image"
            residual_image = imagename + ".residual"
-       else:
+        else:
            restored_image = imagename + ".image.tt0"
            residual_image = imagename + ".residual.tt0"
 
