@@ -75,7 +75,7 @@ class Selfcal(object):
 
 
 class Ampcal(Selfcal):
-    def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], **kwargs):
+    def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -84,7 +84,7 @@ class Ampcal(Selfcal):
         self.__dict__.update(**kwargs)
 
         super(Ampcal, self).__init__(visfile, Imager, refant, spwmap,
-                                     minblperant, want_plot, interp, gaintype, **kwargs)
+                                     minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
         self.calmode = 'a'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
@@ -138,7 +138,7 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], **kwargs):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -146,7 +146,7 @@ class Phasecal(Selfcal):
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
         super(Phasecal, self).__init__(visfile, Imager, refant, spwmap,
-                                       minblperant, want_plot, interp, gaintype, **kwargs)
+                                       minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
 
         self.calmode = 'p'
         self.loops = len(self.solint)
@@ -191,7 +191,7 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], **kwargs):
+    def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -199,7 +199,7 @@ class AmpPhasecal(Selfcal):
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
         super(AmpPhasecal, self).__init__(visfile, Imager, refant,
-                                          spwmap, minblperant, want_plot, interp, gaintype, **kwargs)
+                                          spwmap, minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
 
         self.calmode = 'ap'
         self.loops = len(self.solint)
