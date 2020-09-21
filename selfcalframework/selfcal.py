@@ -120,8 +120,8 @@ class Ampcal(Selfcal):
 
             self.psnr_history.append(self.Imager.getPSNR())
 
-            print("Solint: " + self.solint[i] +
-                  " - PSNR: " + self.psnr_history[i])
+            print("Solint: " + str(self.solint[i]) +
+                  " - PSNR: " + str(self.psnr_history[i]))
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
@@ -160,8 +160,8 @@ class Phasecal(Selfcal):
             imagename = self.imagename + '_ph' + str(i)
             self.Imager.run(imagename)
             self.psnr_history.append(self.Imager.getPSNR())
-            print("Solint: " + self.solint[i] +
-                  " - PSNR: " + self.psnr_history[i])
+            print("Solint: " + str(self.solint[i]) +
+                  " - PSNR: " + str(self.psnr_history[i]))
 
             if(self.restore_PSNR):
                 if(i > 0):
@@ -237,8 +237,8 @@ class AmpPhasecal(Selfcal):
 
             self.Imager.run(imagename)
             self.psnr_history.append(self.Imager.getPSNR())
-            print("Solint: " + self.solint[i] +
-                  " - PSNR: " + self.psnr_history[i])
+            print("Solint: " + str(self.solint[i]) +
+                  " - PSNR: " + str(self.psnr_history[i]))
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
