@@ -55,6 +55,11 @@ class Selfcal(object):
         clearcal(self.visfile)
         delmod(self.visfile, otf=True)
 
+    def restore_selfcal(self, caltable_version=""):
+        flagmanager(vis=self.visfile, mode='restore',
+                    versionname=caltable_version)
+        delmod(self.visfile, otf=True)
+
     def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
         if want_plot:
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
@@ -120,13 +125,13 @@ class Ampcal(Selfcal):
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
-                        self.reset_selfcal(
+                        self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
                         sys.exit(
                             "PSNR decreasing in this solution interval - restoring to last MS")
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
-                        self.reset_selfcal(
+                        self.restore_selfcal(
                             caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
                         sys.exit(
                             "PSNR decreasing in this solution interval - restoring to last MS")
@@ -161,7 +166,7 @@ class Phasecal(Selfcal):
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
-                        self.reset_selfcal(
+                        self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
                         sys.exit(
                             "PSNR decreasing in this solution interval - restoring to last MS")
@@ -237,13 +242,13 @@ class AmpPhasecal(Selfcal):
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
-                        self.reset_selfcal(
+                        self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
                         sys.exit(
                             "PSNR decreasing in this solution interval - restoring to last MS")
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
-                        self.reset_selfcal(
+                        self.restore_selfcal(
                             caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
                         sys.exit(
                             "PSNR decreasing in this solution interval - restoring to last MS")
