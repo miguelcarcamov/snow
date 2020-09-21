@@ -77,7 +77,7 @@ class Clean(Imager):
            restored_image = imagename + ".image.tt0"
            residual_image = imagename + ".residual.tt0"
 
-       calculateStatistics_MSImage(signal_ms_name=restored_image, residual_ms_name=residual_image)
+        calculateStatistics_MSImage(signal_ms_name=restored_image, residual_ms_name=residual_image)
 
 
 class WSClean(Imager):
