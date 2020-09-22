@@ -94,6 +94,12 @@ class Ampcal(Selfcal):
             sys.exit(
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object")
 
+        if not self.selfcal_object.getCaltables():
+            print("Error, Ampcal needs a non-empty list of caltables")
+            sys.exit(
+                "Error, Amplitude self-cal objects cannot run with an empty caltable list")
+
+
     def run(self):
         caltable = ""
         input_caltable = self.selfcal_object.getCaltables()[-1]
@@ -127,14 +133,22 @@ class Ampcal(Selfcal):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
                         self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
-                        sys.exit(
-                            "PSNR decreasing in this solution interval - restoring to last MS")
+                        self.psnr_history.pop()
+                        self.caltables_versions.pop()
+                        self.caltables.pop()
+                        print(
+                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                        break;
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
                         self.restore_selfcal(
                             caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
-                        sys.exit(
-                            "PSNR decreasing in this solution interval - restoring to last MS")
+                        self.psnr_history.pop()
+                        self.caltables_versions.pop()
+                        self.caltables.pop()
+                        print(
+                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                        break;
 
 
 class Phasecal(Selfcal):
@@ -153,9 +167,10 @@ class Phasecal(Selfcal):
         self.imagename = self.Imager.getOutputPath()
 
     def run(self):
-        caltable = ""
+        caltable = "before_selfcal"
         flagmanager(vis=self.visfile, mode='save',
-                    versionname="before_selfcal")
+                    versionname=caltable)
+        self.caltables_versions.append(caltable)
         for i in range(0, self.loops):
             imagename = self.imagename + '_ph' + str(i)
             self.Imager.run(imagename)
@@ -168,8 +183,10 @@ class Phasecal(Selfcal):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
                         self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
-                        sys.exit(
-                            "PSNR decreasing in this solution interval - restoring to last MS")
+                        self.psnr_history.pop()
+                        print(
+                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                        break;
 
             caltable = 'pcal' + str(i)
             self.caltables.append(caltable)
@@ -210,6 +227,11 @@ class AmpPhasecal(Selfcal):
             sys.exit(
                 "Error, Amplitude-phase self-cal objects cannot run without a phase-cal/amplitude-cal object")
 
+        if not self.selfcal_object.getCaltables():
+            print("Error, Ampcal needs a non-empty list of caltables")
+            sys.exit(
+                "Error, Amplitude self-cal objects cannot run with an empty caltable list")
+                
     def run(self):
         caltable = ""
         input_caltable = self.selfcal_object.getCaltables()[-1]
@@ -244,11 +266,19 @@ class AmpPhasecal(Selfcal):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
                         self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
-                        sys.exit(
-                            "PSNR decreasing in this solution interval - restoring to last MS")
+                        self.psnr_history.pop()
+                        self.caltables_versions.pop()
+                        self.caltables.pop()
+                        print(
+                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                        break;
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
                         self.restore_selfcal(
                             caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
-                        sys.exit(
-                            "PSNR decreasing in this solution interval - restoring to last MS")
+                        self.psnr_history.pop()
+                        self.caltables_versions.pop()
+                        self.caltables.pop()
+                        print(
+                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                        break;
