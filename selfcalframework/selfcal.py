@@ -60,11 +60,14 @@ class Selfcal(object):
                     versionname=caltable_version)
         delmod(self.visfile, otf=True)
 
-    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], showgui=True, want_plot=False, **kwargs):
+    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
+        figfile_name = caltable + ".png"
         if want_plot:
-            figfile_name = caltable + ".png"
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
                     iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=showgui)
+        else:
+            plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
+                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=False)
 
     def selfcal_output(self, overwrite=False):
         outputvis = self.visfile + '.selfcal'
