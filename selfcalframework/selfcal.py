@@ -137,7 +137,7 @@ class Ampcal(Selfcal):
                         self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break;
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
@@ -147,7 +147,7 @@ class Ampcal(Selfcal):
                         self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break;
 
 
@@ -211,7 +211,7 @@ class Phasecal(Selfcal):
                     self.caltables_versions.pop()
                     self.caltables.pop()
                     print(
-                        "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                        "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                     break;
 
 
@@ -280,7 +280,7 @@ class AmpPhasecal(Selfcal):
                         self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break;
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
@@ -290,5 +290,5 @@ class AmpPhasecal(Selfcal):
                         self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break;
