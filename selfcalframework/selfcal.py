@@ -173,7 +173,7 @@ class Phasecal(Selfcal):
         self.caltables_versions.append(caltable)
         imagename = self.imagename + 'original'
         self.Imager.run(imagename)
-        print("Original: - PSNR: " + str(self.Imager.getPSNR())
+        print("Original: - PSNR: " + str(self.Imager.getPSNR()))
         print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
         self.psnr_history.append(self.Imager.getPSNR())
 
