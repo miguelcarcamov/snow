@@ -99,7 +99,6 @@ class Ampcal(Selfcal):
             sys.exit(
                 "Error, Amplitude self-cal objects cannot run with an empty caltable list")
 
-
     def run(self):
         caltable = ""
         input_caltable = self.selfcal_object.getCaltables()[-1]
@@ -128,6 +127,7 @@ class Ampcal(Selfcal):
 
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
+            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
@@ -171,24 +171,14 @@ class Phasecal(Selfcal):
         flagmanager(vis=self.visfile, mode='save',
                     versionname=caltable)
         self.caltables_versions.append(caltable)
+        imagename = self.imagename + 'original'
+        self.Imager.run(imagename)
+        print("Original: - PSNR: " + str(self.Imager.getPSNR())
+        print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+        self.psnr_history.append(self.Imager.getPSNR())
+
         for i in range(0, self.loops):
-            imagename = self.imagename + '_ph' + str(i)
-            self.Imager.run(imagename)
-            self.psnr_history.append(self.Imager.getPSNR())
-            print("Solint: " + str(self.solint[i]) +
-                  " - PSNR: " + str(self.psnr_history[i]))
-
-            if(self.restore_PSNR):
-                if(i > 0):
-                    if(self.psnr_history[i] < self.psnr_history[i - 1]):
-                        self.restore_selfcal(
-                            caltable_version=self.caltables_versions[i - 1])
-                        self.psnr_history.pop()
-                        print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
-                        break;
-
-            caltable = 'pcal' + str(i)
+            caltable='pcal' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
 
@@ -198,7 +188,7 @@ class Phasecal(Selfcal):
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
                               subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
-            versionname = 'before_phasecal_' + str(i)
+            versionname='before_phasecal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
                         versionname=versionname)
             self.caltables_versions.append(versionname)
@@ -206,11 +196,30 @@ class Phasecal(Selfcal):
             applycal(vis=self.visfile, field=self.Imager.getField(), spwmap=self.spwmap, gaintable=[
                      caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
+            imagename=self.imagename + '_ph' + str(i)
+
+            self.Imager.run(imagename)
+            self.psnr_history.append(self.Imager.getPSNR())
+            print("Solint: " + str(self.solint[i]) +
+                  " - PSNR: " + str(self.psnr_history[i]))
+            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            if(self.restore_PSNR):
+                if(self.psnr_history[i+1] < self.psnr_history[i]):
+                    self.restore_selfcal(
+                        caltable_version=self.caltables_versions[i])
+                    self.psnr_history.pop()
+                    self.caltables_versions.pop()
+                    self.caltables.pop()
+                    print(
+                        "PSNR decreasing in this solution interval - restoring to last MS and exitting loop")
+                    break;
+
+
 
 class AmpPhasecal(Selfcal):
     def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
-        initlocals = locals()
+        initlocals=locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
@@ -218,9 +227,9 @@ class AmpPhasecal(Selfcal):
         super(AmpPhasecal, self).__init__(visfile, Imager, refant,
                                           spwmap, minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
 
-        self.calmode = 'ap'
-        self.loops = len(self.solint)
-        self.imagename = self.Imager.getOutputPath()
+        self.calmode='ap'
+        self.loops=len(self.solint)
+        self.imagename=self.Imager.getOutputPath()
 
         if(self.selfcal_object == None):
             print("Error, Self-cal object is Nonetype")
@@ -231,12 +240,12 @@ class AmpPhasecal(Selfcal):
             print("Error, Ampcal needs a non-empty list of caltables")
             sys.exit(
                 "Error, Amplitude self-cal objects cannot run with an empty caltable list")
-                
+
     def run(self):
-        caltable = ""
-        input_caltable = self.selfcal_object.getCaltables()[-1]
+        caltable=""
+        input_caltable=self.selfcal_object.getCaltables()[-1]
         for i in range(0, self.loops):
-            caltable = 'apcal_' + str(i)
+            caltable='apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
@@ -247,7 +256,7 @@ class AmpPhasecal(Selfcal):
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
-            versionname = 'before_apcal_' + str(i)
+            versionname='before_apcal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
                         versionname=versionname)
             self.caltables_versions.append(versionname)
@@ -255,12 +264,13 @@ class AmpPhasecal(Selfcal):
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
-            imagename = self.imagename + '_ap' + str(i)
+            imagename=self.imagename + '_ap' + str(i)
 
             self.Imager.run(imagename)
             self.psnr_history.append(self.Imager.getPSNR())
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
+            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             if(self.restore_PSNR):
                 if(i > 0):
                     if(self.psnr_history[i] < self.psnr_history[i - 1]):
