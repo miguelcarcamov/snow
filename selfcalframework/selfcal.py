@@ -47,7 +47,7 @@ class Selfcal(object):
         return self.caltables_versions
 
     def getPSNRHistory(self):
-        return psnr_history
+        return self.psnr_history
 
     def reset_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore',
