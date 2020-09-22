@@ -107,7 +107,7 @@ class Ampcal(Selfcal):
             self.caltables.append(caltable)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
@@ -243,14 +243,14 @@ class AmpPhasecal(Selfcal):
 
     def run(self):
         caltable=""
-        input_caltable=self.selfcal_object.getCaltables()[-1]
+        input_caltable = self.selfcal_object.getCaltables()[-1]
         for i in range(0, self.loops):
             caltable='apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[
-                        i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap,
+                        i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=input_caltable, spwmap=self.spwmap,
                     solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
