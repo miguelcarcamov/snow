@@ -201,7 +201,7 @@ class Phasecal(Selfcal):
 
             self.Imager.run(imagename)
             self.psnr_history.append(self.Imager.getPSNR())
-            print("Solint: " + str(self.solint[-1]) +
+            print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             if(self.restore_PSNR):
