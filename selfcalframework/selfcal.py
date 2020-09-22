@@ -175,7 +175,7 @@ class Phasecal(Selfcal):
         flagmanager(vis=self.visfile, mode='save',
                     versionname=caltable)
         self.caltables_versions.append(caltable)
-        imagename = self.imagename + 'original'
+        imagename = self.imagename + '_original'
         self.Imager.run(imagename)
         print("Original: - PSNR: " + str(self.Imager.getPSNR()))
         print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
