@@ -60,10 +60,11 @@ class Selfcal(object):
                     versionname=caltable_version)
         delmod(self.visfile, otf=True)
 
-    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
+    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], showgui=True, want_plot=False, **kwargs):
         if want_plot:
+            figfile_name = caltable + ".png"
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
-                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange)
+                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=showgui)
 
     def selfcal_output(self, overwrite=False):
         outputvis = self.visfile + '.selfcal'
@@ -138,7 +139,7 @@ class Ampcal(Selfcal):
                         self.caltables.pop()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                        break;
+                        break
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
                         self.restore_selfcal(
@@ -148,7 +149,7 @@ class Ampcal(Selfcal):
                         self.caltables.pop()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                        break;
+                        break
 
 
 class Phasecal(Selfcal):
@@ -178,7 +179,7 @@ class Phasecal(Selfcal):
         self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
-            caltable='pcal' + str(i)
+            caltable = 'pcal' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
 
@@ -188,7 +189,7 @@ class Phasecal(Selfcal):
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
                               subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
-            versionname='before_phasecal_' + str(i)
+            versionname = 'before_phasecal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
                         versionname=versionname)
             self.caltables_versions.append(versionname)
@@ -196,7 +197,7 @@ class Phasecal(Selfcal):
             applycal(vis=self.visfile, field=self.Imager.getField(), spwmap=self.spwmap, gaintable=[
                      caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
-            imagename=self.imagename + '_ph' + str(i)
+            imagename = self.imagename + '_ph' + str(i)
 
             self.Imager.run(imagename)
             self.psnr_history.append(self.Imager.getPSNR())
@@ -212,14 +213,13 @@ class Phasecal(Selfcal):
                     self.caltables.pop()
                     print(
                         "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                    break;
-
+                    break
 
 
 class AmpPhasecal(Selfcal):
     def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
-        initlocals=locals()
+        initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
@@ -227,9 +227,9 @@ class AmpPhasecal(Selfcal):
         super(AmpPhasecal, self).__init__(visfile, Imager, refant,
                                           spwmap, minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
 
-        self.calmode='ap'
-        self.loops=len(self.solint)
-        self.imagename=self.Imager.getOutputPath()
+        self.calmode = 'ap'
+        self.loops = len(self.solint)
+        self.imagename = self.Imager.getOutputPath()
 
         if(self.selfcal_object == None):
             print("Error, Self-cal object is Nonetype")
@@ -242,10 +242,10 @@ class AmpPhasecal(Selfcal):
                 "Error, Amplitude self-cal objects cannot run with an empty caltable list")
 
     def run(self):
-        caltable=""
+        caltable = ""
         input_caltable = self.selfcal_object.getCaltables()[-1]
         for i in range(0, self.loops):
-            caltable='apcal_' + str(i)
+            caltable = 'apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
@@ -256,7 +256,7 @@ class AmpPhasecal(Selfcal):
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
-            versionname='before_apcal_' + str(i)
+            versionname = 'before_apcal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
                         versionname=versionname)
             self.caltables_versions.append(versionname)
@@ -264,7 +264,7 @@ class AmpPhasecal(Selfcal):
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
-            imagename=self.imagename + '_ap' + str(i)
+            imagename = self.imagename + '_ap' + str(i)
 
             self.Imager.run(imagename)
             self.psnr_history.append(self.Imager.getPSNR())
@@ -281,7 +281,7 @@ class AmpPhasecal(Selfcal):
                         self.caltables.pop()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                        break;
+                        break
                 else:
                     if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
                         self.restore_selfcal(
@@ -291,4 +291,4 @@ class AmpPhasecal(Selfcal):
                         self.caltables.pop()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                        break;
+                        break
