@@ -3,9 +3,10 @@ import os
 import time
 from tclean import tclean
 from image_utils import *
+import abc
 
 
-class Imager(object):
+class Imager(abc.ABC):
     def __init__(self, robust=2.0, field="", spw="", savemodel=True, verbose=True, **kwargs):
         self.psnr = 0.0
         self.peak = 0.0
@@ -44,6 +45,10 @@ class Imager(object):
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=80):
         self.psnr, self.peak, self.stdv = calculatePSNR_MS(
             signal_ms_name, residual_ms_name, stdv_pixels)
+
+    @abc.abstractmethod
+    def run(self, imagename=""):
+        return
 
 
 class Clean(Imager):

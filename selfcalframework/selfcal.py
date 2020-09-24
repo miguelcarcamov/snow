@@ -9,9 +9,9 @@ from delmod import delmod
 from plotcal import plotcal
 from applycal import applycal
 from split import split
+import abc
 
-
-class Selfcal(object):
+class Selfcal(abc.ABC):
 
     def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, **kwargs):
         initlocals = locals()
@@ -76,6 +76,10 @@ class Selfcal(object):
             os.system('rm -rf ' + outputvis)
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         return outputvis
+
+    @abc.abstractmethod
+    def run(self):
+        return
 
 
 class Ampcal(Selfcal):
