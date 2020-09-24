@@ -3,10 +3,11 @@ import os
 import time
 from tclean import tclean
 from image_utils import *
-from abc import ABCMeta
+import abc
 
 
-class Imager(metaclass=ABCMeta):
+class Imager(object):
+    __metaclass__ = abc.ABCMeta
     def __init__(self, robust=2.0, field="", spw="", savemodel=True, verbose=True, **kwargs):
         self.psnr = 0.0
         self.peak = 0.0
@@ -46,7 +47,7 @@ class Imager(metaclass=ABCMeta):
         self.psnr, self.peak, self.stdv = calculatePSNR_MS(
             signal_ms_name, residual_ms_name, stdv_pixels)
 
-    @abstractmethod
+    @abc.abstractmethod
     def run(self, imagename=""):
         return
 

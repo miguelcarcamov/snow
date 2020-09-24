@@ -9,10 +9,10 @@ from delmod import delmod
 from plotcal import plotcal
 from applycal import applycal
 from split import split
-from abc import ABCMeta
+import abc
 
-class Selfcal(metaclass=ABCMeta):
-
+class Selfcal(object):
+    __metaclass__ = abc.ABCMeta
     def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
@@ -77,7 +77,7 @@ class Selfcal(metaclass=ABCMeta):
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         return outputvis
 
-    @abstractmethod
+    @abc.abstractmethod
     def run(self):
         return
 
