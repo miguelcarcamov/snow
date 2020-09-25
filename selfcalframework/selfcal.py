@@ -64,7 +64,7 @@ class Selfcal(object):
         figfile_name = caltable + ".png"
         if want_plot:
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
-                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=showgui)
+                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=True)
         else:
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
                     iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=False)
