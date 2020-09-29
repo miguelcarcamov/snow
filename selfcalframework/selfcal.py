@@ -155,15 +155,16 @@ class Ampcal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
                 else:
-                    if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
-                        self.restore_selfcal(
-                            caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
-                        self.psnr_history.pop()
-                        self.caltables_versions.pop()
-                        self.caltables.pop()
-                        print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                        break
+                    if(self.selfcal_object):
+                        if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
+                            self.restore_selfcal(
+                                caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
+                            self.psnr_history.pop()
+                            self.caltables_versions.pop()
+                            self.caltables.pop()
+                            print(
+                                "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
+                            break
 
 
 class Phasecal(Selfcal):
@@ -302,12 +303,13 @@ class AmpPhasecal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
                 else:
-                    if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
-                        self.restore_selfcal(
-                            caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
-                        self.psnr_history.pop()
-                        self.caltables_versions.pop()
-                        self.caltables.pop()
-                        print(
-                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
-                        break
+                    if(self.selfcal_object):
+                        if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
+                            self.restore_selfcal(
+                                caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
+                            self.psnr_history.pop()
+                            self.caltables_versions.pop()
+                            self.caltables.pop()
+                            print(
+                                "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
+                            break
