@@ -11,8 +11,10 @@ from applycal import applycal
 from split import split
 import abc
 
+
 class Selfcal(object):
     __metaclass__ = abc.ABCMeta
+
     def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
@@ -83,7 +85,7 @@ class Selfcal(object):
 
 
 class Ampcal(Selfcal):
-    def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
+    def __init__(self, visfile="", Imager=None, selfcal_object=None, input_caltable="", refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -97,25 +99,29 @@ class Ampcal(Selfcal):
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
 
-        if(self.selfcal_object == None):
-            print("Error, Self-cal object is Nonetype")
+        if(self.selfcal_object == None and self.input_caltable == ""):
+            print(
+                "Error, Self-cal object is Nonetype and input_caltable is an empty string")
             sys.exit(
-                "Error, Amplitude self-cal objects cannot run without an phase-cal object")
-
-        if not self.selfcal_object.getCaltables():
-            print("Error, Ampcal needs a non-empty list of caltables")
-            sys.exit(
-                "Error, Amplitude self-cal objects cannot run with an empty caltable list")
+                "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
+        else:
+            if(self.selfcal_object.getCaltables()):
+                self.input_caltable = self.selfcal_object.getCaltables()[-1]
+            elif(self.input_caltable ~=""):
+                print("The caltable input must been already created")
+            else:
+                print("Error, Ampcal needs a non-empty list of caltables")
+                sys.exit(
+                    "Error, Amplitude self-cal objects cannot run with an empty caltable list")
 
     def run(self):
         caltable = ""
-        input_caltable = self.selfcal_object.getCaltables()[-1]
         for i in range(0, self.loops):
             caltable = 'ampcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=input_caltable, spwmap=self.spwmap, solnorm=True)
+                    combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
@@ -125,7 +131,7 @@ class Ampcal(Selfcal):
                         versionname=versionname)
             self.caltables_versions.append(versionname)
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
+                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
             imagename = self.imagename + '_a' + str(i)
 
@@ -160,7 +166,7 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
+    def __init__(self, visfile="", Imager=None, input_caltable="", refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -238,26 +244,30 @@ class AmpPhasecal(Selfcal):
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
 
-        if(self.selfcal_object == None):
-            print("Error, Self-cal object is Nonetype")
+        if(self.selfcal_object == None and self.input_caltable == ""):
+            print(
+                "Error, Self-cal object is Nonetype and input_caltable is an empty string")
             sys.exit(
-                "Error, Amplitude-phase self-cal objects cannot run without a phase-cal/amplitude-cal object")
-
-        if not self.selfcal_object.getCaltables():
-            print("Error, Ampcal needs a non-empty list of caltables")
-            sys.exit(
-                "Error, Amplitude self-cal objects cannot run with an empty caltable list")
+                "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
+        else:
+            if(self.selfcal_object.getCaltables()):
+                self.input_caltable = self.selfcal_object.getCaltables()[-1]
+            elif(self.input_caltable ~=""):
+                print("The caltable input must been already created")
+            else:
+                print("Error, Ampcal needs a non-empty list of caltables")
+                sys.exit(
+                    "Error, Amplitude self-cal objects cannot run with an empty caltable list")
 
     def run(self):
         caltable = ""
-        input_caltable = self.selfcal_object.getCaltables()[-1]
         for i in range(0, self.loops):
             caltable = 'apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[
-                        i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=input_caltable, spwmap=self.spwmap,
+                        i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap,
                     solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
@@ -269,7 +279,7 @@ class AmpPhasecal(Selfcal):
             self.caltables_versions.append(versionname)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
-                     input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
+                     self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp)
 
             imagename = self.imagename + '_ap' + str(i)
 
