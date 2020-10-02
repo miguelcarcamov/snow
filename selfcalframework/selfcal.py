@@ -168,7 +168,7 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, visfile="", Imager=None, input_caltable="", refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
+    def __init__(self, visfile="", Imager=None, input_caltable="", refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], index=0, **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -182,8 +182,14 @@ class Phasecal(Selfcal):
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
 
+        def getIndex(self):
+            return self.index
+
+        def setIndex(self, index):
+            self.index = index
+
     def run(self):
-        caltable = "before_selfcal"
+        caltable = "before_selfcal_" + str(self.index)
         flagmanager(vis=self.visfile, mode='save',
                     versionname=caltable)
         self.caltables_versions.append(caltable)

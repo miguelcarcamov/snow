@@ -85,7 +85,7 @@ if __name__ == '__main__':
           0, 0, 0, 0], 'gaintype': 'T', 'want_plot': want_plot}
 
       # Create your solution intervals
-      solint_phs = ['600s', 'inf']
+      solint_phs = ['inf', '600s']
       solint_ap = ['inf']
 
       # Create your phasecal object
