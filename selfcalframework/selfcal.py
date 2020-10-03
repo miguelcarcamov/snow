@@ -200,7 +200,7 @@ class Phasecal(Selfcal):
         self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
-            caltable = 'pcal' + str(i)
+            caltable = 'pcal' + str(i+index)
             self.caltables.append(caltable)
             rmtables(caltable)
 
@@ -210,7 +210,7 @@ class Phasecal(Selfcal):
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
                               subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
-            versionname = 'before_phasecal_' + str(i)
+            versionname = 'before_phasecal_' + str(i+index)
             flagmanager(vis=self.visfile, mode='save',
                         versionname=versionname)
             self.caltables_versions.append(versionname)
