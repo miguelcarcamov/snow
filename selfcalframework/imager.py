@@ -130,7 +130,7 @@ class GPUvmem(Imager):
         pix_size = str(cdelta['value']) + "arcsec"
 
         tclean(vis=self.residual_out, imagename=residual_image, deconvolver='hogbom', niter=0,
-                stokes=self.stokes, weighting='briggs', nterms=1, robust=self.robust, imsize=[self.M, self.N], cell=self.cell datacolumn='RESIDUAL')
+                stokes=self.stokes, weighting='briggs', nterms=1, robust=self.robust, imsize=[self.M, self.N], cell=self.cell, datacolumn='RESIDUAL')
 
         exportfits(imagename=residual_image + ".image",
                    fitsimage=residual_image + ".image.fits", overwrite=True, history=False)
