@@ -9,13 +9,14 @@ from delmod import delmod
 from plotcal import plotcal
 from applycal import applycal
 from split import split
+from flagdata import flagdata
 import abc
 
 
 class Selfcal(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, **kwargs):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], flag_mode="rflag", flag_dataset_bool=False, restore_PSNR=False, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -62,6 +63,9 @@ class Selfcal(object):
                     versionname=caltable_version)
         delmod(self.visfile, otf=True)
 
+    def flag_dataset(self, datacolumn="residuals", mode=""):
+        flagdata(vis=self.visfile, datacolumn=datacolumn, action="apply", mode=mode, flagbackup=False)
+
     def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
         figfile_name = caltable + ".png"
         if want_plot:
@@ -85,7 +89,7 @@ class Selfcal(object):
 
 
 class Ampcal(Selfcal):
-    def __init__(self, visfile="", Imager=None, selfcal_object=None, input_caltable="", refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
+    def __init__(self, Imager=None, selfcal_object=None, input_caltable="", **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -93,8 +97,7 @@ class Ampcal(Selfcal):
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
 
-        super(Ampcal, self).__init__(visfile, Imager, refant, spwmap,
-                                     minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
+        super(Ampcal, self).__init__(Imager, **kwargs)
         self.calmode = 'a'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
@@ -138,6 +141,8 @@ class Ampcal(Selfcal):
 
             self.Imager.run(imagename)
 
+            if(flag_dataset_bool):
+                flag_dataset(mode=self.flag_mode)
             self.psnr_history.append(self.Imager.getPSNR())
 
             print("Solint: " + str(self.solint[i]) +
@@ -168,25 +173,18 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, visfile="", Imager=None, input_caltable="", refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], index=0, **kwargs):
+    def __init__(self, Imager=None, input_caltable="", **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        super(Phasecal, self).__init__(visfile, Imager, refant, spwmap,
-                                       minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
+        super(Phasecal, self).__init__(Imager, **kwargs)
 
         self.calmode = 'p'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
-
-        def getIndex(self):
-            return self.index
-
-        def setIndex(self, index):
-            self.index = index
 
     def run(self):
         caltable = "before_selfcal_" + str(self.index)
@@ -200,7 +198,7 @@ class Phasecal(Selfcal):
         self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
-            caltable = 'pcal' + str(i+index)
+            caltable = 'pcal' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
 
@@ -210,7 +208,7 @@ class Phasecal(Selfcal):
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
                               subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
-            versionname = 'before_phasecal_' + str(i+index)
+            versionname = 'before_phasecal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
                         versionname=versionname)
             self.caltables_versions.append(versionname)
@@ -221,6 +219,10 @@ class Phasecal(Selfcal):
             imagename = self.imagename + '_ph' + str(i)
 
             self.Imager.run(imagename)
+
+            if(flag_dataset_bool):
+                flag_dataset(mode=self.flag_mode)
+
             self.psnr_history.append(self.Imager.getPSNR())
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[-1]))
@@ -238,15 +240,14 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, visfile="", Imager=None, selfcal_object=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', restore_PSNR=False, solint=[], **kwargs):
+    def __init__(self, Imager=None, selfcal_object=None, **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        super(AmpPhasecal, self).__init__(visfile, Imager, refant,
-                                          spwmap, minblperant, want_plot, interp, gaintype, restore_PSNR, **kwargs)
+        super(AmpPhasecal, self).__init__(Imager, **kwargs)
 
         self.calmode = 'ap'
         self.loops = len(self.solint)
@@ -293,6 +294,10 @@ class AmpPhasecal(Selfcal):
             imagename = self.imagename + '_ap' + str(i)
 
             self.Imager.run(imagename)
+
+            if(flag_dataset_bool):
+                flag_dataset(mode=self.flag_mode)
+
             self.psnr_history.append(self.Imager.getPSNR())
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
