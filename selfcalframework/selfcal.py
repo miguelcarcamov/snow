@@ -141,7 +141,7 @@ class Ampcal(Selfcal):
 
             self.Imager.run(imagename)
 
-            if(flag_dataset_bool):
+            if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
             self.psnr_history.append(self.Imager.getPSNR())
 
@@ -220,7 +220,7 @@ class Phasecal(Selfcal):
 
             self.Imager.run(imagename)
 
-            if(flag_dataset_bool):
+            if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -295,7 +295,7 @@ class AmpPhasecal(Selfcal):
 
             self.Imager.run(imagename)
 
-            if(flag_dataset_bool):
+            if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
