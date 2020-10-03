@@ -6,9 +6,8 @@ from importfits import importfits
 from exportfits import exportfits
 from imhead import imhead
 from immath import immath
-from qa import qa
-from ia import ia
 from image_utils import *
+import casac as casacore
 import abc
 import subprocess
 
@@ -117,6 +116,9 @@ class GPUvmem(Imager):
 
         make_canvas(model_in)
     def restore(self, restored_image="restored"):
+        qa = casacore.casac.quanta
+        ia = casacore.casac.image
+        
         residual_image = "residual"
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
