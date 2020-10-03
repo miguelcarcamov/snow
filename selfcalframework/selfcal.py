@@ -89,7 +89,7 @@ class Selfcal(object):
 
 
 class Ampcal(Selfcal):
-    def __init__(self, Imager=None, selfcal_object=None, input_caltable="", **kwargs):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], flag_mode="rflag", flag_dataset_bool=False, restore_PSNR=False, selfcal_object=None, input_caltable="", **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
@@ -97,7 +97,7 @@ class Ampcal(Selfcal):
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
 
-        super(Ampcal, self).__init__(Imager, **kwargs)
+        super(Ampcal, self).__init__(visfile, Imager, refant, spwmap, minblperant, want_plot, interp, gaintype, solint, flag_mode, flag_dataset_bool, restore_PSNR, **kwargs)
         self.calmode = 'a'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
@@ -173,14 +173,14 @@ class Ampcal(Selfcal):
 
 
 class Phasecal(Selfcal):
-    def __init__(self, Imager=None, input_caltable="", **kwargs):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], flag_mode="rflag", flag_dataset_bool=False, restore_PSNR=False, input_caltable="", **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        super(Phasecal, self).__init__(Imager, **kwargs)
+        super(Phasecal, self).__init__(visfile, Imager, refant, spwmap, minblperant, want_plot, interp, gaintype, solint, flag_mode, flag_dataset_bool, restore_PSNR, **kwargs)
 
         self.calmode = 'p'
         self.loops = len(self.solint)
@@ -240,14 +240,14 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, Imager=None, selfcal_object=None, **kwargs):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], flag_mode="rflag", flag_dataset_bool=False, restore_PSNR=False, selfcal_object=None, **kwargs):
 
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        super(AmpPhasecal, self).__init__(Imager, **kwargs)
+        super(AmpPhasecal, self).__init__(visfile, Imager, refant, spwmap, minblperant, want_plot, interp, gaintype, solint, flag_mode, flag_dataset_bool, restore_PSNR, **kwargs)
 
         self.calmode = 'ap'
         self.loops = len(self.solint)
