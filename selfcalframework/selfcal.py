@@ -139,10 +139,11 @@ class Ampcal(Selfcal):
 
             imagename = self.imagename + '_a' + str(i)
 
-            self.Imager.run(imagename)
-
             if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
+
+            self.Imager.run(imagename)
+
             self.psnr_history.append(self.Imager.getPSNR())
 
             print("Solint: " + str(self.solint[i]) +
@@ -218,12 +219,13 @@ class Phasecal(Selfcal):
 
             imagename = self.imagename + '_ph' + str(i)
 
-            self.Imager.run(imagename)
-
             if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
 
+            self.Imager.run(imagename)
+
             self.psnr_history.append(self.Imager.getPSNR())
+
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
@@ -293,12 +295,13 @@ class AmpPhasecal(Selfcal):
 
             imagename = self.imagename + '_ap' + str(i)
 
-            self.Imager.run(imagename)
-
             if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
 
+            self.Imager.run(imagename)
+
             self.psnr_history.append(self.Imager.getPSNR())
+            
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
