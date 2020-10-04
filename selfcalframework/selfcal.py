@@ -139,10 +139,10 @@ class Ampcal(Selfcal):
 
             imagename = self.imagename + '_a' + str(i)
 
+            self.Imager.run(imagename)
+
             if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
-
-            self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
 
@@ -222,10 +222,10 @@ class Phasecal(Selfcal):
 
             imagename = self.imagename + '_ph' + str(i)
 
+            self.Imager.run(imagename)
+
             if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
-
-            self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
 
@@ -298,10 +298,10 @@ class AmpPhasecal(Selfcal):
 
             imagename = self.imagename + '_ap' + str(i)
 
+            self.Imager.run(imagename)
+
             if(self.flag_dataset_bool):
                 flag_dataset(mode=self.flag_mode)
-
-            self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
 
@@ -327,7 +327,7 @@ class AmpPhasecal(Selfcal):
                             self.psnr_history.pop()
                             self.caltables_versions.pop()
                             self.caltables.pop()
-                            
+
                             self.caltable = self.selfcal_object.getCaltables()
                             self.psnr_history = self.selfcal_object.getPSNRHistory()
                             self.caltables_versions = self.selfcal_object.getCaltablesVersions()
