@@ -63,7 +63,7 @@ class Selfcal(object):
                     versionname=caltable_version)
         delmod(self.visfile, otf=True)
 
-    def flag_dataset(self, datacolumn="residuals", mode=""):
+    def flag_dataset(self, datacolumn="residual", mode=""):
         flagdata(vis=self.visfile, datacolumn=datacolumn, action="apply", mode=mode, flagbackup=False)
 
     def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
