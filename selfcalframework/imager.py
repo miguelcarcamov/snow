@@ -105,8 +105,8 @@ class WSClean(Imager):
         return
 
 
-class GPUvmem(Imager):
-    def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], model_in="mod_in.fits", model_out="mod_out.fits", residual_out="residuals.ms", positivity=True, gridding=False, print_images=False, **kwargs):
+class GPUVMEM(Imager):
+    def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], inputdat_file="input.dat", model_in="mod_in.fits", model_out="mod_out.fits", residual_out="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
         super(GPUvmem, self).__unut__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
@@ -114,11 +114,10 @@ class GPUvmem(Imager):
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
 
-        make_canvas(model_in)
     def restore(self, restored_image="restored"):
         qa = casacore.casac.quanta
         ia = casacore.casac.image
-        
+
         residual_image = "residual"
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
@@ -174,12 +173,39 @@ class GPUvmem(Imager):
 
         return residual_image + ".image.fits", restored_image + ".fits"
 
-    def make_canvas(self, name="model_input.fits"):
-        tclean(vis=self.inputvis, imagename='model_input', specmode='mfs', niter=0,
+    def make_canvas(self, name="model_input"):
+        fitsimage=name+'.fits'
+        tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
                deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=0.0,
                imsize=[self.M, self.N], weighting='briggs')
-        exportfits(imagename='model_input.image', fitsimage=name, overwrite=True);
+        exportfits(imagename=name+'.image', fitsimage=fitsimage, overwrite=True)
+        return fitsimage
 
     def run(self, imagename=""):
+        model_input = make_canvas(imagename)
+        restored_image = imagename+".restored"
+        command = [self.executable, "-X "+str(self.gpublocks[0]), "-Y "+str(self.gpublocks[1]), "-V "+str(self.gpublocks[2]),
+                    "-i "+self.inputvis, "-o "+self.residual_out ,"-z "+",".join(map(str,self.initial_values)), "-Z "+",".join(map(str,self.regularization_factors)),
+                    "-G "+",".join(map(str(self.gpu_ids)), "-m "+model_input, "-O "+self.model_out, "-I "+self.inputdat_file, "-R "+str(self.robust)]
+        if(self.gridding):
+            command.append("-g "+str(self.gridding_threads))
 
-        return
+        if(self.print_images):
+            command.append("--print-images")
+
+        if(not self.positivity):
+            command.append("--nopositivity")
+
+        if(self.verbose):
+            command.append("--verbose")
+
+        if(self.savemodel):
+            command.append("--savemodel-input")
+
+        print(command)
+
+        subprocess.run(command)
+
+        residual_fits, restored_fits = restore(restored_image=restored_image)
+
+        calculateStatistics_FITS(signal_fits_name=restored_fits, residual_fits_name=residual_fits):
