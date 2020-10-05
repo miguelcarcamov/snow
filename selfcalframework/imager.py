@@ -182,11 +182,12 @@ class GPUVMEM(Imager):
         return fitsimage
 
     def run(self, imagename=""):
-        model_input = make_canvas(imagename)
+        model_input = make_canvas(imagename+"_input")
+        model_output = imagename + "_output"
         restored_image = imagename+".restored"
         command = [self.executable, "-X "+str(self.gpublocks[0]), "-Y "+str(self.gpublocks[1]), "-V "+str(self.gpublocks[2]),
                     "-i "+self.inputvis, "-o "+self.residual_out ,"-z "+",".join(map(str,self.initial_values)), "-Z "+",".join(map(str,self.regularization_factors)),
-                    "-G "+",".join(map(str(self.gpu_ids)), "-m "+model_input, "-O "+self.model_out, "-I "+self.inputdat_file, "-R "+str(self.robust)]
+                    "-G "+",".join(map(str(self.gpu_ids)), "-m "+model_input, "-O "+model_output, "-I "+self.inputdat_file, "-R "+str(self.robust)]
         if(self.gridding):
             command.append("-g "+str(self.gridding_threads))
 
