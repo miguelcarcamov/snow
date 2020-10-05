@@ -157,9 +157,6 @@ class Ampcal(Selfcal):
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
-                        self.caltable = self.selfcal_object.getCaltables()
-                        self.psnr_history = self.selfcal_object.getPSNRHistory()
-                        self.caltables_versions = self.selfcal_object.getCaltablesVersions()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
@@ -330,10 +327,6 @@ class AmpPhasecal(Selfcal):
                             self.psnr_history.pop()
                             self.caltables_versions.pop()
                             self.caltables.pop()
-                            self.caltables = self.selfcal_object.getCaltables()
-                            self.psnr_history = self.selfcal_object.getPSNRHistory()
-                            self.caltables_versions = self.selfcal_object.getCaltablesVersions()
-
                             self.caltables = self.selfcal_object.getCaltables()
                             self.psnr_history = self.selfcal_object.getPSNRHistory()
                             self.caltables_versions = self.selfcal_object.getCaltablesVersions()
