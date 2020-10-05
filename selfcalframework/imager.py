@@ -212,4 +212,4 @@ class GPUVMEM(Imager):
         residual_fits, restored_fits = restore(restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        calculateStatistics_FITS(signal_fits_name=restored_fits, residual_fits_name=residual_fits):
+        calculateStatistics_FITS(signal_fits_name=restored_fits, residual_fits_name=residual_fits)
