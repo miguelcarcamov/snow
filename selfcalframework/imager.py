@@ -187,7 +187,7 @@ class GPUVMEM(Imager):
         restored_image = imagename+".restored"
         command = [self.executable, "-X "+str(self.gpublocks[0]), "-Y "+str(self.gpublocks[1]), "-V "+str(self.gpublocks[2]),
                     "-i "+self.inputvis, "-o "+self.residual_out ,"-z "+",".join(map(str,self.initial_values)), "-Z "+",".join(map(str,self.regularization_factors)),
-                    "-G "+",".join(map(str(self.gpu_ids)), "-m "+model_input, "-O "+model_output, "-I "+self.inputdat_file, "-R "+str(self.robust)]
+                    "-G "+",".join(map(self.gpu_ids)), "-m "+model_input, "-O "+model_output, "-I "+self.inputdat_file, "-R "+str(self.robust)]
         if(self.gridding):
             command.append("-g "+str(self.gridding_threads))
 
@@ -205,8 +205,11 @@ class GPUVMEM(Imager):
 
         print(command)
 
+        # Run gpuvmem
         subprocess.run(command)
 
+        # Restore the image
         residual_fits, restored_fits = restore(restored_image=restored_image)
 
+        # Calculate SNR and standard deviation
         calculateStatistics_FITS(signal_fits_name=restored_fits, residual_fits_name=residual_fits):
