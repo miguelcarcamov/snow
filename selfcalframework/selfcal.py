@@ -96,8 +96,8 @@ class Ampcal(Selfcal):
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-
         super(Ampcal, self).__init__(visfile, Imager, refant, spwmap, minblperant, want_plot, interp, gaintype, solint, flag_mode, flag_dataset_bool, restore_PSNR, **kwargs)
+
         self.calmode = 'a'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
@@ -157,6 +157,9 @@ class Ampcal(Selfcal):
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
+                        self.caltable = self.selfcal_object.getCaltables()
+                        self.psnr_history = self.selfcal_object.getPSNRHistory()
+                        self.caltables_versions = self.selfcal_object.getCaltablesVersions()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
@@ -168,7 +171,7 @@ class Ampcal(Selfcal):
                             self.psnr_history.pop()
                             self.caltables_versions.pop()
                             self.caltables.pop()
-                            self.caltable = self.selfcal_object.getCaltables()
+                            self.caltables = self.selfcal_object.getCaltables()
                             self.psnr_history = self.selfcal_object.getPSNRHistory()
                             self.caltables_versions = self.selfcal_object.getCaltablesVersions()
                             print(
@@ -327,8 +330,11 @@ class AmpPhasecal(Selfcal):
                             self.psnr_history.pop()
                             self.caltables_versions.pop()
                             self.caltables.pop()
+                            self.caltables = self.selfcal_object.getCaltables()
+                            self.psnr_history = self.selfcal_object.getPSNRHistory()
+                            self.caltables_versions = self.selfcal_object.getCaltablesVersions()
 
-                            self.caltable = self.selfcal_object.getCaltables()
+                            self.caltables = self.selfcal_object.getCaltables()
                             self.psnr_history = self.selfcal_object.getPSNRHistory()
                             self.caltables_versions = self.selfcal_object.getCaltablesVersions()
                             print(
