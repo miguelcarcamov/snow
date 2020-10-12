@@ -24,15 +24,60 @@ class Imager(object):
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
+    def getVis(self):
+        return self.inputvis
+
+    def setVis(self, inputvis=""):
+        self.inputvis=inputvis
+
+    def getCell(self):
+        return self.cell
+
+    def setCell(self, cell=""):
+        self.cell=cell
+
+    def getRobust(self):
+        return self.robust
+
+    def setRobust(self, robust=0.0):
+        self.robust = robust
 
     def getField(self):
         return self.field
 
+    def setField(self, field=""):
+        self.field = field
+
     def getSpw(self):
         return self.spw
 
-    def getVis(self):
-        return self.inputvis
+    def setSpw(self, spw=""):
+        self.spw=spw
+
+    def getStokes(self):
+        return self.stokes
+
+    def setStokes(self, stokes=""):
+        self.stokes = stokes
+
+    def getMN(self):
+        return self.M, self.N
+
+    def setMN(self, M, N):
+        self.M = M
+        self.N = N
+
+    def getSaveModel(self):
+        return self.savemodel
+
+    def setSaveModel(self, savemodel=False):
+        self.savemodel = savemodel
+
+    def getVerbose(self):
+        return self.verbose
+
+    def setVerbose(self):
+        self.verbose = verbose
 
     def getOutputPath(self):
         return self.output
@@ -130,7 +175,7 @@ class GPUVMEM(Imager):
         cdeltd = qa.convert(v=cdelt, outunit="deg")
         pix_size = str(cdelta['value']) + "arcsec"
 
-        tclean(vis=self.residual_out, imagename=residual_image, deconvolver='hogbom', niter=0,
+        tclean(vis=self.residual_out, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                 stokes=self.stokes, weighting='briggs', nterms=1, robust=self.robust, imsize=[self.M, self.N], cell=self.cell, datacolumn='RESIDUAL')
 
         exportfits(imagename=residual_image + ".image",
