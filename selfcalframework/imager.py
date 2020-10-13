@@ -244,6 +244,7 @@ class GPUvmem(Imager):
         if(self.savemodel):
             args += " --savemodel-input"
 
+        args += " >> stdout.txt"
         print(args)
         args = shlex.split(args)
         print(args)
@@ -252,7 +253,7 @@ class GPUvmem(Imager):
         stdout = open("stdout.txt", "w")
         stderr = open("stderr.txt", "w")
         p = subprocess.Popen(args, stdout=stdout, stderr=stderr, env=os.environ)
-        p.wait()    
+        p.wait()
         stdout.close()
         stderr.close()
 
