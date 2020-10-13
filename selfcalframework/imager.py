@@ -245,7 +245,8 @@ class GPUvmem(Imager):
             args += " --savemodel-input"
 
         args = shlex.split(args)
-
+        print(args)
+        
         # Run gpuvmem and wait until it finishes
         p = subprocess.Popen(args, shell=False)
         p.wait()
