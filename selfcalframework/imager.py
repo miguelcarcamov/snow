@@ -221,8 +221,6 @@ class GPUvmem(Imager):
         return residual_image + ".image.fits", restored_image + ".fits"
 
     def make_canvas(self, name="model_input"):
-        print("Executing canvas")
-        print(self.inputvis, self.residual_output)
         fitsimage = name + '.fits'
         tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
                deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=0.0,
@@ -260,13 +258,13 @@ class GPUvmem(Imager):
         print(command)
 
         # Run gpuvmem and wait until it finishes
-        p = subprocess.Popen(command, shell=True)
-        p.wait()
+        #p = subprocess.Popen(command, shell=True)
+        #p.wait()
 
         # Restore the image
-        residual_fits, restored_fits = self.restore(
-            residual_ms=residual_output, restored_image=restored_image)
+        #residual_fits, restored_fits = self.restore(
+        #    residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        self.calculateStatistics_FITS(
-            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+        #self.calculateStatistics_FITS(
+        #    signal_fits_name=restored_fits, residual_fits_name=residual_fits)
