@@ -157,10 +157,10 @@ class GPUVMEM(Imager):
         super(GPUVMEM, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
-        print(initlocals.keys())
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
+        print("Creating object!!!!!!")
 
     def restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
