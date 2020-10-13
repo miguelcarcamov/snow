@@ -221,6 +221,7 @@ class GPUvmem(Imager):
         return residual_image + ".image.fits", restored_image + ".fits"
 
     def make_canvas(self, name="model_input"):
+        print("Executing canvas")
         fitsimage = name + '.fits'
         tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
                deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=0.0,
@@ -257,7 +258,7 @@ class GPUvmem(Imager):
 
         print(command)
 
-        # Run gpuvmem
+        # Run gpuvmem and wait until it finishes
         p = subprocess.Popen(command, shell=True)
         p.wait()
 
