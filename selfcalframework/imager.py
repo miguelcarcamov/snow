@@ -238,7 +238,7 @@ class GPUvmem(Imager):
                    "-i " + self.inputvis, "-o " + residual_output, "-z " +
                    ",".join(map(str, self.initial_values)), "-Z " +
                    ",".join(map(str, self.regularization_factors)),
-                   "-G " + ",".join(map(self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
+                   "-G " + ",".join(map(str, self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
 
         if(self.gridding):
             command.append("-g " + str(self.gridding_threads))
