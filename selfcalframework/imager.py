@@ -227,7 +227,7 @@ class GPUVMEM(Imager):
         return fitsimage
 
     def run(self, imagename=""):
-        model_input = make_canvas(imagename+"_input")
+        model_input = self.make_canvas(imagename+"_input")
         model_output = imagename + "_output"
         restored_image = imagename+".restored"
         command = [self.executable, "-X "+str(self.gpublocks[0]), "-Y "+str(self.gpublocks[1]), "-V "+str(self.gpublocks[2]),
@@ -254,7 +254,7 @@ class GPUVMEM(Imager):
         subprocess.run(command)
 
         # Restore the image
-        residual_fits, restored_fits = restore(restored_image=restored_image)
+        residual_fits, restored_fits = self.restore(restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        calculateStatistics_FITS(signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+        self.alculateStatistics_FITS(signal_fits_name=restored_fits, residual_fits_name=residual_fits)
