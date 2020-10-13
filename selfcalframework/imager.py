@@ -258,7 +258,8 @@ class GPUvmem(Imager):
         print(command)
 
         # Run gpuvmem
-        subprocess.run(command)
+        p = subprocess.Popen(command, shell=True)
+        p.wait()
 
         # Restore the image
         residual_fits, restored_fits = self.restore(
