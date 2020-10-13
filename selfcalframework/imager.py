@@ -107,7 +107,7 @@ class Imager(object):
 
 class Clean(Imager):
     def __init__(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, savemodel=True, verbose=True, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
-                 sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, savemodel=True, clean_savemodel=None, **kwargs):
+                 sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
