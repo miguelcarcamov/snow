@@ -223,7 +223,7 @@ class GPUvmem(Imager):
     def make_canvas(self, name="model_input"):
         fitsimage = name + '.fits'
         tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
-               deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=0.0,
+               deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=self.robust,
                imsize=[self.M, self.N], weighting='briggs')
         exportfits(imagename=name + '.image',
                    fitsimage=fitsimage, overwrite=True)
@@ -231,31 +231,31 @@ class GPUvmem(Imager):
 
     def run(self, imagename=""):
         model_input = self.make_canvas(imagename + "_input")
-        model_output = imagename + "_output"
-        residual_output = imagename + "_" + "residual"
-        restored_image = imagename + ".restored"
-        command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
-                   "-i " + self.inputvis, "-o " + residual_output, "-z " +
-                   ",".join(map(str, self.initial_values)), "-Z " +
-                   ",".join(map(str, self.regularization_factors)),
-                   "-G " + ",".join(map(str, self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
+        #model_output = imagename + "_output"
+        #residual_output = imagename + "_" + self.residual_output
+        #restored_image = imagename + ".restored"
+        #command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
+        #           "-i " + self.inputvis, "-o " + residual_output, "-z " +
+        #           ",".join(map(str, self.initial_values)), "-Z " +
+        #           ",".join(map(str, self.regularization_factors)),
+        #           "-G " + ",".join(map(str, self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
 
-        if(self.gridding):
-            command.append("-g " + str(self.gridding_threads))
+        #if(self.gridding):
+        #    command.append("-g " + str(self.gridding_threads))
 
-        if(self.print_images):
-            command.append("--print-images")
+        #if(self.print_images):
+        #    command.append("--print-images")
 
-        if(not self.positivity):
-            command.append("--nopositivity")
+        #if(not self.positivity):
+        #    command.append("--nopositivity")
 
-        if(self.verbose):
-            command.append("--verbose")
+        #if(self.verbose):
+        #    command.append("--verbose")
 
-        if(self.savemodel):
-            command.append("--savemodel-input")
+        #if(self.savemodel):
+        #    command.append("--savemodel-input")
 
-        print(command)
+        #print(command)
 
         # Run gpuvmem and wait until it finishes
         #p = subprocess.Popen(command, shell=True)
