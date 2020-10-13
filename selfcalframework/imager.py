@@ -232,7 +232,7 @@ class GPUvmem(Imager):
     def run(self, imagename=""):
         model_input = self.make_canvas(imagename + "_input")
         model_output = imagename + "_output"
-        residual_output = imagename + "_" + self.residual_output
+        residual_output = imagename + "_" + "residual"
         restored_image = imagename + ".restored"
         command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
                    "-i " + self.inputvis, "-o " + residual_output, "-z " +
