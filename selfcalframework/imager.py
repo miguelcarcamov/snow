@@ -157,6 +157,7 @@ class GPUVMEM(Imager):
         super(GPUVMEM, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
+        print(initlocals.keys())
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
@@ -258,12 +259,12 @@ class GPUVMEM(Imager):
         print(command)
 
         # Run gpuvmem
-        #subprocess.run(command)
+        subprocess.run(command)
 
         # Restore the image
-        #residual_fits, restored_fits = self.restore(
-        #    restored_image=restored_image)
+        residual_fits, restored_fits = self.restore(
+            restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        #self.calculateStatistics_FITS(
-        #    signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+        self.calculateStatistics_FITS(
+            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
