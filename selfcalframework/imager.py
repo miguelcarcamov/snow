@@ -229,7 +229,10 @@ class GPUvmem(Imager):
             + " -G " + ",".join(map(str, self.gpuids)) + " -m " + model_input + " -O " + model_output \
             + " -I " + self.inputdatfile + " -R " + str(self.robust) + " -t " + str(self.niter)
 
+        print(command)
+
         if(self.gridding):
+            print(self.griddingthreads)
             command += " -g " + str(self.griddingthreads)
 
         if(self.printimages):
