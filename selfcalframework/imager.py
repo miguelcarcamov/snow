@@ -153,7 +153,7 @@ class WSClean(Imager):
 
 class GPUVMEM(Imager):
     def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], inputdat_file="input.dat", model_in="mod_in.fits",
-               model_out="mod_out.fits", residual_out="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
+               model_out="mod_out.fits", residual_output="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
         super(GPUVMEM, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
@@ -162,7 +162,7 @@ class GPUVMEM(Imager):
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
 
-    def restore(self, restored_image="restored"):
+    def restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
         ia = casacore.casac.image
 
@@ -178,7 +178,7 @@ class GPUVMEM(Imager):
         cdeltd = qa.convert(v=cdelt, outunit="deg")
         pix_size = str(cdelta['value']) + "arcsec"
 
-        tclean(vis=self.residual_out, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
+        tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                stokes=self.stokes, weighting='briggs', nterms=1, robust=self.robust, imsize=[self.M, self.N], cell=self.cell, datacolumn='RESIDUAL')
 
         exportfits(imagename=residual_image + ".image",
@@ -233,10 +233,10 @@ class GPUVMEM(Imager):
     def run(self, imagename=""):
         model_input = self.make_canvas(imagename + "_input")
         model_output = imagename + "_output"
-        self.residual_out = imagename + "_" + self.residual_out
+        residual_output = imagename + "_" + self.residual_output
         restored_image = imagename + ".restored"
         command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
-                   "-i " + self.inputvis, "-o " + self.residual_out, "-z " +
+                   "-i " + self.inputvis, "-o " + residual_output, "-z " +
                    ",".join(map(str, self.initial_values)), "-Z " +
                    ",".join(map(str, self.regularization_factors)),
                    "-G " + ",".join(map(self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
@@ -262,8 +262,7 @@ class GPUVMEM(Imager):
         subprocess.run(command)
 
         # Restore the image
-        residual_fits, restored_fits = self.restore(
-            restored_image=restored_image)
+        residual_fits, restored_fits = self.restore(residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
