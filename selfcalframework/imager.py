@@ -222,6 +222,7 @@ class GPUvmem(Imager):
 
     def make_canvas(self, name="model_input"):
         print("Executing canvas")
+        print(self.residual_output)
         fitsimage = name + '.fits'
         tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
                deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=0.0,
