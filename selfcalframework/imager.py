@@ -153,15 +153,14 @@ class WSClean(Imager):
 
 class GPUVMEM(Imager):
     def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], inputdat_file="input.dat", model_in="mod_in.fits",
-                model_out="mod_out.fits", residual_out="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
+               model_out="mod_out.fits", residual_out="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
         super(GPUVMEM, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        print("Initializing GPUVMEM Object")
-        print(self.residual_out)
+
     def restore(self, restored_image="restored"):
         qa = casacore.casac.quanta
         ia = casacore.casac.image
@@ -259,12 +258,12 @@ class GPUVMEM(Imager):
         print(command)
 
         # Run gpuvmem
-        subprocess.run(command)
+        #subprocess.run(command)
 
         # Restore the image
-        residual_fits, restored_fits = self.restore(
-            restored_image=restored_image)
+        #residual_fits, restored_fits = self.restore(
+        #    restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        self.calculateStatistics_FITS(
-            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+        #self.calculateStatistics_FITS(
+        #    signal_fits_name=restored_fits, residual_fits_name=residual_fits)
