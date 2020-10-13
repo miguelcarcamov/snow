@@ -9,7 +9,8 @@ from immath import immath
 from image_utils import *
 import casac as casacore
 import abc
-import shlex, subprocess
+import shlex
+import subprocess
 
 
 class Imager(object):
@@ -23,7 +24,7 @@ class Imager(object):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        #self.__dict__.update(kwargs)
+        # self.__dict__.update(kwargs)
 
     def getVis(self):
         return self.inputvis
@@ -113,7 +114,7 @@ class Clean(Imager):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        #self.__dict__.update(kwargs)
+        # self.__dict__.update(kwargs)
 
         if(self.savemodel):
             self.clean_savemodel = "modelcolumn"
@@ -140,13 +141,13 @@ class Clean(Imager):
 
 class GPUvmem(Imager):
     def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms", inputdatfile="input.dat",
-               modelin="mod_in.fits", modelout="mod_out.fits", griddingthreads=4, positivity=True, gridding=False, printimages=False, **kwargs):
+                 modelin="mod_in.fits", modelout="mod_out.fits", griddingthreads=4, positivity=True, gridding=False, printimages=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        #self.__dict__.update(kwargs)
+        # self.__dict__.update(kwargs)
 
     def _restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
@@ -222,11 +223,11 @@ class GPUvmem(Imager):
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
 
-        command = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) +
-                  " -i " + self.inputvis + " -o " + residual_output + "-i " + self.inputvis, "-o " + residual_output +
-                  " -z " + ",".join(map(str, self.initialvalues)) + " -Z " + ",".join(map(str, self.regfactors)) +
-                  " -G " + ",".join(map(str, self.gpuids)) + " -m " + model_input + " -O " + model_output +
-                  " -I " + self.inputdatfile + " -R " + str(self.robust) + " -t "+str(self.niter)
+        command = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
+            " -i " + self.inputvis + " -o " + residual_output + "-i " + self.inputvis, "-o " + residual_output \
+            " -z " + ",".join(map(str, self.initialvalues)) + " -Z " + ",".join(map(str, self.regfactors)) \
+            " -G " + ",".join(map(str, self.gpuids)) + " -m " + model_input + " -O " + model_output \
+            " -I " + self.inputdatfile + " -R " + str(self.robust) + " -t " + str(self.niter)
 
         if(self.gridding):
             command += " -g " + str(self.griddingthreads)
