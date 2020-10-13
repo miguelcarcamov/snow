@@ -164,7 +164,7 @@ class GPUvmem(Imager):
         super(GPUvmem, self).__init__(inputvis, cell, robust, field,
                                       spw, stokes, M, N, savemodel, verbose, **kwargs)
 
-    def restore(self, residual_ms="", restored_image="restored"):
+    def _restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
         ia = casacore.casac.image
 
@@ -223,7 +223,7 @@ class GPUvmem(Imager):
 
         return residual_image + ".image.fits", restored_image + ".fits"
 
-    def make_canvas(self, name="model_input"):
+    def _make_canvas(self, name="model_input"):
         fitsimage = name + '.fits'
         tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
                deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=self.robust,
@@ -233,7 +233,7 @@ class GPUvmem(Imager):
         return fitsimage
 
     def run(self, imagename=""):
-        model_input = self.make_canvas(imagename + "_input")
+        model_input = self._make_canvas(imagename + "_input")
         model_output = imagename + "_output"
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
@@ -265,7 +265,7 @@ class GPUvmem(Imager):
         p.wait()
 
         # Restore the image
-        residual_fits, restored_fits = self.restore(
+        residual_fits, restored_fits = self._restore(
             residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
