@@ -249,7 +249,7 @@ class GPUvmem(Imager):
         print(args)
 
         # Run gpuvmem and wait until it finishes
-        p = subprocess.Popen(args, shell=False)
+        p = subprocess.run(args, shell=False)
         p.wait()
 
         # Restore the image
