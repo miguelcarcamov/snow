@@ -245,12 +245,13 @@ class GPUvmem(Imager):
             args += " --savemodel-input"
 
         print(args)
-        args = shlex.split(args)
-        print(args)
+        #args = shlex.split(args)
+        #print(args)
 
+        os.system(args)
         # Run gpuvmem and wait until it finishes
-        p = subprocess.Popen(args, shell=False)
-        p.wait()
+        #p = subprocess.Popen(args, shell=False)
+        #p.wait()
 
         # Restore the image
         residual_fits, restored_fits = self._restore(model_fits=model_output,
