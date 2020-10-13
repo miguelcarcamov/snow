@@ -151,10 +151,10 @@ class WSClean(Imager):
         return
 
 
-class GPUVMEM(Imager):
+class GPUvmem(Imager):
     def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], inputdat_file="input.dat", model_in="mod_in.fits",
                model_out="mod_out.fits", residual_output="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
-        super(GPUVMEM, self).__init__(**kwargs)
+        super(GPUvmem, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
