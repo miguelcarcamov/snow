@@ -106,14 +106,15 @@ class Imager(object):
 
 
 class Clean(Imager):
-    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
+    def __init__(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, savemodel=True, verbose=True, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, savemodel=True, clean_savemodel=None, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        super(Clean, self).__init__(**kwargs)
+        super(Clean, self).__init__(inputvis, cell, robust, field,
+                                    spw, stokes, M, N, savemodel, verbose, **kwargs)
 
         if(self.savemodel):
             self.clean_savemodel = "modelcolumn"
@@ -152,14 +153,16 @@ class WSClean(Imager):
 
 
 class GPUvmem(Imager):
-    def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], residual_output="residuals.ms", inputdat_file="input.dat",
+    def __init(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, savemodel=True, verbose=True,
+               executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], residual_output="residuals.ms", inputdat_file="input.dat",
                model_in="mod_in.fits", model_out="mod_out.fits", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        super(GPUvmem, self).__init__(**kwargs)
+        super(GPUvmem, self).__init__(inputvis, cell, robust, field,
+                                      spw, stokes, M, N, savemodel, verbose, **kwargs)
 
     def restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
@@ -231,40 +234,40 @@ class GPUvmem(Imager):
 
     def run(self, imagename=""):
         model_input = self.make_canvas(imagename + "_input")
-        #model_output = imagename + "_output"
-        #residual_output = imagename + "_" + self.residual_output
-        #restored_image = imagename + ".restored"
-        #command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
-        #           "-i " + self.inputvis, "-o " + residual_output, "-z " +
-        #           ",".join(map(str, self.initial_values)), "-Z " +
-        #           ",".join(map(str, self.regularization_factors)),
-        #           "-G " + ",".join(map(str, self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
+        model_output = imagename + "_output"
+        residual_output = imagename + "_" + self.residual_output
+        restored_image = imagename + ".restored"
+        command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
+                   "-i " + self.inputvis, "-o " + residual_output, "-z " +
+                   ",".join(map(str, self.initial_values)), "-Z " +
+                   ",".join(map(str, self.regularization_factors)),
+                   "-G " + ",".join(map(str, self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
 
-        #if(self.gridding):
-        #    command.append("-g " + str(self.gridding_threads))
+        if(self.gridding):
+            command.append("-g " + str(self.gridding_threads))
 
-        #if(self.print_images):
-        #    command.append("--print-images")
+        if(self.print_images):
+            command.append("--print-images")
 
-        #if(not self.positivity):
-        #    command.append("--nopositivity")
+        if(not self.positivity):
+            command.append("--nopositivity")
 
-        #if(self.verbose):
-        #    command.append("--verbose")
+        if(self.verbose):
+            command.append("--verbose")
 
-        #if(self.savemodel):
-        #    command.append("--savemodel-input")
+        if(self.savemodel):
+            command.append("--savemodel-input")
 
-        #print(command)
+        print(command)
 
-        # Run gpuvmem and wait until it finishes
-        #p = subprocess.Popen(command, shell=True)
-        #p.wait()
+        Run gpuvmem and wait until it finishes
+        p = subprocess.Popen(command, shell=True)
+        p.wait()
 
         # Restore the image
-        #residual_fits, restored_fits = self.restore(
-        #    residual_ms=residual_output, restored_image=restored_image)
+        residual_fits, restored_fits = self.restore(
+            residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        #self.calculateStatistics_FITS(
-        #    signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+        self.calculateStatistics_FITS(
+            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
