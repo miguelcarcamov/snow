@@ -223,7 +223,7 @@ class GPUvmem(Imager):
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
 
-        args = " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
+        args = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
             + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
             + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
             + " -m " + model_input + " -O " + model_output + " -I " + self.inputdatfile \
@@ -247,7 +247,7 @@ class GPUvmem(Imager):
         args = shlex.split(args)
 
         # Run gpuvmem and wait until it finishes
-        p = subprocess.Popen(args, executable=self.executable, shell=True)
+        p = subprocess.Popen(args, shell=False)
         p.wait()
 
         # Restore the image
