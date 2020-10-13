@@ -15,7 +15,7 @@ import subprocess
 class Imager(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, niter=100, savemodel=True, verbose=True):
+    def __init__(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
