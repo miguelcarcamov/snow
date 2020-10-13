@@ -250,8 +250,8 @@ class GPUvmem(Imager):
 
         # Run gpuvmem and wait until it finishes
 
-        p = subprocess.check_call(args)
-        #p.wait()
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p.wait()
 
         # Restore the image
         residual_fits, restored_fits = self._restore(model_fits=model_output,
