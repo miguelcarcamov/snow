@@ -9,7 +9,7 @@ from immath import immath
 from image_utils import *
 import casac as casacore
 import abc
-import subprocess
+import shlex, subprocess
 
 
 class Imager(object):
@@ -218,34 +218,37 @@ class GPUvmem(Imager):
 
     def run(self, imagename=""):
         model_input = self._make_canvas(imagename + "_input")
-        model_output = imagename + "_output"
+        model_output = imagename + ".fits"
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
-        command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
-                   "-i " + self.inputvis, "-o " + residual_output, "-z " +
-                   ",".join(map(str, self.initialvalues)), "-Z " +
-                   ",".join(map(str, self.regfactors)),
-                   "-G " + ",".join(map(str, self.gpuids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdatfile, "-R " + str(self.robust)]
+
+        command = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) +
+                  " -i " + self.inputvis + " -o " + residual_output + "-i " + self.inputvis, "-o " + residual_output +
+                  " -z " + ",".join(map(str, self.initialvalues)) + " -Z " + ",".join(map(str, self.regfactors)) +
+                  " -G " + ",".join(map(str, self.gpuids)) + " -m " + model_input + " -O " + model_output +
+                  " -I " + self.inputdatfile + " -R " + str(self.robust) + " -t "+str(self.niter)
 
         if(self.gridding):
-            command.append("-g " + str(self.griddingthreads))
+            command += " -g " + str(self.griddingthreads)
 
         if(self.printimages):
-            command.append("--print-images")
+            command += " --print-images"
 
         if(not self.positivity):
-            command.append("--nopositivity")
+            command += " --nopositivity"
 
         if(self.verbose):
-            command.append("--verbose")
+            command += " --verbose"
 
         if(self.savemodel):
-            command.append("--savemodel-input")
+            command += " --savemodel-input"
 
         print(command)
+        args = shlex.split(command_line)
+        print(args)
 
         # Run gpuvmem and wait until it finishes
-        p = subprocess.Popen(command, shell=True)
+        p = subprocess.Popen(args, shell=True)
         p.wait()
 
         # Restore the image
