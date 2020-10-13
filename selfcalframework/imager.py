@@ -229,6 +229,7 @@ class GPUVMEM(Imager):
     def run(self, imagename=""):
         model_input = self.make_canvas(imagename+"_input")
         model_output = imagename + "_output"
+        self.residual_out = imagename + "_" + self.residual_out
         restored_image = imagename+".restored"
         command = [self.executable, "-X "+str(self.gpublocks[0]), "-Y "+str(self.gpublocks[1]), "-V "+str(self.gpublocks[2]),
                     "-i "+self.inputvis, "-o "+self.residual_out ,"-z "+",".join(map(str,self.initial_values)), "-Z "+",".join(map(str,self.regularization_factors)),
