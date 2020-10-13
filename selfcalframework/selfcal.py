@@ -16,7 +16,7 @@ import abc
 class Selfcal(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], applymode="calflag", flag_mode="rflag", flag_dataset_bool=False, restore_PSNR=False):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], minsnr=3.0, applymode="calflag", flag_mode="rflag", flag_dataset_bool=False, restore_PSNR=False):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
