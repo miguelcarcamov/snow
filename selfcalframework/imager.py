@@ -23,7 +23,7 @@ class Imager(object):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(**kwargs)
+        self.__dict__.update(kwargs)
 
     def getVis(self):
         return self.inputvis
@@ -106,15 +106,14 @@ class Imager(object):
 
 
 class Clean(Imager):
-    def __init__(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, savemodel=True, verbose=True, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
+    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
+        super(Clean, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(**kwargs)
-        super(Clean, self).__init__(inputvis, cell, robust, field,
-                                    spw, stokes, M, N, savemodel, verbose, **kwargs)
+        self.__dict__.update(kwargs)
 
         if(self.savemodel):
             self.clean_savemodel = "modelcolumn"
@@ -139,30 +138,15 @@ class Clean(Imager):
             signal_ms_name=restored_image, residual_ms_name=residual_image)
 
 
-class WSClean(Imager):
-    def __init__(self, **kwargs):
-        initlocals = locals()
-        initlocals.pop('self')
-        for a_attribute in initlocals.keys():
-            setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(**kwargs)
-        super(WSClean, self).__init__(**kwargs)
-
-    def run(self, imagename=""):
-        return
-
-
 class GPUvmem(Imager):
-    def __init(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, savemodel=True, verbose=True,
-               executable="gpuvmem", gpublocks=[16,16,256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms", inputdatfile="input.dat",
+    def __init(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms", inputdatfile="input.dat",
                modelin="mod_in.fits", modelout="mod_out.fits", griddingthreads=4, positivity=True, gridding=False, printimages=False, **kwargs):
+        super(GPUvmem, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        #self.__dict__.update(**kwargs)
-        super(GPUvmem, self).__init__(inputvis, cell, robust, field,
-                                      spw, stokes, M, N, savemodel, verbose, **kwargs)
+        self.__dict__.update(kwargs)
 
     def _restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
@@ -260,7 +244,7 @@ class GPUvmem(Imager):
 
         print(command)
 
-        #Run gpuvmem and wait until it finishes
+        # Run gpuvmem and wait until it finishes
         p = subprocess.Popen(command, shell=True)
         p.wait()
 
@@ -271,3 +255,16 @@ class GPUvmem(Imager):
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
             signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+
+
+class WSClean(Imager):
+    def __init__(self, **kwargs):
+        initlocals = locals()
+        initlocals.pop('self')
+        for a_attribute in initlocals.keys():
+            setattr(self, a_attribute, initlocals[a_attribute])
+        self.__dict__.update(**kwargs)
+        super(WSClean, self).__init__(**kwargs)
+
+    def run(self, imagename=""):
+        return
