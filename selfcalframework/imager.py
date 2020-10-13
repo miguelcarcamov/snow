@@ -108,12 +108,12 @@ class Imager(object):
 class Clean(Imager):
     def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, savemodel=True, clean_savemodel=None, **kwargs):
-        super(Clean, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
+        super(Clean, self).__init__(**kwargs)
 
         if(self.savemodel):
             self.clean_savemodel = "modelcolumn"
@@ -140,27 +140,26 @@ class Clean(Imager):
 
 class WSClean(Imager):
     def __init__(self, **kwargs):
-        super(WSClean, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
+        super(WSClean, self).__init__(**kwargs)
 
     def run(self, imagename=""):
         return
 
 
 class GPUvmem(Imager):
-    def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], inputdat_file="input.dat", model_in="mod_in.fits",
-               model_out="mod_out.fits", residual_output="residuals.ms", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
-        super(GPUvmem, self).__init__(**kwargs)
+    def __init(self, executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], residual_output="residuals.ms", inputdat_file="input.dat",
+               model_in="mod_in.fits", model_out="mod_out.fits", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         self.__dict__.update(**kwargs)
-        self.residual_output = residual_output
+        super(GPUvmem, self).__init__(**kwargs)
 
     def restore(self, residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
@@ -262,7 +261,8 @@ class GPUvmem(Imager):
         subprocess.run(command)
 
         # Restore the image
-        residual_fits, restored_fits = self.restore(residual_ms=residual_output, restored_image=restored_image)
+        residual_fits, restored_fits = self.restore(
+            residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
