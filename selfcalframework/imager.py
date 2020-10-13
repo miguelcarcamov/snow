@@ -154,8 +154,8 @@ class WSClean(Imager):
 
 class GPUvmem(Imager):
     def __init(self, inputvis="", cell="", robust=2.0, field="", spw="", stokes="I", M=512, N=512, savemodel=True, verbose=True,
-               executable="gpuvmem", gpublocks=[], initial_values=[], regularization_factors=[], gpu_ids=[], residual_output="residuals.ms", inputdat_file="input.dat",
-               model_in="mod_in.fits", model_out="mod_out.fits", gridding_threads=4, positivity=True, gridding=False, print_images=False, **kwargs):
+               executable="gpuvmem", gpublocks=[], initialvalues=[], regfactors=[], gpuids=[], residualoutput="residuals.ms", inputdatfile="input.dat",
+               modelin="mod_in.fits", modelout="mod_out.fits", griddingthreads=4, positivity=True, gridding=False, printimages=False, **kwargs):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -235,18 +235,18 @@ class GPUvmem(Imager):
     def run(self, imagename=""):
         model_input = self.make_canvas(imagename + "_input")
         model_output = imagename + "_output"
-        residual_output = imagename + "_" + self.residual_output
+        residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
         command = [self.executable, "-X " + str(self.gpublocks[0]), "-Y " + str(self.gpublocks[1]), "-V " + str(self.gpublocks[2]),
                    "-i " + self.inputvis, "-o " + residual_output, "-z " +
-                   ",".join(map(str, self.initial_values)), "-Z " +
-                   ",".join(map(str, self.regularization_factors)),
-                   "-G " + ",".join(map(str, self.gpu_ids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdat_file, "-R " + str(self.robust)]
+                   ",".join(map(str, self.initialvalues)), "-Z " +
+                   ",".join(map(str, self.regfactors)),
+                   "-G " + ",".join(map(str, self.gpuids)), "-m " + model_input, "-O " + model_output, "-I " + self.inputdatfile, "-R " + str(self.robust)]
 
         if(self.gridding):
-            command.append("-g " + str(self.gridding_threads))
+            command.append("-g " + str(self.griddingthreads))
 
-        if(self.print_images):
+        if(self.printimages):
             command.append("--print-images")
 
         if(not self.positivity):
