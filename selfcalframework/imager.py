@@ -260,7 +260,7 @@ class GPUvmem(Imager):
 
         print(command)
 
-        Run gpuvmem and wait until it finishes
+        #Run gpuvmem and wait until it finishes
         p = subprocess.Popen(command, shell=True)
         p.wait()
 
