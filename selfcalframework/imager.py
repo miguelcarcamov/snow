@@ -249,6 +249,8 @@ class GPUvmem(Imager):
         print(args)
 
         # Run gpuvmem and wait until it finishes
+        os.system('ls -lah')
+        os.system('pwd')
         p = subprocess.Popen(args, shell=False)
         p.wait()
 
