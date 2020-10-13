@@ -244,9 +244,10 @@ class GPUvmem(Imager):
         if(self.savemodel):
             args += " --savemodel-input"
 
+        print(args)
         args = shlex.split(args)
         print(args)
-        
+
         # Run gpuvmem and wait until it finishes
         p = subprocess.Popen(args, shell=False)
         p.wait()
