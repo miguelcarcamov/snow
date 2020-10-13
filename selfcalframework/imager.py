@@ -160,7 +160,7 @@ class GPUvmem(Imager):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
-        self.__dict__.update(**kwargs)
+        #self.__dict__.update(**kwargs)
         super(GPUvmem, self).__init__(inputvis, cell, robust, field,
                                       spw, stokes, M, N, savemodel, verbose, **kwargs)
 
