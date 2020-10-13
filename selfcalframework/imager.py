@@ -245,7 +245,7 @@ class GPUvmem(Imager):
             command += " --savemodel-input"
 
         print(command)
-        args = shlex.split(command_line)
+        args = shlex.split(command)
         print(args)
 
         # Run gpuvmem and wait until it finishes
