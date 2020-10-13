@@ -224,15 +224,12 @@ class GPUvmem(Imager):
         restored_image = imagename + ".restored"
 
         command = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
-            + " -i " + self.inputvis + " -o " + residual_output + "-i " + self.inputvis, "-o " + residual_output \
+            + " -i " + self.inputvis + " -o " + residual_output + " -i " + self.inputvis + " -o " + residual_output \
             + " -z " + ",".join(map(str, self.initialvalues)) + " -Z " + ",".join(map(str, self.regfactors)) \
             + " -G " + ",".join(map(str, self.gpuids)) + " -m " + model_input + " -O " + model_output \
             + " -I " + self.inputdatfile + " -R " + str(self.robust) + " -t " + str(self.niter)
 
-        print(command)
-
         if(self.gridding):
-            print(self.griddingthreads)
             command += " -g " + str(self.griddingthreads)
 
         if(self.printimages):
