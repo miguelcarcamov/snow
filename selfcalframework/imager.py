@@ -149,7 +149,7 @@ class GPUvmem(Imager):
             setattr(self, a_attribute, initlocals[a_attribute])
         # self.__dict__.update(kwargs)
 
-    def _restore(self, residual_ms="", restored_image="restored"):
+    def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = casacore.casac.quanta
         ia = casacore.casac.image
 
@@ -157,7 +157,7 @@ class GPUvmem(Imager):
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
 
-        importfits(imagename="model_out", fitsimage=self.model_out)
+        importfits(imagename="model_out", fitsimage=self.model_fits)
         shape = imhead(imagename="model_out", mode="get", hdkey="shape")
         pix_num = shape[0]
         cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
@@ -223,7 +223,7 @@ class GPUvmem(Imager):
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
 
-        command = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
+        args = " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
             + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
             + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
             + " -m " + model_input + " -O " + model_output + " -I " + self.inputdatfile \
@@ -249,12 +249,12 @@ class GPUvmem(Imager):
         print(args)
 
         # Run gpuvmem and wait until it finishes
-        p = subprocess.Popen(args, shell=True)
+        p = subprocess.Popen(args, executable=self.executable, shell=True)
         p.wait()
 
         # Restore the image
-        residual_fits, restored_fits = self._restore(
-            residual_ms=residual_output, restored_image=restored_image)
+        residual_fits, restored_fits = self._restore(model_fits=model_output,
+                                                     residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
