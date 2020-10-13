@@ -230,23 +230,21 @@ class GPUvmem(Imager):
             + " -R " + str(self.robust) + " -t " + str(self.niter)
 
         if(self.gridding):
-            command += " -g " + str(self.griddingthreads)
+            args += " -g " + str(self.griddingthreads)
 
         if(self.printimages):
-            command += " --print-images"
+            args += " --print-images"
 
         if(not self.positivity):
-            command += " --nopositivity"
+            args += " --nopositivity"
 
         if(self.verbose):
-            command += " --verbose"
+            args += " --verbose"
 
         if(self.savemodel):
-            command += " --savemodel-input"
+            args += " --savemodel-input"
 
-        print(command)
-        args = shlex.split(command)
-        print(args)
+        args = shlex.split(args)
 
         # Run gpuvmem and wait until it finishes
         p = subprocess.Popen(args, executable=self.executable, shell=True)
