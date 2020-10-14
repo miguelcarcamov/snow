@@ -244,7 +244,6 @@ class GPUvmem(Imager):
         if(self.savemodel):
             args += " --savemodel-input"
 
-        args += " >> stdout.txt"
         print(args)
         args = shlex.split(args)
         print(args)
