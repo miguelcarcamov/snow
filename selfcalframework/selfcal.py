@@ -1,20 +1,19 @@
 import os
 import sys
 import numpy as np
-from flagmanager import flagmanager
-from rmtables import rmtables
-from gaincal import gaincal
-from clearcal import clearcal
-from delmod import delmod
+from casatasks import flagmanager
+from casatasks import rmtables
+from casatasks import gaincal
+from casatasks import clearcal
+from casatasks import delmod
 from plotcal import plotcal
-from applycal import applycal
-from split import split
-from flagdata import flagdata
-import abc
+from casatasks import applycal
+from casatasks import split
+from casatasks import flagdata
+from abc import ABC
 
 
-class Selfcal(object):
-    __metaclass__ = abc.ABCMeta
+class Selfcal(ABC):
 
     def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False):
         initlocals = locals()
@@ -82,7 +81,7 @@ class Selfcal(object):
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         return outputvis
 
-    @abc.abstractmethod
+    @abstractmethod
     def run(self):
         return
 

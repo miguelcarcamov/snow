@@ -1,5 +1,5 @@
 import numpy as np
-from __casac__.table import table
+from casatools import table
 
 tb = table()
 def getTableRows(mstable=""):

@@ -1,6 +1,6 @@
 from astropy.io import fits
-from split import split
-from exportfits import exportfits
+from casatasks import split
+from casatasks import exportfits
 import numpy as np
 
 

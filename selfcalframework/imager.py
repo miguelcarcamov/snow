@@ -1,20 +1,20 @@
 import numpy as np
 import os
 import time
-from tclean import tclean
-from importfits import importfits
-from exportfits import exportfits
-from imhead import imhead
-from immath import immath
+from casatasks import tclean
+from casatasks import importfits
+from casatasks import exportfits
+from casatasks import imhead
+from casatasks import immath
 from image_utils import *
-import casac as casacore
-import abc
+from casatools import image as ia
+from casatools import quanta as qa
+from abc import ABC
 import shlex
 import subprocess
 
 
-class Imager(object):
-    __metaclass__ = abc.ABCMeta
+class Imager(ABC):
 
     def __init__(self, inputvis="", output="", cell="", robust=2.0, field="", spw="", stokes="I", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
         self.psnr = 0.0
@@ -101,7 +101,7 @@ class Imager(object):
         self.psnr, self.peak, self.stdv = calculatePSNR_MS(
             signal_ms_name, residual_ms_name, stdv_pixels)
 
-    @abc.abstractmethod
+    @abstractmethod
     def run(self, imagename=""):
         return
 
@@ -150,8 +150,6 @@ class GPUvmem(Imager):
         # self.__dict__.update(kwargs)
 
     def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
-        qa = casacore.casac.quanta
-        ia = casacore.casac.image
 
         residual_image = "residual"
         os.system("rm -rf *.log *.last " + residual_image +
