@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from analysis_scripts import analysisUtils as au
 from casatasks import flagmanager
 from casatasks import rmtables
