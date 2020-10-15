@@ -1,8 +1,7 @@
 import os
 import sys
 import numpy as np
-sys.path.append("./../analysis_scripts/")
-import analysisUtils as au
+from analysis_scripts import analysisUtils as au
 from casatasks import flagmanager
 from casatasks import rmtables
 from casatasks import gaincal
