@@ -1,6 +1,8 @@
 import os
 import sys
 import numpy as np
+libdir = os.path.dirname(__file__)
+sys.path.append(os.path.split(libdir)[0])   
 from analysis_scripts import analysisUtils as au
 from casatasks import flagmanager
 from casatasks import rmtables
