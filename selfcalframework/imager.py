@@ -9,12 +9,12 @@ from casatasks import immath
 from image_utils import *
 from casatools import image as ia
 from casatools import quanta as qa
-from abc import ABC
+from abc import ABCMeta, abstractmethod
 import shlex
 import subprocess
 
 
-class Imager(ABC):
+class Imager(ABCMeta):
 
     def __init__(self, inputvis="", output="", cell="", robust=2.0, field="", spw="", stokes="I", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
         self.psnr = 0.0
