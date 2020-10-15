@@ -188,9 +188,9 @@ class GPUvmem(Imager):
         ia.open(infile="model_out")
         im2 = ia.convolve2d(outfile="convolved_model_out", axes=[
                       0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
+        im2.done()
         ia.done()
         ia.close()
-        im2.done()
         
         exportfits(imagename="convolved_model_out",
                    fitsimage="convolved_model_out.fits", overwrite=True, history=False)
