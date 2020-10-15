@@ -8,7 +8,6 @@ from casatasks import rmtables
 from casatasks import gaincal
 from casatasks import clearcal
 from casatasks import delmod
-from plotcal import plotcal
 from casatasks import applycal
 from casatasks import split
 from casatasks import flagdata
@@ -66,14 +65,14 @@ class Selfcal(ABC):
     def flag_dataset(self, datacolumn="residual", mode=""):
         flagdata(vis=self.visfile, datacolumn=datacolumn, action="apply", mode=mode, flagbackup=False)
 
-    def plot_selfcal(self, caltable, xaxis="", yaxis="", timerange="", iteration="", antenna="", subplot=111, plotrange=[], want_plot=False, **kwargs):
+    def plot_selfcal(self, caltable, xaxis="", yaxis="", iteration="", timerange="", antenna="", subplot=[1,1], plotrange=[], want_plot=False, **kwargs):
         figfile_name = caltable + ".png"
         if want_plot:
-            plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
-                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=True)
+            au.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis,
+                    iteration=iteration, gridrows=subplot[0], gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name, overwrite=True, showgui=True)
         else:
-            plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
-                    iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=False)
+            au.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis,
+                    iteraxis=iteration, gridrows=subplot[0], gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name, overwrite=True, showgui=False)
 
     def selfcal_output(self, overwrite=False):
         outputvis = self.visfile + '.selfcal'
@@ -126,7 +125,7 @@ class Ampcal(Selfcal):
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
-                              subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
+                              subplot=[4,2], plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             versionname = 'before_ampcal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
@@ -207,7 +206,7 @@ class Phasecal(Selfcal):
                     calmode=self.calmode, combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
-                              subplot=421, plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
+                              subplot=[4,2], plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
             versionname = 'before_phasecal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
@@ -281,7 +280,7 @@ class AmpPhasecal(Selfcal):
                     solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
-                              subplot=421, plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
+                              subplot=[4,2], plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             versionname = 'before_apcal_' + str(i)
             flagmanager(vis=self.visfile, mode='save',
