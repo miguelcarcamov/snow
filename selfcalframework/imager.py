@@ -187,7 +187,7 @@ class GPUvmem(Imager):
 
         ia.open(infile="model_out")
         ia.convolve2d(outfile="convolved_model_out", axes=[
-                      0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa)
+                      0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
         ia.done()
         ia.close()
 
