@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np
 from analysis_scripts import *
-import analysisUtils as au
 from casatasks import flagmanager
 from casatasks import rmtables
 from casatasks import gaincal
@@ -68,10 +67,10 @@ class Selfcal(ABCMeta):
     def plot_selfcal(self, caltable, xaxis="", yaxis="", iteration="", timerange="", antenna="", subplot=[1,1], plotrange=[], want_plot=False, **kwargs):
         figfile_name = caltable + ".png"
         if want_plot:
-            au.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis,
+            analysisUtils.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis,
                     iteration=iteration, gridrows=subplot[0], gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name, overwrite=True, showgui=True)
         else:
-            au.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis,
+            analysisUtils.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis,
                     iteraxis=iteration, gridrows=subplot[0], gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name, overwrite=True, showgui=False)
 
     def selfcal_output(self, overwrite=False):
