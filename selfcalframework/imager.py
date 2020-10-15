@@ -160,7 +160,7 @@ class GPUvmem(Imager):
         pix_num = shape[0]
         cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
         cdelta = cdelt['value'] * (180.0 / np.pi) * 3600.0
-        cdeltd = cdelt * (180.0 / np.pi)
+        cdeltd = cdelt['value'] * (180.0 / np.pi)
         pix_size = str(cdelta) + "arcsec"
 
         tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
