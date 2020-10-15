@@ -159,9 +159,9 @@ class GPUvmem(Imager):
         shape = imhead(imagename="model_out", mode="get", hdkey="shape")
         pix_num = shape[0]
         cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
-        cdelta = qa.convert(v=cdelt, outunit="arcsec")
-        cdeltd = qa.convert(v=cdelt, outunit="deg")
-        pix_size = str(cdelta['value']) + "arcsec"
+        cdelta = cdelt['value'] * (180.0 / np.pi) * 3600.0
+        cdeltd = cdelt * (180.0 / np.pi)
+        pix_size = str(cdelta) + "arcsec"
 
         tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                stokes=self.stokes, weighting='briggs', nterms=1, robust=self.robust, imsize=[self.M, self.N], cell=self.cell, datacolumn='RESIDUAL')
@@ -181,8 +181,8 @@ class GPUvmem(Imager):
         bpa = imhead(imagename=residual_image + ".image",
                      mode="get", hdkey="beampa")
 
-        minor = qa.convert(v=bmin, outunit="deg")
-        pa = qa.convert(v=bpa, outunit="deg")
+        minor = bmin['value'] * 180.0 / np.pi#qa.convert(v=bmin, outunit="deg")
+        pa = bpa['value'] * 180.0 / np.pi#qa.convert(v=bpa, outunit="deg")
 
         ia.open(infile="model_out")
         ia.convolve2d(outfile="convolved_model_out", axes=[
