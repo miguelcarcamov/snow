@@ -155,7 +155,7 @@ class GPUvmem(Imager):
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
 
-        importfits(imagename="model_out", fitsimage=self.model_fits)
+        importfits(imagename="model_out", fitsimage=model_fits)
         shape = imhead(imagename="model_out", mode="get", hdkey="shape")
         pix_num = shape[0]
         cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
