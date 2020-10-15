@@ -6,7 +6,7 @@ from casatasks import importfits
 from casatasks import exportfits
 from casatasks import imhead
 from casatasks import immath
-from image_utils import *
+from .image_utils import *
 from casatools import image as ia
 from casatools import quanta as qa
 from abc import ABCMeta, abstractmethod
