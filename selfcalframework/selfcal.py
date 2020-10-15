@@ -1,9 +1,6 @@
 import os
 import sys
 import numpy as np
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
 from analysis_scripts import analysisUtils as au
 from casatasks import flagmanager
 from casatasks import rmtables
