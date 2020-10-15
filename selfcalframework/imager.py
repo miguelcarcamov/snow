@@ -7,8 +7,8 @@ from casatasks import exportfits
 from casatasks import imhead
 from casatasks import immath
 from .image_utils import *
-from casatools import image as ia
-from casatools import quanta as qa
+from casatools import image
+from casatools import quanta
 from abc import ABCMeta, abstractmethod
 import shlex
 import subprocess
@@ -150,7 +150,8 @@ class GPUvmem(Imager):
         # self.__dict__.update(kwargs)
 
     def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
-
+        qa = quanta()
+        ia = image()
         residual_image = "residual"
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
@@ -159,9 +160,9 @@ class GPUvmem(Imager):
         shape = imhead(imagename="model_out", mode="get", hdkey="shape")
         pix_num = shape[0]
         cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
-        cdelta = cdelt['value'] * (180.0 / np.pi) * 3600.0
-        cdeltd = cdelt['value'] * (180.0 / np.pi)
-        pix_size = str(cdelta) + "arcsec"
+        cdelta = qa.convert(v=cdelt, outunit="arcsec")
+        cdeltd = qa.convert(v=cdelt, outunit="deg")
+        pix_size = str(cdelta['value']) + "arcsec"
 
         tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                stokes=self.stokes, weighting='briggs', nterms=1, robust=self.robust, imsize=[self.M, self.N], cell=self.cell, datacolumn='RESIDUAL')
@@ -181,8 +182,8 @@ class GPUvmem(Imager):
         bpa = imhead(imagename=residual_image + ".image",
                      mode="get", hdkey="beampa")
 
-        minor = bmin['value'] * 180.0 / np.pi#qa.convert(v=bmin, outunit="deg")
-        pa = bpa['value'] * 180.0 / np.pi#qa.convert(v=bpa, outunit="deg")
+        minor = qa.convert(v=bmin, outunit="deg")
+        pa = qa.convert(v=bpa, outunit="deg")
 
         ia.open(infile="model_out")
         ia.convolve2d(outfile="convolved_model_out", axes=[
@@ -256,7 +257,7 @@ class GPUvmem(Imager):
 
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
-            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+            signal_fits_name=restored_fits, residual_fits_name=residual_fits, stdv_pixels=self.M-1)
 
 
 class WSClean(Imager):
