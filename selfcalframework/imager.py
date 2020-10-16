@@ -191,7 +191,7 @@ class GPUvmem(Imager):
         im2.done()
         ia.done()
         ia.close()
-        
+
         exportfits(imagename="convolved_model_out",
                    fitsimage="convolved_model_out.fits", overwrite=True, history=False)
         ia.open(infile="convolved_model_out.fits")
@@ -258,7 +258,7 @@ class GPUvmem(Imager):
 
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
-            signal_fits_name=restored_fits, residual_fits_name=residual_fits, stdv_pixels=self.M-1)
+            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
 
 
 class WSClean(Imager):
