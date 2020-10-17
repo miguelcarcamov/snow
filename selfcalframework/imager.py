@@ -16,7 +16,7 @@ import subprocess
 
 class Imager(metaclass=ABCMeta):
 
-    def __init__(self, inputvis="", output="", cell="", robust=2.0, field="", spw="", stokes="I", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
+    def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
@@ -123,7 +123,7 @@ class Clean(Imager):
         imsize = [self.M, self.N]
         tclean(vis=self.inputvis, imagename=imagename, field=self.field, uvrange=self.uvrange,
                datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, scales=self.scales, nterms=self.nterms,
-               imsize=imsize, cell=self.cell, weighting="briggs", robust=self.robust, niter=self.niter, threshold=self.threshold, nsigma=self.nsigma,
+               imsize=imsize, cell=self.cell, weighting=self.weighting, robust=self.robust, niter=self.niter, threshold=self.threshold, nsigma=self.nsigma,
                interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
                negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
                sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
