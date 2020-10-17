@@ -191,7 +191,6 @@ class Phasecal(Selfcal):
 
     def run(self):
         caltable = "before_selfcal"
-        print(self.visfile)
         flagmanager(vis=self.visfile, mode='save', versionname=caltable)
         self.caltables_versions.append(caltable)
         imagename = self.imagename + '_original'
