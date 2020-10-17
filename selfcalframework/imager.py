@@ -108,7 +108,7 @@ class Imager(metaclass=ABCMeta):
 
 class Clean(Imager):
     def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
-                 sidelobethreshold=2.0, minbeamfrac=0.3, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
+                 sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
