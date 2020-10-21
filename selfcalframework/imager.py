@@ -107,7 +107,7 @@ class Imager(metaclass=ABCMeta):
 
 
 class Clean(Imager):
-    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
+    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, mask="", usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
         initlocals = locals()
@@ -124,7 +124,7 @@ class Clean(Imager):
         tclean(vis=self.inputvis, imagename=imagename, field=self.field, uvrange=self.uvrange,
                datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, scales=self.scales, nterms=self.nterms,
                imsize=imsize, cell=self.cell, weighting=self.weighting, robust=self.robust, niter=self.niter, threshold=self.threshold, nsigma=self.nsigma,
-               interactive=self.interactive, gridder=self.gridder, pbcor=self.pbcor, uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
+               interactive=self.interactive, gridder=self.gridder, mask=self.mask, pbcor=self.pbcor, uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
                negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
                sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
 
