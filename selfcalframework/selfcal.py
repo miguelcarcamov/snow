@@ -29,7 +29,7 @@ class Selfcal(metaclass=ABCMeta):
                 "Error, self-calibration objects cannot run without an imager object")
 
         if(varchange != None):
-            if(len(varchange[list(varchange.keys())[0]]) != len(solint)):
+            if(len(self.varchange[list(varchange.keys())[0]]) != len(solint)):
                 sys.exit("Error, length of solint and variable that changes through iterations must be the same")
 
     def getVisfile(self):
@@ -144,7 +144,7 @@ class Ampcal(Selfcal):
             imagename = self.imagename + '_a' + str(i)
 
             if(self.varchange != None):
-                setattr(self.Imager, list(varchange.keys())[0], varchange[list(varchange.keys())[0]][i])
+                setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
             self.Imager.run(imagename)
 
             if(self.flag_dataset_bool):
@@ -227,7 +227,7 @@ class Phasecal(Selfcal):
             imagename = self.imagename + '_ph' + str(i)
 
             if(self.varchange != None):
-                setattr(self.Imager, list(varchange.keys())[0], varchange[list(varchange.keys())[0]][i])
+                setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
             self.Imager.run(imagename)
 
             if(self.flag_dataset_bool):
@@ -303,7 +303,7 @@ class AmpPhasecal(Selfcal):
             imagename = self.imagename + '_ap' + str(i)
 
             if(self.varchange != None):
-                setattr(self.Imager, list(varchange.keys())[0], varchange[list(varchange.keys())[0]][i])
+                setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
             self.Imager.run(imagename)
 
             if(self.flag_dataset_bool):
