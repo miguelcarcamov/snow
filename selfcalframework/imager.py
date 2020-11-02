@@ -20,6 +20,7 @@ class Imager(metaclass=ABCMeta):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
+        self.name = ""
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -110,6 +111,7 @@ class Clean(Imager):
     def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, mask="", usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
                  sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
+        self.name = "TClean"
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -118,6 +120,16 @@ class Clean(Imager):
 
         if(self.savemodel):
             self.clean_savemodel = "modelcolumn"
+
+    def getNSigma(self):
+        return self.nsigma
+    def setNSigma(self, nsigma):
+        self.nsigma = nsigma
+
+    def getThreshold(self):
+        return self.threshold
+    def setThreshold(self):
+        return self.threshold
 
     def run(self, imagename=""):
         imsize = [self.M, self.N]
@@ -143,11 +155,18 @@ class GPUvmem(Imager):
     def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms", inputdatfile="input.dat",
                  modelin="mod_in.fits", modelout="mod_out.fits", griddingthreads=4, positivity=True, gridding=False, printimages=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
+        self.name "GPUvmem"
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         # self.__dict__.update(kwargs)
+
+    def getRegfactors(self):
+        return self.regfactors
+
+    def setRegFactors(self, regfactors):
+        self.factors = regfactors
 
     def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()

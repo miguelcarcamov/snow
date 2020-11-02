@@ -14,7 +14,7 @@ from abc import ABCMeta, abstractmethod
 
 class Selfcal(metaclass=ABCMeta):
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], varchange=None, minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -27,6 +27,10 @@ class Selfcal(metaclass=ABCMeta):
             print("Error, Imager Object is Nonetype")
             sys.exit(
                 "Error, self-calibration objects cannot run without an imager object")
+
+        if(varchange != None):
+            if(varchange[varchange.keys()[0]] != len(solint)):
+                sys.exit("Error, length of solint and variable that changes through iterations must be the same")
 
     def getVisfile(self):
         return self.getvisfile
@@ -139,6 +143,8 @@ class Ampcal(Selfcal):
 
             imagename = self.imagename + '_a' + str(i)
 
+            if(self.varchange != None):
+                setattr(self.Imager, varchange.keys()[0], varchange[varchange.keys()[0]][i])
             self.Imager.run(imagename)
 
             if(self.flag_dataset_bool):
@@ -220,6 +226,8 @@ class Phasecal(Selfcal):
 
             imagename = self.imagename + '_ph' + str(i)
 
+            if(self.varchange != None):
+                setattr(self.Imager, varchange.keys()[0], varchange[varchange.keys()[0]][i])
             self.Imager.run(imagename)
 
             if(self.flag_dataset_bool):
@@ -294,6 +302,8 @@ class AmpPhasecal(Selfcal):
 
             imagename = self.imagename + '_ap' + str(i)
 
+            if(self.varchange != None):
+                setattr(self.Imager, varchange.keys()[0], varchange[varchange.keys()[0]][i])
             self.Imager.run(imagename)
 
             if(self.flag_dataset_bool):
