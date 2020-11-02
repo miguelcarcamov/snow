@@ -155,7 +155,7 @@ class GPUvmem(Imager):
     def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms", inputdatfile="input.dat",
                  modelin="mod_in.fits", modelout="mod_out.fits", griddingthreads=4, positivity=True, gridding=False, printimages=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
-        self.name "GPUvmem"
+        self.name = "GPUvmem"
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
