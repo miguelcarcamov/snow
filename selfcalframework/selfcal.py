@@ -29,7 +29,7 @@ class Selfcal(metaclass=ABCMeta):
                 "Error, self-calibration objects cannot run without an imager object")
 
         if(varchange != None):
-            if(varchange[list(varchange.keys())[0]] != len(solint)):
+            if(len(varchange[list(varchange.keys())[0]]) != len(solint)):
                 sys.exit("Error, length of solint and variable that changes through iterations must be the same")
 
     def getVisfile(self):
