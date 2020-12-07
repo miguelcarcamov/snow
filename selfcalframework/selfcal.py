@@ -106,9 +106,10 @@ class Ampcal(Selfcal):
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
             if(self.selfcal_object):
-                self.input_caltable = self.selfcal_object.getCaltables()[-1]
-                if(self.input_caltable == []):
+                if(self.selfcal_object.getCaltables() == []):
                     sys.exit("Error, Amplitude self-cal objects cannot run with an empty caltable list")
+                else:
+                    self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif(self.input_caltable != ""):
                 print("The caltable input must been already created")
                 print("Self-cal table: " + self.input_caltable)
@@ -264,9 +265,10 @@ class AmpPhasecal(Selfcal):
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
             if(self.selfcal_object):
-                self.input_caltable = self.selfcal_object.getCaltables()[-1]
-                if(self.input_caltable == []):
-                    sys.exit("Error, Amplitude-phase self-cal objects cannot run with an empty caltable list")
+                if(self.selfcal_object.getCaltables() == []):
+                    sys.exit("Error, Amplitude self-cal objects cannot run with an empty caltable list")
+                else:
+                    self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif(self.input_caltable != ""):
                 print("The caltable input must been already created")
                 print("Self-cal table: " + self.input_caltable)
