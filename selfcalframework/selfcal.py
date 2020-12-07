@@ -229,6 +229,7 @@ class Phasecal(Selfcal):
                   " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             if(self.restore_PSNR):
+                print(self.psnr_history)
                 if(self.psnr_history[-1] < self.psnr_history[-2]):
                     self.restore_selfcal(
                         caltable_version=self.caltables_versions[i])
@@ -259,6 +260,7 @@ class AmpPhasecal(Selfcal):
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
             if(self.selfcal_object):
+                print(self.selfcal_object.getCaltables())
                 self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif(self.input_caltable != ""):
                 print("The caltable input must been already created")
