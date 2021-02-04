@@ -9,12 +9,13 @@ from casatasks import delmod
 from casatasks import applycal
 from casatasks import split
 from casatasks import flagdata
+from casatasks import uvsub
 from abc import ABCMeta, abstractmethod
 
 
 class Selfcal(metaclass=ABCMeta):
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], varchange=None, minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], varchange=None, minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False, subtract_source=False):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -31,6 +32,10 @@ class Selfcal(metaclass=ABCMeta):
         if(varchange != None):
             if(len(self.varchange[list(varchange.keys())[0]]) != len(solint)):
                 sys.exit("Error, length of solint and variable that changes through iterations must be the same")
+
+        if(subtract_source == True):
+            if(self.Imager.getPhaseCenter() != ""):
+                print("Error, phase center needs to be set if a source is going to be subtracted")
 
     def getVisfile(self):
         return self.getvisfile
@@ -52,6 +57,9 @@ class Selfcal(metaclass=ABCMeta):
 
     def getPSNRHistory(self):
         return self.psnr_history
+
+    def getSubtractSource(self):
+        return self.subtract_source
 
     def reset_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore',
@@ -88,6 +96,18 @@ class Selfcal(metaclass=ABCMeta):
             os.system('rm -rf ' + outputvis)
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         return outputvis
+
+    def uvsubtract(self):
+        uvsub(vis=self.visfile, reverse=False)
+
+    def uvsubtract(vis=""):
+        uvsub(vis=vis, reverse=False)
+
+    def uvadd(self):
+        uvsub(vis=self.visfile, reverse=True)
+
+    def uvadd(vis=""):
+        uvsub(vis=vis, reverse=True)
 
     @abstractmethod
     def run(self):

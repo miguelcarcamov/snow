@@ -2,6 +2,7 @@ import numpy as np
 import os
 import time
 from casatasks import tclean
+from casatasks import fixvis
 from casatasks import importfits
 from casatasks import exportfits
 from casatasks import imhead
@@ -16,7 +17,7 @@ import subprocess
 
 class Imager(metaclass=ABCMeta):
 
-    def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
+    def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I", phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
@@ -94,6 +95,12 @@ class Imager(metaclass=ABCMeta):
     def getSTDV(self):
         return self.stdv
 
+    def getPhaseCenter(self):
+        return self.phasecenter
+
+    def setPhaseCenter(self, phasecenter=""):
+        self.phasecenter = phasecenter
+
     def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=80):
         self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
             signal_fits_name, residual_fits_name, stdv_pixels)
@@ -109,7 +116,7 @@ class Imager(metaclass=ABCMeta):
 
 class Clean(Imager):
     def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, mask="", usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
-                 sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
+                 sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", wprojplanes=-1, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
         self.name = "TClean"
         initlocals = locals()
@@ -133,7 +140,7 @@ class Clean(Imager):
 
     def run(self, imagename=""):
         imsize = [self.M, self.N]
-        tclean(vis=self.inputvis, imagename=imagename, field=self.field, uvrange=self.uvrange,
+        tclean(vis=self.inputvis, imagename=imagename, field=self.field, phasecenter=self.phasecenter, uvrange=self.uvrange,
                datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, scales=self.scales, nterms=self.nterms,
                imsize=imsize, cell=self.cell, weighting=self.weighting, robust=self.robust, niter=self.niter, threshold=self.threshold, nsigma=self.nsigma,
                interactive=self.interactive, gridder=self.gridder, mask=self.mask, pbcor=self.pbcor, uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
@@ -161,6 +168,8 @@ class GPUvmem(Imager):
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         # self.__dict__.update(kwargs)
+        if(self.phasecenter != ""):
+            fixvis(vis=self.visfile, outputvis=self.visfile, field=self.field, phasecenter=self.phasecenter)
 
     def getRegfactors(self):
         return self.regfactors
