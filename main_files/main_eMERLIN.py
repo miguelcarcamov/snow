@@ -11,7 +11,7 @@ if __name__ == '__main__':
     output = sys.argv[4]
     want_plot = eval(sys.argv[5])
 
-    selfcal_vis = visfile[:-3]+".flagged.ms"
+    selfcal_vis = visfile.split("./../")[1][:-3]+".flagged.ms"
     mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected")
 
     clean_imager = Clean(inputvis=selfcal_vis, output=output, niter=10000, M=1024, N=1024, cell="0.02arcsec",
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     flagdata(vis=selfcal_vis, datacolumn="data", spw="5~7", mode="extend", extendflags=False, action="apply", flagbackup=False)
 
     # Backup MS to the state after self-cal
-    flagmanager(vis=visfile, mode='save', versionname='after_selfcal_flagging')
+    flagmanager(vis=selfcal_vis, mode='save', versionname='after_selfcal_flagging')
 
     # Run phase-loop self-calibration
     phscal.run()
