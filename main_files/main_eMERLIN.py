@@ -7,9 +7,10 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    visfile = sys.argv[3]
-    output = sys.argv[4]
-    want_plot = eval(sys.argv[5])
+    print(sys.argv)
+    visfile = sys.argv[1]
+    output = sys.argv[2]
+    want_plot = eval(sys.argv[3])
 
     selfcal_vis = visfile.split("./../")[1][:-3]+".flagged.ms"
     mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected")
