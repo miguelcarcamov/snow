@@ -4,6 +4,7 @@ from casatasks import flagdata
 from casatasks import mstransform
 import sys
 import numpy as np
+import os
 
 if __name__ == '__main__':
 
@@ -13,7 +14,7 @@ if __name__ == '__main__':
     want_plot = eval(sys.argv[3])
 
     selfcal_vis = visfile.split("./../")[1][:-3]+".flagged.ms"
-    mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected")
+    if not os.path.exists(selfcal_vis): mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected")
 
     clean_imager = Clean(inputvis=selfcal_vis, output=output, niter=10000, M=1024, N=1024, cell="0.02arcsec",
                          stokes="I", datacolumn="corrected", robust=2.0, scales=[0, 3, 5, 10 ,15, 20, 30, 40, 50, 80], specmode="mfs", deconvolver="multiscale", gridder="standard",
