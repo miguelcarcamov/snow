@@ -23,8 +23,8 @@ if __name__ == '__main__':
     shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 2, 'refant': "Kn,Cm,Mk2,Pi,De,Da", 'spwmap': [0, 0, 0, 0, 0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
 
     #solint_phs = ['128s', '64s', '32s', '16s']
-    solint_phs = ['inf', '3min', '120s', '64s', '32s', '16s']
-    varchange_phs = {'nsigma' : [3.0, 2.0, 2.0]}
+    solint_phs = ['inf', '3min', '2min', '1min', '30s', '15s']
+    varchange_phs = {'nsigma' : [3.0, 2.0, 2.0, 1.5, 1.5, 1.5]}
     solint_amp = ['1h']
     solint_ap = ['inf']
 
