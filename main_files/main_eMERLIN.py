@@ -2,6 +2,7 @@ from selfcalframework.selfcal import *
 from selfcalframework.imager import *
 from casatasks import flagdata
 from casatasks import mstransform
+from casatasks import flagmanager
 import sys
 import numpy as np
 import os
@@ -11,6 +12,7 @@ if __name__ == '__main__':
     print(sys.argv)
     visfile = sys.argv[1]
     output = sys.argv[2]
+    flagging = eval(sys.argv[3])
     want_plot = eval(sys.argv[3])
 
     selfcal_vis = visfile.split("./../")[1][:-3]+".flagged.ms"
@@ -32,22 +34,25 @@ if __name__ == '__main__':
     phscal = Phasecal(minsnr=2.0, solint=solint_phs,
                       combine="spw", varchange=varchange_phs, Imager=clean_imager, **shared_vars_dict)
 
-    # Backup MS to the state before self-cal
-    flagmanager(vis=selfcal_vis, mode='save', versionname='before_selfcal_flagging')
+    if flagging:
+        # Backup MS to the state before self-cal
+        flagmanager(vis=selfcal_vis, mode='save', versionname='before_selfcal_flagging')
 
-    # Flag residual RFI
-    mode="rflag"
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="0", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="0", mode="extend", extendflags=False, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="1~2", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="1~2", mode="extend", extendflags=False, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="3~5", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="3~5", mode="extend", extendflags=False, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="5~7", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
-    flagdata(vis=selfcal_vis, datacolumn="data", spw="5~7", mode="extend", extendflags=False, action="apply", flagbackup=False)
+        # Flag residual RFI
+        mode="rflag"
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="0", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="0", mode="extend", extendflags=False, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="1~2", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="1~2", mode="extend", extendflags=False, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="3~5", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="3~5", mode="extend", extendflags=False, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="5~7", correlation="LL,RR", mode=mode, action="apply", flagbackup=False)
+        flagdata(vis=selfcal_vis, datacolumn="data", spw="5~7", mode="extend", extendflags=False, action="apply", flagbackup=False)
 
-    # Backup MS to the state after self-cal
-    flagmanager(vis=selfcal_vis, mode='save', versionname='after_selfcal_flagging')
+        # Backup MS to the state after self-cal
+        flagmanager(vis=selfcal_vis, mode='save', versionname='after_selfcal_flagging')
+    else:
+        flagmanager(vis=selfcal_vis, mode='restore', versionname='after_selfcal_flagging')
 
     # Run phase-loop self-calibration
     phscal.run()
