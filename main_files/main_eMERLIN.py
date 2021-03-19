@@ -13,14 +13,15 @@ if __name__ == '__main__':
     visfile = sys.argv[1]
     output = sys.argv[2]
     flagging = eval(sys.argv[3])
-    want_plot = eval(sys.argv[3])
+    field = sys.argv[4]
+    want_plot = eval(sys.argv[5])
 
     selfcal_vis = visfile.split("./../")[1][:-3]+".flagged.ms"
-    if not os.path.exists(selfcal_vis): mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected")
+    if not os.path.exists(selfcal_vis): mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected", field=field)
 
     clean_imager = Clean(inputvis=selfcal_vis, output=output, niter=10000, M=1024, N=1024, cell="0.02arcsec",
                          stokes="I", datacolumn="corrected", robust=2.0, scales=[0, 3, 5, 10 ,15, 20, 30, 40, 50, 80], specmode="mfs", deconvolver="multiscale", gridder="standard",
-                         pbcor=True, savemodel=True, nsigma=4.0, interactive=False, cycleniter=100, usemask='auto-multithresh', sidelobethreshold=1.0, noisethreshold=8.0,
+                         pbcor=False, savemodel=True, nsigma=4.0, interactive=False, cycleniter=100, usemask='auto-multithresh', sidelobethreshold=1.0, noisethreshold=8.0,
                          minbeamfrac=0.2, lownoisethreshold=1.5, negativethreshold=0.0)
 
     shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 2, 'refant': "Kn,Cm,Mk2,Pi,De,Da", 'spwmap': [0, 0, 0, 0, 0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
