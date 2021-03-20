@@ -63,8 +63,8 @@ class Selfcal(metaclass=ABCMeta):
 
     def save_selfcal(self, caltable_version="", overwrite=True):
         if overwrite:
-            flagmanager(vis=self.visfile, mode='delete', versionname=caltable)
-        flagmanager(vis=self.visfile, mode='save', versionname=caltable)
+            flagmanager(vis=self.visfile, mode='delete', versionname=caltable_version)
+        flagmanager(vis=self.visfile, mode='save', versionname=caltable_version)
 
     def reset_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore',
