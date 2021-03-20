@@ -163,6 +163,10 @@ class Ampcal(Selfcal):
         if !self.ismodel_in_dataset():
             imagename = "before_apcal"
             self.Imager.run(imagename)
+            print("Before amplitude self-cal: - PSNR: " + str(self.Imager.getPSNR()))
+            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            self.psnr_history.append(self.Imager.getPSNR())
+
         for i in range(0, self.loops):
             caltable = 'ampcal_' + str(i)
             self.caltables.append(caltable)
@@ -320,6 +324,9 @@ class AmpPhasecal(Selfcal):
         if !self.ismodel_in_dataset():
             imagename = "before_apcal"
             self.Imager.run(imagename)
+            print("Before amplitude-phase self-cal: - PSNR: " + str(self.Imager.getPSNR()))
+            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
             caltable = 'apcal_' + str(i)
