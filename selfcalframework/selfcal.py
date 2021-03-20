@@ -10,8 +10,10 @@ from casatasks import applycal
 from casatasks import split
 from casatasks import flagdata
 from casatasks import uvsub
+from casatools import table
 from abc import ABCMeta, abstractmethod
 
+tb = table()
 
 class Selfcal(metaclass=ABCMeta):
 
@@ -81,6 +83,15 @@ class Selfcal(metaclass=ABCMeta):
         flagdata(vis=self.visfile, datacolumn=datacolumn,
                  action="apply", mode=mode, flagbackup=False)
 
+    def ismodel_in_dataset(self):
+        tb.open(tablename=self.visfile)
+        columns = tb.colnames()
+        tb.close()
+        if "MODEL_DATA" in columns:
+            return True
+        else:
+            return False
+
     def plot_selfcal(self, caltable, xaxis="", yaxis="", iteration="", timerange="", antenna="", subplot=[1, 1], plotrange=[], want_plot=False, **kwargs):
         figfile_name = caltable + ".png"
         if want_plot:
@@ -149,6 +160,9 @@ class Ampcal(Selfcal):
 
     def run(self):
         caltable = ""
+        if !self.ismodel_in_dataset():
+            imagename = "before_apcal"
+            self.Imager.run(imagename)
         for i in range(0, self.loops):
             caltable = 'ampcal_' + str(i)
             self.caltables.append(caltable)
@@ -303,6 +317,10 @@ class AmpPhasecal(Selfcal):
 
     def run(self):
         caltable = ""
+        if !self.ismodel_in_dataset():
+            imagename = "before_apcal"
+            self.Imager.run(imagename)
+
         for i in range(0, self.loops):
             caltable = 'apcal_' + str(i)
             self.caltables.append(caltable)
