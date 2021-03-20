@@ -75,7 +75,6 @@ class Selfcal(metaclass=ABCMeta):
     def restore_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore',
                     versionname=caltable_version)
-        delmod(vis=self.visfile, field=self.Imager.getField(), otf=True)
 
     def flag_dataset(self, datacolumn="residual", mode=""):
         flagdata(vis=self.visfile, datacolumn=datacolumn,
