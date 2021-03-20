@@ -61,16 +61,20 @@ class Selfcal(metaclass=ABCMeta):
     def getSubtractSource(self):
         return self.subtract_source
 
+    def save_selfcal(self, caltable_version="", overwrite=True):
+        if overwrite:
+            flagmanager(vis=self.visfile, mode='delete', versionname=caltable)
+        flagmanager(vis=self.visfile, mode='save', versionname=caltable)
+
     def reset_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore',
                     versionname=caltable_version)
         clearcal(self.visfile)
-        delmod(self.visfile, otf=True)
+        delmod(vis=self.visfile, field=self.Imager.getField(), otf=True)
 
     def restore_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore',
                     versionname=caltable_version)
-        delmod(self.visfile, otf=True)
 
     def flag_dataset(self, datacolumn="residual", mode=""):
         flagdata(vis=self.visfile, datacolumn=datacolumn,
@@ -155,8 +159,7 @@ class Ampcal(Selfcal):
                               subplot=[4, 2], plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             versionname = 'before_ampcal_' + str(i)
-            flagmanager(vis=self.visfile, mode='save',
-                        versionname=versionname)
+            self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
@@ -217,7 +220,7 @@ class Phasecal(Selfcal):
 
     def run(self):
         caltable = "before_selfcal"
-        flagmanager(vis=self.visfile, mode='save', versionname=caltable)
+        self.save_selfcal(caltable_version=caltable, overwrite=True)
         self.caltables_versions.append(caltable)
         imagename = self.imagename + '_original'
         self.Imager.run(imagename)
@@ -237,8 +240,7 @@ class Phasecal(Selfcal):
                               subplot=[4, 2], plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
 
             versionname = 'before_phasecal_' + str(i)
-            flagmanager(vis=self.visfile, mode='save',
-                        versionname=versionname)
+            self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
 
             applycal(vis=self.visfile, field=self.Imager.getField(), spwmap=self.spwmap, gaintable=[
@@ -313,8 +315,7 @@ class AmpPhasecal(Selfcal):
                               subplot=[4, 2], plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
 
             versionname = 'before_apcal_' + str(i)
-            flagmanager(vis=self.visfile, mode='save',
-                        versionname=versionname)
+            self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
 
             applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
