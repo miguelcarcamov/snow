@@ -35,8 +35,8 @@ if __name__ == '__main__':
                         'restore_PSNR':True}
 
     #solint_phs = ['128s', '64s', '32s', '16s']
-    solint_phs = ['inf', '3min', '2min', '1min', '30s', '15s']
-    varchange_phs = {'nsigma' : [4.0, 3.0, 3.0, 3.0, 2.0, 1.0]}
+    solint_phs = ['3min', '2min', '1min', '30s', '15s']
+    varchange_phs = {'nsigma' : [4.0, 3.0, 3.0, 2.0, 1.0]}
     solint_amp = ['1h']
     solint_ap = ['inf']
 
