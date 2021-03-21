@@ -253,7 +253,7 @@ class Phasecal(Selfcal):
             rmtables(caltable)
 
             gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant,
-                    calmode=self.calmode, combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant)
+                    calmode=self.calmode, combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, spwmap=self.spwmap, minblperant=self.minblperant)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
                               subplot=[4, 2], plotrange=[0, 0, -180, 180], want_plot=self.want_plot)
