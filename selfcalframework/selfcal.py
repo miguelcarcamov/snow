@@ -180,7 +180,7 @@ class Ampcal(Selfcal):
             versionname = 'before_ampcal_' + str(i)
             self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
-            applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
+            applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
             imagename = self.imagename + '_a' + str(i)
@@ -262,7 +262,7 @@ class Phasecal(Selfcal):
             self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
 
-            applycal(vis=self.visfile, field=self.Imager.getField(), spwmap=self.spwmap, gaintable=[
+            applycal(vis=self.visfile, field=self.Imager.getField(), spw=self.Imager.getSpw(), spwmap=self.spwmap, gaintable=[
                      caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
             imagename = self.imagename + '_ph' + str(i)
@@ -344,7 +344,7 @@ class AmpPhasecal(Selfcal):
             self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
 
-            applycal(vis=self.visfile, spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
+            applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
             imagename = self.imagename + '_ap' + str(i)

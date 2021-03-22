@@ -29,7 +29,7 @@ if __name__ == '__main__':
     shared_vars_dict = {'visfile': clean_imager.getVis(),
                         'minblperant': 2,
                         'refant': "Kn,Cm,Mk2,Pi,De,Da",
-                        'spwmap': [1, 1, 1, 1, 1, 1, 1, 1],
+                        'spwmap': [0, 0, 0, 0, 0, 0, 0, 0],
                         'gaintype': 'G',
                         'want_plot': want_plot,
                         'restore_PSNR':True}
