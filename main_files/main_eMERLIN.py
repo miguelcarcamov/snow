@@ -46,7 +46,7 @@ if __name__ == '__main__':
     #                  combine="spw", varchange=varchange_phs, Imager=clean_imager, **shared_vars_dict)
 
     apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="spw", input_caltable="pcal1", Imager=clean_imager, **shared_vars_dict)
-    
+
     if flagging:
         # Backup MS to the state before self-cal
         flagmanager(vis=selfcal_vis, mode='save', versionname='before_selfcal_flagging')
@@ -64,8 +64,8 @@ if __name__ == '__main__':
 
         # Backup MS to the state after self-cal
         flagmanager(vis=selfcal_vis, mode='save', versionname='after_selfcal_flagging')
-    else:
-        phscal.reset_selfcal(caltable_version="after_selfcal_flagging")
+    #else:
+    #    phscal.reset_selfcal(caltable_version="after_selfcal_flagging")
 
     # Run phase-loop self-calibration
     #phscal.run()
