@@ -17,7 +17,7 @@ tb = table()
 
 class Selfcal(metaclass=ABCMeta):
 
-    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', solint=[], varchange=None, minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False, subtract_source=False):
+    def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', uvrange="", solint=[], varchange=None, minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False, subtract_source=False):
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
@@ -79,9 +79,12 @@ class Selfcal(metaclass=ABCMeta):
                     versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def flag_dataset(self, datacolumn="residual", mode=""):
-        flagdata(vis=self.visfile, datacolumn=datacolumn,
-                 action="apply", mode=mode, flagbackup=False)
+    def flag_dataset(self, datacolumn="residual", mode="rflag"):
+        flagdata(vis=self.visfile, mode=mode, datacolumn=datacolumn, field='', timecutoff=5.0,
+                freqcutoff=5.0, timefit='line', freqfit='line', flagdimension='freqtime',
+                extendflags=False, timedevscale=3.0, freqdevscale=3.0, spectralmax=500,
+                extendpols=False, growaround=False, flagneartime=False, flagnearfreq=False,
+                action='apply', flagbackup=True, overwrite=True, writeflags=True)
 
     def ismodel_in_dataset(self):
         tb.open(tablename=self.visfile)
@@ -171,7 +174,7 @@ class Ampcal(Selfcal):
             caltable = 'ampcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
-            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
+            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
@@ -183,14 +186,15 @@ class Ampcal(Selfcal):
             applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
+
+            if(self.flag_dataset_bool):
+                flag_dataset(mode=self.flag_mode)
+
             imagename = self.imagename + '_a' + str(i)
 
             if(self.varchange != None):
                 setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
             self.Imager.run(imagename)
-
-            if(self.flag_dataset_bool):
-                flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
 
@@ -252,7 +256,7 @@ class Phasecal(Selfcal):
             self.caltables.append(caltable)
             rmtables(caltable)
 
-            gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant,
+            gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(), uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant,
                     calmode=self.calmode, combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, spwmap=self.spwmap, minblperant=self.minblperant)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="phase", iteration="antenna",
@@ -265,14 +269,14 @@ class Phasecal(Selfcal):
             applycal(vis=self.visfile, field=self.Imager.getField(), spw=self.Imager.getSpw(), spwmap=self.spwmap, gaintable=[
                      caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
+            if(self.flag_dataset_bool):
+                flag_dataset(mode=self.flag_mode)
+
             imagename = self.imagename + '_ph' + str(i)
 
             if(self.varchange != None):
                 setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
             self.Imager.run(imagename)
-
-            if(self.flag_dataset_bool):
-                flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
 
@@ -332,7 +336,7 @@ class AmpPhasecal(Selfcal):
             caltable = 'apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
-            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
+            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(), uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[
                         i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable, spwmap=self.spwmap,
                     solnorm=True)
@@ -347,14 +351,14 @@ class AmpPhasecal(Selfcal):
             applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap], field=self.Imager.getField(), gaintable=[
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
+            if(self.flag_dataset_bool):
+                flag_dataset(mode=self.flag_mode)
+
             imagename = self.imagename + '_ap' + str(i)
 
             if(self.varchange != None):
                 setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
             self.Imager.run(imagename)
-
-            if(self.flag_dataset_bool):
-                flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
 
