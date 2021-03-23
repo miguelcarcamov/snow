@@ -164,7 +164,7 @@ class Ampcal(Selfcal):
     def run(self):
         caltable = ""
         if not self.ismodel_in_dataset():
-            imagename = "before_apcal"
+            imagename = self.imagename + "before_apcal"
             self.Imager.run(imagename)
             print("Before amplitude self-cal: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
@@ -326,7 +326,7 @@ class AmpPhasecal(Selfcal):
     def run(self):
         caltable = ""
         if not self.ismodel_in_dataset():
-            imagename = "before_apcal"
+            imagename = self.imagename + "before_apcal"
             self.Imager.run(imagename)
             print("Before amplitude-phase self-cal: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
