@@ -155,7 +155,7 @@ class Ampcal(Selfcal):
                 self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif(self.input_caltable != ""):
                 if not os.path.exists(self.input_caltable):
-                    print("The caltable "+self.input_caltable+" needs to be created")
+                    sys.exit("The caltable "+self.input_caltable+" needs to be created")
             else:
                 print("Error, Ampcal needs a non-empty list of caltables")
                 sys.exit(
@@ -317,7 +317,7 @@ class AmpPhasecal(Selfcal):
                 self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif(self.input_caltable != ""):
                 if not os.path.exists(self.input_caltable):
-                    print("The caltable "+self.input_caltable+" needs to be created")
+                    sys.exit("The caltable "+self.input_caltable+" needs to be created")
             else:
                 print("Error, Ampcal needs a non-empty list of caltables")
                 sys.exit(
