@@ -188,7 +188,7 @@ class Ampcal(Selfcal):
 
 
             if(self.flag_dataset_bool):
-                flag_dataset(mode=self.flag_mode)
+                self.flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_a' + str(i)
 
@@ -270,7 +270,7 @@ class Phasecal(Selfcal):
                      caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
             if(self.flag_dataset_bool):
-                flag_dataset(mode=self.flag_mode)
+                self.flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_ph' + str(i)
 
@@ -352,7 +352,7 @@ class AmpPhasecal(Selfcal):
                      self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp, applymode=self.applymode)
 
             if(self.flag_dataset_bool):
-                flag_dataset(mode=self.flag_mode)
+                self.flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_ap' + str(i)
 
