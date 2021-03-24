@@ -40,12 +40,12 @@ if __name__ == '__main__':
     #varchange_phs = {'nsigma' : [4.0, 3.0, 3.0, 2.0, 1.0]}
     varchange_phs = {'nsigma' : [2.0]}
     #solint_amp = ['1h']
-    solint_ap = ['inf']
+    solint_ap = ['14min', '7min', '3min']
 
     #phscal = Phasecal(minsnr=2.0, solint=solint_phs,
     #                  combine="spw", varchange=varchange_phs, Imager=clean_imager, **shared_vars_dict)
 
-    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="spw", input_caltable="pcal1", Imager=clean_imager, **shared_vars_dict)
+    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="spw", input_caltable="pcal1", Imager=clean_imager, uvrange=">80klambda", **shared_vars_dict)
 
     if flagging:
         # Backup MS to the state before self-cal
