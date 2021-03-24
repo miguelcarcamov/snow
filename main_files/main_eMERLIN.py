@@ -33,7 +33,7 @@ if __name__ == '__main__':
                         'gaintype': 'G',
                         'want_plot': want_plot,
                         'flag_dataset_bool': True,
-                        'restore_PSNR':True}
+                        'restore_PSNR': True}
 
     #solint_phs = ['128s', '64s', '32s', '16s']
     solint_phs = ['3.5min', '2min', '1min', '30s', '15s']
