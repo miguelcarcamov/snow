@@ -40,7 +40,7 @@ if __name__ == '__main__':
     #solint_amp = ['1h']
     varchange_ap = {'nsigma' : [2.0, 2.0, 2.0],
                     'usemask' : ['user', 'user', 'auto-multithresh'],
-                    'mask' : [output+'_ph2.mask', output+'_ph2.mask, '']}
+                    'mask' : [output+'_ph2.mask', output+'_ph2.mask', '']}
     solint_ap = ['14min', '7min', '3.5min']
 
     #phscal = Phasecal(minsnr=2.0, solint=solint_phs,
