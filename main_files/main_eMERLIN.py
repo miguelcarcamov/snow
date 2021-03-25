@@ -23,8 +23,7 @@ if __name__ == '__main__':
 
     clean_imager = Clean(inputvis=selfcal_vis, output=output, niter=10000, M=1024, N=1024, cell="0.02arcsec",
                          stokes="I", datacolumn="corrected", robust=2.0, scales=[0, 3, 5, 10 ,15, 20, 30, 40, 50, 80], specmode="mfs", deconvolver="multiscale", gridder="standard",
-                         pbcor=False, savemodel=True, nsigma=3.0, interactive=False, cycleniter=100, usemask='auto-multithresh', sidelobethreshold=1.0, noisethreshold=8.0,
-                         minbeamfrac=0.2, lownoisethreshold=1.5, negativethreshold=0.0)
+                         pbcor=False, savemodel=True, nsigma=3.0, interactive=False, cycleniter=100, usemask=output+"_ph2.mask")
 
     shared_vars_dict = {'visfile': clean_imager.getVis(),
                         'minblperant': 2,
@@ -45,7 +44,7 @@ if __name__ == '__main__':
     #phscal = Phasecal(minsnr=2.0, solint=solint_phs,
     #                  combine="spw", varchange=varchange_phs, Imager=clean_imager, **shared_vars_dict)
 
-    apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="spw", input_caltable="pcal1", Imager=clean_imager, uvrange=">80klambda", **shared_vars_dict)
+    apcal = AmpPhasecal(minsnr=3.0, solint=solint_ap, combine="spw", input_caltable="pcal1", Imager=clean_imager, uvrange=">60klambda", **shared_vars_dict)
 
     if flagging:
         # Backup MS to the state before self-cal
