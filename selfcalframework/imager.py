@@ -159,7 +159,7 @@ class Clean(Imager):
 
 class GPUvmem(Imager):
     def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms",
-                 modelin="mod_in.fits", modelout="mod_out.fits", user_mask="", griddingthreads=4, positivity=True, ftol=1e-12, noise_cut = 10.0, gridding=False, printimages=False, **kwargs):
+                 model_input="", modelout="mod_out.fits", user_mask="", griddingthreads=4, positivity=True, ftol=1e-12, noise_cut = 10.0, gridding=False, printimages=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
         self.name = "GPUvmem"
         initlocals = locals()
@@ -245,7 +245,8 @@ class GPUvmem(Imager):
         return fitsimage
 
     def run(self, imagename=""):
-        model_input = self._make_canvas(imagename + "_input")
+        if(self.model_input != ""):
+            self.model_input = self._make_canvas(imagename + "_input")
         model_output = imagename + ".fits"
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
@@ -253,12 +254,12 @@ class GPUvmem(Imager):
         args = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
             + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
             + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
-            + " -m " + model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
+            + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
             + " -R " + str(self.robust) + " -t " + str(self.niter)
 
         if(self.user_mask != ""):
             args += " -U "+ self.user_mask
-            
+
         if(self.gridding):
             args += " -g " + str(self.griddingthreads)
 
