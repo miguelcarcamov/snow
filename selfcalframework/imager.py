@@ -253,7 +253,7 @@ class GPUvmem(Imager):
         args = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
             + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
             + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
-            + " -m " + model_input + " -O " + model_output + " -I " + self.inputdatfile \
+            + " -m " + model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
             + " -R " + str(self.robust) + " -t " + str(self.niter)
 
         if(self.gridding):
