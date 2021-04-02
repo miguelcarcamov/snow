@@ -245,7 +245,7 @@ class GPUvmem(Imager):
         return fitsimage
 
     def run(self, imagename=""):
-        if(self.model_input != ""):
+        if(self.model_input == ""):
             self.model_input = self._make_canvas(imagename + "_input")
         model_output = imagename + ".fits"
         residual_output = imagename + "_" + self.residualoutput
