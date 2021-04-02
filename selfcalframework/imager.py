@@ -273,7 +273,7 @@ class GPUvmem(Imager):
             args += " --verbose"
 
         if(self.savemodel):
-            args += " --savemodel_modelcolumn"
+            args += " --save_modelcolumn"
 
         print(args)
         args = shlex.split(args)
