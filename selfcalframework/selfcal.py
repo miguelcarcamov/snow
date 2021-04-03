@@ -31,11 +31,13 @@ class Selfcal(metaclass=ABCMeta):
             sys.exit(
                 "Error, self-calibration objects cannot run without an imager object")
 
-        if(varchange != None):
-            if(len(self.varchange[list(varchange.keys())[0]]) != len(solint)):
+        if(self.varchange != None):
+            list_of_values = [value for key,value in self.varchange.items()]
+            it = iter(list_of_values)
+            if not all(len(l) == len(self.solint) for l in it):
                 sys.exit("Error, length of solint and variable that changes through iterations must be the same")
 
-        if(subtract_source == True):
+        if(self.subtract_source == True):
             if(self.Imager.getPhaseCenter() != ""):
                 print("Error, phase center needs to be set if a source is going to be subtracted")
 
@@ -94,6 +96,11 @@ class Selfcal(metaclass=ABCMeta):
             return True
         else:
             return False
+
+    def set_Imager_attributes_from_dict(self, iteration = 0):
+        if self.varchange != None:
+            for key in self.varchange.keys():
+                setattr(self.Imager, key, self.varchange[key][iteration])
 
     def plot_selfcal(self, caltable, xaxis="", yaxis="", iteration="", timerange="", antenna="", subplot=[1, 1], plotrange=[], want_plot=False, **kwargs):
         figfile_name = caltable + ".png"
@@ -192,8 +199,8 @@ class Ampcal(Selfcal):
 
             imagename = self.imagename + '_a' + str(i)
 
-            if(self.varchange != None):
-                setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
+            self.set_Imager_attributes_from_dict(i)
+
             self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -274,8 +281,8 @@ class Phasecal(Selfcal):
 
             imagename = self.imagename + '_ph' + str(i)
 
-            if(self.varchange != None):
-                setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
+            self.set_Imager_attributes_from_dict(i)
+
             self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -356,8 +363,8 @@ class AmpPhasecal(Selfcal):
 
             imagename = self.imagename + '_ap' + str(i)
 
-            if(self.varchange != None):
-                setattr(self.Imager, list(self.varchange.keys())[0], self.varchange[list(self.varchange.keys())[0]][i])
+            self.set_Imager_attributes_from_dict(i)
+
             self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
