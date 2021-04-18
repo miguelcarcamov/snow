@@ -15,6 +15,7 @@ from abc import ABCMeta, abstractmethod
 
 tb = table()
 
+
 class Selfcal(metaclass=ABCMeta):
 
     def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear', gaintype='T', uvrange="", solint=[], varchange=None, minsnr=3.0, applymode="calflag", flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False, subtract_source=False):

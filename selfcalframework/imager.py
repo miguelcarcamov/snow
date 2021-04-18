@@ -14,6 +14,7 @@ from abc import ABCMeta, abstractmethod
 import shlex
 import subprocess
 
+
 class Imager(metaclass=ABCMeta):
 
     def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I", phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
