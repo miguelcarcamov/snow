@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import numpy as np
 from casatasks import flagmanager
 from casatasks import rmtables
@@ -129,7 +130,11 @@ class Selfcal(metaclass=ABCMeta):
             os.system('rm -rf ' + outputvis)
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
         if _statwt:
-            statwt(vis=outputvis, datacolumn="data")
+            statwt_path = outputvis + '.statwt'
+            if os.path.exists(statwt_path):
+                shutil.rmtree(statwt_path)
+            shutil.copytree(outputvis, statwt_path)
+            statwt(vis=statwt_path, datacolumn="data")
         return outputvis
 
     def uvsubtract(self):
