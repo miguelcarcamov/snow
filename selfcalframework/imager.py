@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import sys
 import time
 from casatasks import tclean
 from casatasks import fixvis
@@ -17,7 +18,8 @@ import subprocess
 
 class Imager(metaclass=ABCMeta):
 
-    def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I", phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
+    def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I",
+                 phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
@@ -115,8 +117,11 @@ class Imager(metaclass=ABCMeta):
 
 
 class Clean(Imager):
-    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, mask="", usemask="auto-multithresh", negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
-                 sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", wprojplanes=-1, deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0, clean_savemodel=None, **kwargs):
+    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, mask="", usemask="auto-multithresh",
+                 negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
+                 sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", wprojplanes=-1,
+                 deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0,
+                 clean_savemodel=None, **kwargs):
         super(Clean, self).__init__(**kwargs)
         self.name = "TClean"
         initlocals = locals()
@@ -125,27 +130,35 @@ class Clean(Imager):
             setattr(self, a_attribute, initlocals[a_attribute])
         # self.__dict__.update(kwargs)
 
-        if(self.savemodel):
+        if (self.savemodel):
             self.clean_savemodel = "modelcolumn"
 
     def getNSigma(self):
         return self.nsigma
+
     def setNSigma(self, nsigma):
         self.nsigma = nsigma
 
     def getThreshold(self):
         return self.threshold
+
     def setThreshold(self):
         return self.threshold
 
     def run(self, imagename=""):
         imsize = [self.M, self.N]
-        tclean(vis=self.inputvis, imagename=imagename, field=self.field, phasecenter=self.phasecenter, uvrange=self.uvrange,
-               datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver, scales=self.scales, nterms=self.nterms,
-               imsize=imsize, cell=self.cell, weighting=self.weighting, robust=self.robust, niter=self.niter, threshold=self.threshold, nsigma=self.nsigma,
-               interactive=self.interactive, gridder=self.gridder, mask=self.mask, pbcor=self.pbcor, uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
-               negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
-               sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
+        tclean(vis=self.inputvis, imagename=imagename, field=self.field, phasecenter=self.phasecenter,
+               uvrange=self.uvrange,
+               datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver,
+               scales=self.scales, nterms=self.nterms,
+               imsize=imsize, cell=self.cell, weighting=self.weighting, robust=self.robust, niter=self.niter,
+               threshold=self.threshold, nsigma=self.nsigma,
+               interactive=self.interactive, gridder=self.gridder, mask=self.mask, pbcor=self.pbcor,
+               uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
+               negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold,
+               noisethreshold=self.noisethreshold,
+               sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter,
+               verbose=self.verbose)
 
         if self.deconvolver != "mtmfs":
             restored_image = imagename + ".image"
@@ -159,8 +172,10 @@ class Clean(Imager):
 
 
 class GPUvmem(Imager):
-    def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0], residualoutput="residuals.ms",
-                 model_input="", modelout="mod_out.fits", user_mask="", griddingthreads=4, positivity=True, ftol=1e-12, noise_cut = 10.0, gridding=False, printimages=False, **kwargs):
+    def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0],
+                 residualoutput="residuals.ms",
+                 model_input="", modelout="mod_out.fits", user_mask="", griddingthreads=4, positivity=True, ftol=1e-12,
+                 noise_cut=10.0, gridding=False, printimages=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
         self.name = "GPUvmem"
         initlocals = locals()
@@ -168,7 +183,7 @@ class GPUvmem(Imager):
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
         # self.__dict__.update(kwargs)
-        if(self.phasecenter != ""):
+        if self.phasecenter != "":
             fixvis(vis=self.visfile, outputvis=self.visfile, field=self.field, phasecenter=self.phasecenter)
 
     def getRegfactors(self):
@@ -193,7 +208,8 @@ class GPUvmem(Imager):
         pix_size = str(cdelta['value']) + "arcsec"
 
         tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
-               stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N], cell=self.cell, datacolumn='data')
+               stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
+               cell=self.cell, datacolumn='data')
 
         exportfits(imagename=residual_image + ".image",
                    fitsimage=residual_image + ".image.fits", overwrite=True, history=False)
@@ -215,7 +231,7 @@ class GPUvmem(Imager):
 
         ia.open(infile="model_out")
         im2 = ia.convolve2d(outfile="convolved_model_out", axes=[
-                      0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
+            0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
         im2.done()
         ia.done()
         ia.close()
@@ -232,7 +248,7 @@ class GPUvmem(Imager):
         immath(imagename=imagearr, expr=" (IM0   + IM1) ", outfile=restored_image)
 
         exportfits(imagename=restored_image, fitsimage=restored_image +
-                   ".fits", overwrite=True, history=False)
+                                                       ".fits", overwrite=True, history=False)
 
         return residual_image + ".image.fits", restored_image + ".fits"
 
@@ -252,14 +268,15 @@ class GPUvmem(Imager):
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
 
-        args = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(self.gpublocks[2]) \
-            + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
-            + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
-            + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
-            + " -R " + str(self.robust) + " -t " + str(self.niter)
+        args = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(
+            self.gpublocks[2]) \
+               + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
+               + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
+               + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
+               + " -R " + str(self.robust) + " -t " + str(self.niter)
 
         if self.user_mask != "":
-            args += " -U "+ self.user_mask
+            args += " -U " + self.user_mask
 
         if self.gridding:
             args += " -g " + str(self.griddingthreads)
@@ -284,9 +301,12 @@ class GPUvmem(Imager):
         p = subprocess.Popen(args, env=os.environ)
         p.wait()
 
-        # Restore the image
-        residual_fits, restored_fits = self._restore(model_fits=model_output,
-                                                     residual_ms=residual_output, restored_image=restored_image)
+        if not os.path.exists(model_output):
+            sys.exit("The model image has not been created")
+        else:
+            # Restore the image
+            residual_fits, restored_fits = self._restore(model_fits=model_output,
+                                                         residual_ms=residual_output, restored_image=restored_image)
 
         # Calculate SNR and standard deviation
         self.calculateStatistics_FITS(
