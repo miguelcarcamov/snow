@@ -10,6 +10,7 @@ from plotcal import plotcal
 from applycal import applycal
 from split import split
 from flagdata import flagdata
+from statwt import statwt
 import abc
 
 
@@ -74,12 +75,14 @@ class Selfcal(object):
             plotcal(caltable=caltable, xaxis=xaxis, yaxis=yaxis, timerange=timerange,
                     iteration=iteration, subplot=subplot, antenna=antenna, plotrange=plotrange, figfile=figfile_name, showgui=False)
 
-    def selfcal_output(self, overwrite=False):
+    def selfcal_output(self, overwrite=False, statwt=False):
         outputvis = self.visfile + '.selfcal'
 
         if overwrite:
             os.system('rm -rf ' + outputvis)
         split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
+        if statwt:
+            statwt(vis=outputvis, datacolumn="data")
         return outputvis
 
     @abc.abstractmethod
@@ -149,9 +152,9 @@ class Ampcal(Selfcal):
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            if(self.restore_PSNR):
-                if(i > 0):
-                    if(self.psnr_history[i] < self.psnr_history[i - 1]):
+            if self.restore_PSNR:
+                if i > 0:
+                    if self.psnr_history[i] < self.psnr_history[i - 1]:
                         self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
                         self.psnr_history.pop()
@@ -161,8 +164,8 @@ class Ampcal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
                 else:
-                    if(self.selfcal_object):
-                        if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
+                    if self.selfcal_object:
+                        if self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]:
                             self.restore_selfcal(
                                 caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
                             self.psnr_history.pop()
