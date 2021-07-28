@@ -26,7 +26,7 @@ class Selfcal(object):
         self.caltables_versions = []
         self.psnr_history = []
 
-        if(self.Imager == None):
+        if self.Imager is None:
             print("Error, Imager Object is Nonetype")
             sys.exit(
                 "Error, self-calibration objects cannot run without an imager object")
@@ -102,18 +102,18 @@ class Ampcal(Selfcal):
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
 
-        if(self.selfcal_object == None and self.input_caltable == ""):
+        if self.selfcal_object == None and self.input_caltable == "":
             print(
                 "Error, Self-cal object is Nonetype and input_caltable is an empty string")
             sys.exit(
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
-            if(self.selfcal_object):
-                if(self.selfcal_object.getCaltables() == []):
+            if self.selfcal_object:
+                if not self.selfcal_object.getCaltables():
                     sys.exit("Error, Amplitude self-cal objects cannot run with an empty caltable list")
                 else:
                     self.input_caltable = self.selfcal_object.getCaltables()[-1]
-            elif(self.input_caltable != ""):
+            elif self.input_caltable != "":
                 print("The caltable input must been already created")
                 print("Self-cal table: " + self.input_caltable)
             else:
@@ -144,7 +144,7 @@ class Ampcal(Selfcal):
 
             self.Imager.run(imagename)
 
-            if(self.flag_dataset_bool):
+            if self.flag_dataset_bool:
                 flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -226,7 +226,7 @@ class Phasecal(Selfcal):
 
             self.Imager.run(imagename)
 
-            if(self.flag_dataset_bool):
+            if self.flag_dataset_bool:
                 flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -234,11 +234,11 @@ class Phasecal(Selfcal):
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            if(self.restore_PSNR):
+            if self.restore_PSNR:
                 print(self.psnr_history)
                 print(self.caltables_versions)
                 print(self.caltables)
-                if(self.psnr_history[-1] < self.psnr_history[-2]):
+                if self.psnr_history[-1] < self.psnr_history[-2]:
                     self.restore_selfcal(
                         caltable_version=self.caltables_versions[i])
                     self.psnr_history.pop()
@@ -261,18 +261,18 @@ class AmpPhasecal(Selfcal):
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
 
-        if(self.selfcal_object == None and self.input_caltable == ""):
+        if self.selfcal_object is None and self.input_caltable == "":
             print(
                 "Error, Self-cal object is Nonetype and input_caltable is an empty string")
             sys.exit(
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
-            if(self.selfcal_object):
-                if(self.selfcal_object.getCaltables() == []):
+            if self.selfcal_object:
+                if not self.selfcal_object.getCaltables():
                     sys.exit("Error, Amplitude self-cal objects cannot run with an empty caltable list")
                 else:
                     self.input_caltable = self.selfcal_object.getCaltables()[-1]
-            elif(self.input_caltable != ""):
+            elif self.input_caltable != "":
                 print("The caltable input must been already created")
                 print("Self-cal table: " + self.input_caltable)
             else:
@@ -306,7 +306,7 @@ class AmpPhasecal(Selfcal):
 
             self.Imager.run(imagename)
 
-            if(self.flag_dataset_bool):
+            if self.flag_dataset_bool:
                 flag_dataset(mode=self.flag_mode)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -314,9 +314,9 @@ class AmpPhasecal(Selfcal):
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            if(self.restore_PSNR):
-                if(i > 0):
-                    if(self.psnr_history[i] < self.psnr_history[i - 1]):
+            if self.restore_PSNR:
+                if i > 0:
+                    if self.psnr_history[i] < self.psnr_history[i - 1]:
                         self.restore_selfcal(
                             caltable_version=self.caltables_versions[i - 1])
                         self.psnr_history.pop()
@@ -326,8 +326,8 @@ class AmpPhasecal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
                 else:
-                    if(self.selfcal_object):
-                        if(self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]):
+                    if self.selfcal_object:
+                        if self.psnr_history[i] < self.selfcal_object.getPSNRHistory()[-1]:
                             self.restore_selfcal(
                                 caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
                             self.psnr_history.pop()
