@@ -147,7 +147,7 @@ class Clean(Imager):
                negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold, noisethreshold=self.noisethreshold,
                sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter, verbose=self.verbose)
 
-        if(self.deconvolver != "mtmfs"):
+        if self.deconvolver != "mtmfs":
             restored_image = imagename + ".image"
             residual_image = imagename + ".residual"
         else:
@@ -246,7 +246,7 @@ class GPUvmem(Imager):
         return fitsimage
 
     def run(self, imagename=""):
-        if(self.model_input == ""):
+        if self.model_input == "":
             self.model_input = self._make_canvas(imagename + "_input")
         model_output = imagename + ".fits"
         residual_output = imagename + "_" + self.residualoutput
@@ -258,22 +258,22 @@ class GPUvmem(Imager):
             + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
             + " -R " + str(self.robust) + " -t " + str(self.niter)
 
-        if(self.user_mask != ""):
+        if self.user_mask != "":
             args += " -U "+ self.user_mask
 
-        if(self.gridding):
+        if self.gridding:
             args += " -g " + str(self.griddingthreads)
 
-        if(self.printimages):
+        if self.printimages:
             args += " --print-images"
 
-        if(not self.positivity):
+        if not self.positivity:
             args += " --nopositivity"
 
-        if(self.verbose):
+        if self.verbose:
             args += " --verbose"
 
-        if(self.savemodel):
+        if self.savemodel:
             args += " --save_modelcolumn"
 
         print(args)
