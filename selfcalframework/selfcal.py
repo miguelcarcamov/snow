@@ -325,7 +325,7 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, selfcal_object=None, input_caltable="", incremental=False, **kwargs):
+    def __init__(self, selfcal_object=None, input_caltable="", incremental=False, solnorm=True, **kwargs):
         super(AmpPhasecal, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
@@ -371,12 +371,12 @@ class AmpPhasecal(Selfcal):
                         combine=self.combine, solint=self.solint[
                         i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable,
                         spwmap=self.spwmap,
-                        solnorm=True)
+                        solnorm=self.solnorm)
             else:
                 gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
                         uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                         combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant,
-                        spwmap=self.spwmap, solnorm=True)
+                        spwmap=self.spwmap, solnorm=self.solnorm)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=[4, 2], plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
