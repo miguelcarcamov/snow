@@ -325,7 +325,7 @@ class Phasecal(Selfcal):
 
 
 class AmpPhasecal(Selfcal):
-    def __init__(self, selfcal_object=None, input_caltable="", **kwargs):
+    def __init__(self, selfcal_object=None, input_caltable="", incremental=False, **kwargs):
         super(AmpPhasecal, self).__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
@@ -336,7 +336,7 @@ class AmpPhasecal(Selfcal):
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
 
-        if self.selfcal_object == None and self.input_caltable == "":
+        if self.selfcal_object is None and self.input_caltable == "":
             print(
                 "Error, Self-cal object is Nonetype and input_caltable is an empty string")
             sys.exit(
@@ -365,12 +365,18 @@ class AmpPhasecal(Selfcal):
             caltable = 'apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
-            gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
-                    uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
-                    combine=self.combine, solint=self.solint[
-                    i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable,
-                    spwmap=self.spwmap,
-                    solnorm=True)
+            if self.incremental:
+                gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
+                        uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
+                        combine=self.combine, solint=self.solint[
+                        i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable,
+                        spwmap=self.spwmap,
+                        solnorm=True)
+            else:
+                gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
+                        uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
+                        combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant,
+                        spwmap=self.spwmap, solnorm=True)
 
             self.plot_selfcal(caltable, xaxis="time", yaxis="amp", iteration="antenna",
                               subplot=[4, 2], plotrange=[0, 0, 0.2, 1.8], want_plot=self.want_plot)
@@ -379,10 +385,15 @@ class AmpPhasecal(Selfcal):
             self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
 
-            applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap],
-                     field=self.Imager.getField(), gaintable=[
-                    self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp,
-                     applymode=self.applymode)
+            if self.incremetal:
+                applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap],
+                         field=self.Imager.getField(), gaintable=[
+                        self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp,
+                         applymode=self.applymode)
+            else:
+                applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=self.spwmap,
+                         field=self.Imager.getField(), gaintable=[caltable], gainfield='', calwt=False,
+                         flagbackup=False, interp=self.interp, applymode=self.applymode)
 
             if self.flag_dataset_bool:
                 self.flag_dataset(mode=self.flag_mode)
