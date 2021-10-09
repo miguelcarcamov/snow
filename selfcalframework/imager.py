@@ -195,7 +195,7 @@ class GPUvmem(Imager):
     def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()
         ia = image()
-        residual_image = "residual"
+        residual_image = residual_ms.partition(".ms")[0]
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
 
