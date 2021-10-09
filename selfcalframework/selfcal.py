@@ -385,7 +385,7 @@ class AmpPhasecal(Selfcal):
             self.save_selfcal(caltable_version=versionname, overwrite=True)
             self.caltables_versions.append(versionname)
 
-            if self.incremetal:
+            if self.incremental:
                 applycal(vis=self.visfile, spw=self.Imager.getSpw(), spwmap=[self.spwmap, self.spwmap],
                          field=self.Imager.getField(), gaintable=[
                         self.input_caltable, caltable], gainfield='', calwt=False, flagbackup=False, interp=self.interp,
