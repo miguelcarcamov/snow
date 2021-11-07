@@ -29,8 +29,8 @@ class Imager(metaclass=ABCMeta):
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
 
-        if noise_pixels is None:
-            noise_pixels = int(np.floor(M/5))
+        if self.noise_pixels is None:
+            self.noise_pixels = int(np.floor(M/5))
         # self.__dict__.update(kwargs)
 
     def getVis(self):
