@@ -19,7 +19,7 @@ import subprocess
 class Imager(metaclass=ABCMeta):
 
     def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I",
-                 phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, savemodel=True, verbose=True):
+                 phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, noise_pixels=None, savemodel=True, verbose=True):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
@@ -28,6 +28,9 @@ class Imager(metaclass=ABCMeta):
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
             setattr(self, a_attribute, initlocals[a_attribute])
+
+        if noise_pixels is None:
+            noise_pixels = int(np.floor(M/5))
         # self.__dict__.update(kwargs)
 
     def getVis(self):
@@ -103,13 +106,21 @@ class Imager(metaclass=ABCMeta):
     def setPhaseCenter(self, phasecenter=""):
         self.phasecenter = phasecenter
 
-    def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=80):
-        self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
-            signal_fits_name, residual_fits_name, stdv_pixels)
+    def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=None):
+        if stdv_pixels is None:
+            self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+                signal_fits_name, residual_fits_name, self.noise_pixels)
+        else:
+            self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+                signal_fits_name, residual_fits_name, stdv_pixels)
 
-    def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=80):
-        self.psnr, self.peak, self.stdv = calculatePSNR_MS(
-            signal_ms_name, residual_ms_name, stdv_pixels)
+    def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=None):
+        if stdv_pixels is None:
+            self.psnr, self.peak, self.stdv = calculatePSNR_MS(
+                signal_ms_name, residual_ms_name, self.noise_pixels)
+        else:
+            self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+                signal_fits_name, residual_fits_name, stdv_pixels)
 
     @abstractmethod
     def run(self, imagename=""):
@@ -195,7 +206,7 @@ class GPUvmem(Imager):
     def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()
         ia = image()
-        residual_image = residual_ms.partition(".ms")[0]+ ".residual"
+        residual_image = residual_ms.partition(".ms")[0] + ".residual"
         os.system("rm -rf *.log *.last " + residual_image +
                   ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
 
