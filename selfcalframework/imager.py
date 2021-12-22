@@ -203,7 +203,7 @@ class GPUvmem(Imager):
     def setRegFactors(self, regfactors):
         self.factors = regfactors
 
-    def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
+    def _restore(self, model_fits="", residual_ms="", restored_image="restored", pyralysis_dirty=True):
         qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
@@ -218,8 +218,13 @@ class GPUvmem(Imager):
         cdeltd = qa.convert(v=cdelt, outunit="deg")
         pix_size = str(cdelta['value']) + "arcsec"
 
-        tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
-               stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
+        if pyralysis_dirty:
+            file_pyra_dirty=residual_image+'.fits'
+            os.system("bash exec_pyra_dirtymaps.bash "+residual_ms+" "+file_pyra_dirty+" "+self.weighting+" "+str(self.robust)+" "+str(self.M)+"  "+str(cdelta['value'])+" "+model_fits)
+            importfits(fitsimage=file_pyra_dirty, imagename=residual_image + ".image", overwrite=True)  
+        else:
+            tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
+                   stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
                cell=self.cell, datacolumn='data')
 
         exportfits(imagename=residual_image + ".image",
