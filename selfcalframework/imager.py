@@ -203,7 +203,73 @@ class GPUvmem(Imager):
     def setRegFactors(self, regfactors):
         self.factors = regfactors
 
-    def _restore(self, model_fits="", residual_ms="", restored_image="restored", pyralysis_dirty=True):
+    def _restore(self, model_fits="", residual_ms="", restored_image="restored", pyralysis_restore=True):
+        qa = quanta()
+        ia = image()
+        residual_image = residual_ms.partition(".ms")[0] + ".residual"
+        os.system("rm -rf *.log *.last " + residual_image +
+                  ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
+
+        importfits(imagename="model_out", fitsimage=model_fits, overwrite=True)
+        shape = imhead(imagename="model_out", mode="get", hdkey="shape")
+        pix_num = shape[0]
+        cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
+        cdelta = qa.convert(v=cdelt, outunit="arcsec")
+        cdeltd = qa.convert(v=cdelt, outunit="deg")
+        pix_size = str(cdelta['value']) + "arcsec"
+
+        if pyralysis_restore:
+            file_residuals=residual_image+'.image.fits'
+            file_restored=restored_image + ".fits"
+ 
+            os.system("bash exec_pyra_restore.bash "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
+        else:
+            tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
+                   stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
+               cell=self.cell, datacolumn='data')
+
+            exportfits(imagename=residual_image + ".image",
+                       fitsimage=residual_image + ".image.fits", overwrite=True, history=False)
+
+            ia.open(infile=residual_image + ".image")
+            rbeam = ia.restoringbeam()
+            ia.done()
+            ia.close()
+
+            bmaj = imhead(imagename=residual_image + ".image",
+                          mode="get", hdkey="beammajor")
+            bmin = imhead(imagename=residual_image + ".image",
+                          mode="get", hdkey="beamminor")
+            bpa = imhead(imagename=residual_image + ".image",
+                         mode="get", hdkey="beampa")
+
+            minor = qa.convert(v=bmin, outunit="deg")
+            pa = qa.convert(v=bpa, outunit="deg")
+
+            ia.open(infile="model_out")
+            im2 = ia.convolve2d(outfile="convolved_model_out", axes=[
+                0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
+            im2.done()
+            ia.done()
+            ia.close()
+
+            exportfits(imagename="convolved_model_out",
+                       fitsimage="convolved_model_out.fits", overwrite=True, history=False)
+            ia.open(infile="convolved_model_out.fits")
+            ia.setrestoringbeam(beam=rbeam)
+            ia.done()
+            ia.close()
+
+            imagearr = ["convolved_model_out.fits", residual_image + ".image.fits"]
+
+            immath(imagename=imagearr, expr=" (IM0   + IM1) ", outfile=restored_image)
+
+            exportfits(imagename=restored_image, fitsimage=restored_image +
+                                                           ".fits", overwrite=True, history=False)
+
+        return residual_image + ".image.fits", restored_image + ".fits"
+    
+    def _restore_pyradirty(self, model_fits="", residual_ms="", restored_image="restored", pyralysis_dirty=True):
         qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
@@ -268,6 +334,7 @@ class GPUvmem(Imager):
 
         return residual_image + ".image.fits", restored_image + ".fits"
 
+    
     def _make_canvas(self, name="model_input"):
         fitsimage = name + '.fits'
         tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
