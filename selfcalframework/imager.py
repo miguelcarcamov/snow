@@ -14,7 +14,7 @@ from casatools import quanta
 from abc import ABCMeta, abstractmethod
 import shlex
 import subprocess
-
+from pathlib import Path
 
 class Imager(metaclass=ABCMeta):
 
@@ -221,8 +221,9 @@ class GPUvmem(Imager):
         if pyralysis_restore:
             file_residuals=residual_image+'.image.fits'
             file_restored=restored_image + ".fits"
- 
-            os.system("bash exec_pyra_restore.bash "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
+            exec_pyra_script = Path(__file__).parent / "exec_pyra_restore.bash"
+
+            os.system("bash "+exec_pyra_script+" "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
         else:
             tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                    stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
