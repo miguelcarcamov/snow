@@ -1,0 +1,16 @@
+import numpy as np
+import sys
+from astropy.io import fits
+import re
+import os
+
+#include_path=os.environ['HOME']+'/common/python/include/'
+#sys.path.append(include_path)
+#from Imutils import Resamp 
+
+import Resamp
+
+file_canvas=sys.argv[1]
+file_mask=sys.argv[2]
+fileout=sys.argv[3]
+Resamp.gridding(file_mask,file_canvas,file_mask_resampled,fileout=fileout)

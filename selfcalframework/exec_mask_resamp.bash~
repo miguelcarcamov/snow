@@ -1,9 +1,5 @@
-residual_ms=$1
-model_fits=$2
-file_restored=$3
-file_residuals=$4
-weighting=$5
-robust=$6
+file_canvas=$1
+file_mask=$2
 
 echo $residual_ms $model_fits $file_restored $weighting $robust
 
@@ -12,7 +8,7 @@ zdir=$(dirname "$temp")
 echo $zdir/pyrarestore.py
 
 
-/home/simon/anaconda3/bin/python $zdir/pyrarestore.py $residual_ms $model_fits $file_restored $file_residuals $weighting $robust
+/home/simon/anaconda3/bin/python $zdir/mask_resamp.py file_canvas file_mask
 
 echo back to shell
 

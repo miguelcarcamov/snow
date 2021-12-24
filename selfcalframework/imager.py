@@ -14,7 +14,10 @@ from casatools import quanta
 from abc import ABCMeta, abstractmethod
 import shlex
 import subprocess
+
 from pathlib import Path
+from astropy.io import fits
+import re
 
 class Imager(metaclass=ABCMeta):
 
@@ -223,7 +226,7 @@ class GPUvmem(Imager):
             file_restored=restored_image + ".fits"
             exec_pyra_script = Path(__file__).parent / "exec_pyra_restore.bash"
 
-            os.system("bash "+exec_pyra_script+" "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
+            os.system("bash "+str(exec_pyra_script)+" "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
         else:
             tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                    stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
@@ -360,6 +363,22 @@ class GPUvmem(Imager):
                + " -R " + str(self.robust) + " -t " + str(self.niter)
 
         if self.user_mask != "":
+            print("imager: checking that mask and canvas have same WCS")
+            
+            hdu_canvas=fits.open(imagename + "_input.fits")
+            hdr_canvas=hdu_canvas[0].header
+            hdu_mask=fits.open(self.user_mask)
+            hdr_mask=hdu_mask[0].header
+            if ( (np.fabs( (hdr_mask['CDELT2']-hdr_canvas['CDELT2'])/hdr_canvas['CDELT2']) < 1E-3) | (hdr_mask['NAXIS1'] != hdr_canvas['NAXIS1'])):
+                exec_maskresamp_script = Path(__file__).parent / "exec_mask_resamp.bash"
+                mask_basename=os.path.basename(self.user_mask)
+                mask_basename=re.sub('.fits','_resamp.fits',mask_basename,re.IGNORECASE)
+                full_path_mask=os.path.join(os.path.dirname(self.user_mask),mask_basename)
+                print("resampling input mask: ","bash "+str(exec_maskresamp_script)+" "+imagename + "_input.fits"+" "+self.user_mask+" "+full_path_mask)
+                os.system("bash "+str(exec_maskresamp_script)+" "+imagename + "_input.fits"+" "+self.user_mask+" "+full_path_mask)
+                self.user_mask=full_path_mask
+                print("assigned attribute ",self.user_mask)
+            
             args += " -U " + self.user_mask
 
         if self.gridding:
