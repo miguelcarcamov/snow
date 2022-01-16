@@ -68,7 +68,7 @@ print("Weighting scheme")
 
 if re.search('Natural',weighting,re.IGNORECASE):
     print("Natural weights: Init dirty_mapper")
-    dirty_mapper = DirtyMapper(input_data=dataset, imsize=imsize, cellsize=dx, stokes="I,Q", hermitian_symmetry=False)
+    dirty_mapper = DirtyMapper(input_data=dataset, imsize=imsize, cellsize=dx, stokes="I", hermitian_symmetry=False)
 
     print("Compute natural weights image")
 
@@ -92,7 +92,7 @@ elif re.search('Briggs',weighting,re.IGNORECASE):
 
     dataset.calculate_psf()
     
-    dirty_mapper = DirtyMapper(input_data=dataset, imsize=imsize, cellsize=dx, stokes="I,Q", hermitian_symmetry=False)
+    dirty_mapper = DirtyMapper(input_data=dataset, imsize=imsize, cellsize=dx, stokes="I", hermitian_symmetry=False)
 
     dirty_images_robust = dirty_mapper.transform()
     dirty_image = dirty_images_robust[0].data[0].compute()
@@ -110,7 +110,7 @@ elif re.search('Uniform',weighting,re.IGNORECASE):
 
     dataset.calculate_psf()
     
-    dirty_mapper = DirtyMapper(input_data=dataset, imsize=imsize, cellsize=dx, stokes="I,Q", hermitian_symmetry=False)
+    dirty_mapper = DirtyMapper(input_data=dataset, imsize=imsize, cellsize=dx, stokes="I", hermitian_symmetry=False)
     
     dirty_images_uniform = dirty_mapper.transform()
     

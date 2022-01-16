@@ -188,8 +188,8 @@ class Clean(Imager):
 class GPUvmem(Imager):
     def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0],
                  residualoutput="residuals.ms",
-                 model_input="", modelout="mod_out.fits", user_mask="", griddingthreads=4, positivity=True, ftol=1e-12,
-                 noise_cut=10.0, gridding=False, printimages=False, **kwargs):
+                 model_input="", modelout="mod_out.fits", user_mask="",user_mask_resampled="", CheckMask=True,griddingthreads=4, positivity=True, ftol=1e-12,
+                 noise_cut=10.0, gridding=False, printimages=False, pyralysis_restore=True, NoiseFromTcleanResiduals=False,ManualNoise=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
         self.name = "GPUvmem"
         initlocals = locals()
@@ -206,7 +206,7 @@ class GPUvmem(Imager):
     def setRegFactors(self, regfactors):
         self.factors = regfactors
 
-    def _restore(self, model_fits="", residual_ms="", restored_image="restored", pyralysis_restore=True):
+    def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
@@ -221,7 +221,7 @@ class GPUvmem(Imager):
         cdeltd = qa.convert(v=cdelt, outunit="deg")
         pix_size = str(cdelta['value']) + "arcsec"
 
-        if pyralysis_restore:
+        if self.pyralysis_restore:
             file_residuals=residual_image+'.image.fits'
             file_restored=restored_image + ".fits"
             exec_pyra_script = Path(__file__).parent / "exec_pyra_restore.bash"
@@ -339,18 +339,44 @@ class GPUvmem(Imager):
         return residual_image + ".image.fits", restored_image + ".fits"
 
     
-    def _make_canvas(self, name="model_input"):
+    def _make_canvas(self, name="model_input",NoiseFromTcleanResiduals=False,ManualNoise=False):
         fitsimage = name + '.fits'
-        tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
+        tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=1000,
                deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=self.robust,
                imsize=[self.M, self.N], weighting=self.weighting)
         exportfits(imagename=name + '.image',
                    fitsimage=fitsimage, overwrite=True)
+
+        fitsimageresids = name + '.residual.fits' 
+        exportfits(imagename=name + '.residual',
+                   fitsimage=fitsimageresids, overwrite=True)
+        
+        if ManualNoise or NoiseFromTcleanResiduals:
+
+            hdu_canvas = fits.open(fitsimage)
+            hdr_canvas=hdu_canvas[0].header
+
+            if ManualNoise:
+                noise = ManualNoise
+                print("using manual noise ",noise)
+                hdr_canvas['NOISE'] = noise
+            elif NoiseFromTcleanResiduals:
+                hdu_resids = fits.open(fitsimageresids)
+                im_resids=hdu_canvas[0].image
+                noise=np.std(im_resids)
+                print( "noise from tclean residuals = ",noise)
+                #im_canvas=hdu_canvas[0].image
+                hdr_canvas['NOISE'] = noise
+
+            hdu_canvas[0].header=hdr_canvas
+            hdu_canvas.writeto(fitsimage,overwrite=True)
+            
         return fitsimage
 
     def run(self, imagename=""):
         if self.model_input == "":
-            self.model_input = self._make_canvas(imagename + "_input")
+            print("GENERATE CANVAS USING TCLEAN")
+            self.model_input = self._make_canvas(imagename + "_input",NoiseFromTcleanResiduals=self.NoiseFromTcleanResiduals,ManualNoise=self.ManualNoise)
         model_output = imagename + ".fits"
         residual_output = imagename + "_" + self.residualoutput
         restored_image = imagename + ".restored"
@@ -362,23 +388,35 @@ class GPUvmem(Imager):
                + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
                + " -R " + str(self.robust) + " -t " + str(self.niter)
 
-        if self.user_mask != "":
-            print("imager: checking that mask and canvas have same WCS")
-            
-            hdu_canvas=fits.open(imagename + "_input.fits")
-            hdr_canvas=hdu_canvas[0].header
-            hdu_mask=fits.open(self.user_mask)
-            hdr_mask=hdu_mask[0].header
-            if ( (np.fabs( (hdr_mask['CDELT2']-hdr_canvas['CDELT2'])/hdr_canvas['CDELT2']) < 1E-3) | (hdr_mask['NAXIS1'] != hdr_canvas['NAXIS1'])):
-                exec_maskresamp_script = Path(__file__).parent / "exec_mask_resamp.bash"
-                mask_basename=os.path.basename(self.user_mask)
-                mask_basename=re.sub('.fits','_resamp.fits',mask_basename,re.IGNORECASE)
-                full_path_mask=os.path.join(os.path.dirname(self.user_mask),mask_basename)
-                print("resampling input mask: ","bash "+str(exec_maskresamp_script)+" "+imagename + "_input.fits"+" "+self.user_mask+" "+full_path_mask)
-                os.system("bash "+str(exec_maskresamp_script)+" "+imagename + "_input.fits"+" "+self.user_mask+" "+full_path_mask)
-                self.user_mask=full_path_mask
+        if ( (self.user_mask != "") ):
+
+            if self.CheckMask:
+                print("imager: checking that mask and canvas have same WCS")
+                self.user_mask_resampled=self.user_mask
+                hdu_canvas=fits.open(self.model_input)
+                hdr_canvas=hdu_canvas[0].header
+                hdu_mask=fits.open(self.user_mask)
+                hdr_mask=hdu_mask[0].header
+                if ( (np.fabs( (hdr_mask['CDELT2']-hdr_canvas['CDELT2'])/hdr_canvas['CDELT2']) < 1E-3) | (hdr_mask['NAXIS1'] != hdr_canvas['NAXIS1'])):
+                    exec_maskresamp_script = Path(__file__).parent / "exec_mask_resamp.bash"
+                    mask_basename=os.path.basename(self.user_mask)
+                    mask_basename=re.sub('.fits','_resamp.fits',mask_basename,re.IGNORECASE)
+                    full_path_mask=os.path.join(os.path.dirname(self.user_mask),mask_basename)
+                    print("resampling input mask: ","bash "+str(exec_maskresamp_script)+" "+imagename + "_input.fits"+" "+self.user_mask+" "+full_path_mask)
+                    os.system("bash "+str(exec_maskresamp_script)+" "+imagename + "_input.fits"+" "+self.user_mask+" "+full_path_mask)
+                    self.user_mask=full_path_mask
+                    self.user_mask_resampled=full_path_mask
+                    print("assigned attribute ",self.user_mask)
+                self.CheckMask=False
+            else:
+                print("already checked mask in first iter")
+                self.user_mask=self.user_mask_resampled
                 print("assigned attribute ",self.user_mask)
-            
+                
+
+                
+                    
+            print("USER MASK: ",self.user_mask)
             args += " -U " + self.user_mask
 
         if self.gridding:
