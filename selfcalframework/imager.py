@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import os.path
 import sys
 import time
 from casatasks import tclean
@@ -110,12 +111,14 @@ class Imager(metaclass=ABCMeta):
         self.phasecenter = phasecenter
 
     def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=None):
+        print("calculating PSNR ",signal_fits_name, residual_fits_name, stdv_pixels, self.noise_pixels)
         if stdv_pixels is None:
             self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
                 signal_fits_name, residual_fits_name, self.noise_pixels)
         else:
             self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
                 signal_fits_name, residual_fits_name, stdv_pixels)
+        print("values: PSNR, peak, noise ",self.psnr, self.peak, self.stdv)
 
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=None):
         if stdv_pixels is None:
@@ -210,13 +213,13 @@ class GPUvmem(Imager):
         qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
-        os.system("rm -rf *.log *.last " + residual_image +
-                  ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
+        workdir=os.path.dirname(model_fits)
+        os.system("rm -rf *.log *.last " + residual_image+".* "+workdir+"/mod_out  "+workdir+"/convolved_mod_out "+workdir+"/convolved_mod_out.fits "+restored_image + " " + restored_image + ".fits")
 
-        importfits(imagename="model_out", fitsimage=model_fits, overwrite=True)
-        shape = imhead(imagename="model_out", mode="get", hdkey="shape")
+        importfits(imagename=workdir+"/model_out", fitsimage=model_fits, overwrite=True)
+        shape = imhead(imagename=workdir+"/model_out", mode="get", hdkey="shape")
         pix_num = shape[0]
-        cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
+        cdelt = imhead(imagename=workdir+"/model_out", mode="get", hdkey="cdelt2")
         cdelta = qa.convert(v=cdelt, outunit="arcsec")
         cdeltd = qa.convert(v=cdelt, outunit="deg")
         pix_size = str(cdelta['value']) + "arcsec"
@@ -228,10 +231,12 @@ class GPUvmem(Imager):
 
             os.system("bash "+str(exec_pyra_script)+" "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
         else:
+            print("performing CASA restore with residual_ms",residual_ms," weighting ", self.weighting, " robust ",self.robust)
             tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                    stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
                cell=self.cell, datacolumn='data')
 
+            print("exporting to FITS format residual image ->",residual_image + ".image.fits")
             exportfits(imagename=residual_image + ".image",
                        fitsimage=residual_image + ".image.fits", overwrite=True, history=False)
 
@@ -250,21 +255,21 @@ class GPUvmem(Imager):
             minor = qa.convert(v=bmin, outunit="deg")
             pa = qa.convert(v=bpa, outunit="deg")
 
-            ia.open(infile="model_out")
-            im2 = ia.convolve2d(outfile="convolved_model_out", axes=[
+            ia.open(infile=workdir+"/model_out")
+            im2 = ia.convolve2d(outfile=workdir+"/convolved_model_out", axes=[
                 0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
             im2.done()
             ia.done()
             ia.close()
 
-            exportfits(imagename="convolved_model_out",
-                       fitsimage="convolved_model_out.fits", overwrite=True, history=False)
-            ia.open(infile="convolved_model_out.fits")
+            exportfits(imagename=workdir+"/convolved_model_out",
+                       fitsimage=workdir+"/convolved_model_out.fits", overwrite=True, history=False)
+            ia.open(infile=workdir+"/convolved_model_out.fits")
             ia.setrestoringbeam(beam=rbeam)
             ia.done()
             ia.close()
 
-            imagearr = ["convolved_model_out.fits", residual_image + ".image.fits"]
+            imagearr = [workdir+"/convolved_model_out.fits", residual_image + ".image.fits"]
 
             immath(imagename=imagearr, expr=" (IM0   + IM1) ", outfile=restored_image)
 
