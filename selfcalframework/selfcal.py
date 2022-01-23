@@ -264,6 +264,7 @@ class Phasecal(Selfcal):
 
         self.calmode = 'p'
         self.loops = len(self.solint)
+        self.output = self.Imager.output
         self.imagename = self.Imager.getOutputPath()
 
     def run(self):
@@ -277,7 +278,8 @@ class Phasecal(Selfcal):
         self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
-            caltable = 'pcal' + str(i)
+            caltable = self.output+'pcal' + str(i)
+            print("caltable:  ",caltable)
             self.caltables.append(caltable)
             rmtables(caltable)
 
@@ -335,6 +337,7 @@ class AmpPhasecal(Selfcal):
         self.calmode = 'ap'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
+        self.output = self.Imager.output
 
         if self.selfcal_object is None and self.input_caltable == "":
             print(
@@ -362,7 +365,8 @@ class AmpPhasecal(Selfcal):
             self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
-            caltable = 'apcal_' + str(i)
+            caltable = self.output+'apcal_' + str(i)
+            print("caltable:  ",caltable)
             self.caltables.append(caltable)
             rmtables(caltable)
             if self.incremental:

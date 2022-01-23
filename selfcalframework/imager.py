@@ -232,7 +232,10 @@ class GPUvmem(Imager):
             os.system("bash "+str(exec_pyra_script)+" "+residual_ms+" "+model_fits+" "+file_restored+" "+file_residuals+" "+self.weighting+" "+str(self.robust))
         else:
             print("performing CASA restore with residual_ms",residual_ms," weighting ", self.weighting, " robust ",self.robust)
-            tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
+            residual_ms_data=residual_ms+'.onlydatacolumn'
+            os.system('rm -rf '+residual_ms_data)
+            split(vis=residual_ms,outputvis=residual_ms_data,datacolumn='data')
+            tclean(vis=residual_ms_data, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
                    stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
                cell=self.cell, datacolumn='data')
 
