@@ -86,10 +86,15 @@ class Selfcal(metaclass=ABCMeta):
                     versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def flag_dataset(self, datacolumn="residual", mode="rflag"):
+    def flag_dataset(self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0):
+        # NOTE1: RESIDUAL = CORRECTED - MODEL
+        # RESIDUAL_DATA = DATA - MODEL
+        # NOTE2: When datacolumn is WEIGHT, the task will
+        # internally use WEIGHT_SPECTRUM.
+        # If WEIGHT_SPECTRUM does not exist, it will create one on-the-fly based on the values of WEIGHT.
         flagdata(vis=self.visfile, mode=mode, datacolumn=datacolumn, field='', timecutoff=5.0,
                  freqcutoff=5.0, timefit='line', freqfit='line', flagdimension='freqtime',
-                 extendflags=False, timedevscale=3.0, freqdevscale=3.0, spectralmax=500,
+                 extendflags=False, timedevscale=timedevscale, freqdevscale=freqdevscale, spectralmax=500,
                  extendpols=False, growaround=False, flagneartime=False, flagnearfreq=False,
                  action='apply', flagbackup=True, overwrite=True, writeflags=True)
 
