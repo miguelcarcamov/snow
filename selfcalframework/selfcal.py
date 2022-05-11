@@ -373,8 +373,7 @@ class AmpPhasecal(Selfcal):
                         uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                         combine=self.combine, solint=self.solint[
                         i], minsnr=self.minsnr, minblperant=self.minblperant, gaintable=self.input_caltable,
-                        spwmap=self.spwmap,
-                        solnorm=self.solnorm)
+                        spwmap=self.spwmap, solnorm=self.solnorm)
             else:
                 gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
                         uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
