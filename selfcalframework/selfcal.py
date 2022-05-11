@@ -1,7 +1,7 @@
 import os
 import sys
 import shutil
-import numpy as np
+from datetime import datetime
 from casatasks import flagmanager
 from casatasks import rmtables
 from casatasks import gaincal
@@ -33,18 +33,18 @@ class Selfcal(metaclass=ABCMeta):
 
         if self.Imager is None:
             print("Error, Imager Object is Nonetype")
-            sys.exit(
+            raise ValueError(
                 "Error, self-calibration objects cannot run without an imager object")
 
         if self.varchange is not None:
             list_of_values = [value for key, value in self.varchange.items()]
             it = iter(list_of_values)
             if not all(len(l) == len(self.solint) for l in it):
-                sys.exit("Error, length of solint and variable that changes through iterations must be the same")
+                raise ValueError("Error, length of solint and variable that changes through iterations must be the same")
 
         if self.subtract_source == True:
             if self.Imager.getPhaseCenter() != "":
-                print("Error, phase center needs to be set if a source is going to be subtracted")
+                raise ValueError("Error, phase center needs to be set if a source is going to be subtracted")
 
     def getVisfile(self):
         return self.getvisfile
@@ -174,17 +174,17 @@ class Ampcal(Selfcal):
         if self.selfcal_object is None and self.input_caltable == "":
             print(
                 "Error, Self-cal object is Nonetype and input_caltable is an empty string")
-            sys.exit(
+            raise ValueError(
                 "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
             if self.selfcal_object:
                 self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif self.input_caltable != "":
                 if not os.path.exists(self.input_caltable):
-                    sys.exit("The caltable " + self.input_caltable + " needs to be created")
+                    raise FileNotFoundError("The caltable " + self.input_caltable + " needs to be created")
             else:
                 print("Error, Ampcal needs a non-empty list of caltables")
-                sys.exit(
+                raise ValueError(
                     "Error, Amplitude self-cal objects cannot run with an empty caltable list")
 
     def run(self):
@@ -342,16 +342,14 @@ class AmpPhasecal(Selfcal):
         self.imagename = self.Imager.getOutputPath()
 
         if self.selfcal_object is None and self.input_caltable == "":
-            print(
+            raise ValueError(
                 "Error, Self-cal object is Nonetype and input_caltable is an empty string")
-            sys.exit(
-                "Error, Amplitude self-cal objects cannot run without an phase-cal object or input caltable")
         else:
             if self.selfcal_object:
                 self.input_caltable = self.selfcal_object.getCaltables()[-1]
             elif self.input_caltable != "":
                 if not os.path.exists(self.input_caltable):
-                    sys.exit("The caltable " + self.input_caltable + " needs to be created")
+                    raise FileNotFoundError("The caltable " + self.input_caltable + " needs to be created")
             else:
                 print("Error, Ampcal needs a non-empty list of caltables")
                 sys.exit(

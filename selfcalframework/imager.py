@@ -1,7 +1,6 @@
 import numpy as np
 import os
 import sys
-import time
 from casatasks import tclean
 from casatasks import fixvis
 from casatasks import importfits
@@ -31,6 +30,7 @@ class Imager(metaclass=ABCMeta):
 
         if self.noise_pixels is None:
             self.noise_pixels = int(np.floor(M/5))
+        self.nantennas = calculate_number_antennas(inputvis)
         # self.__dict__.update(kwargs)
 
     def getVis(self):
@@ -85,7 +85,7 @@ class Imager(metaclass=ABCMeta):
     def getVerbose(self):
         return self.verbose
 
-    def setVerbose(self):
+    def setVerbose(self, verbose=True):
         self.verbose = verbose
 
     def getOutputPath(self):
@@ -108,19 +108,25 @@ class Imager(metaclass=ABCMeta):
 
     def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=None):
         if stdv_pixels is None:
-            self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+            psnr, peak, stdv = calculatePSNR_FITS(
                 signal_fits_name, residual_fits_name, self.noise_pixels)
         else:
-            self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
+            psnr, peak, stdv = calculatePSNR_FITS(
                 signal_fits_name, residual_fits_name, stdv_pixels)
+
+            stdv_corrected = stdv * np.sqrt(self.nantennas-3)
+            self.psnr = peak / stdv_corrected
+            self.peak = peak
+            self.stdv = stdv_corrected
 
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=None):
         if stdv_pixels is None:
-            self.psnr, self.peak, self.stdv = calculatePSNR_MS(
+            psnr, peak, stdv = calculatePSNR_MS(
                 signal_ms_name, residual_ms_name, self.noise_pixels)
-        else:
-            self.psnr, self.peak, self.stdv = calculatePSNR_FITS(
-                signal_fits_name, residual_fits_name, stdv_pixels)
+            stdv_corrected = stdv * np.sqrt(self.nantennas - 3)
+            self.psnr = peak / stdv_corrected
+            self.peak = peak
+            self.stdv = stdv_corrected
 
     @abstractmethod
     def run(self, imagename=""):
