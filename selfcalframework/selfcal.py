@@ -21,7 +21,7 @@ tb = table()
 class Selfcal(metaclass=ABCMeta):
 
     def __init__(self, visfile="", Imager=None, refant="", spwmap=[], minblperant=4, want_plot=True, interp='linear',
-                 gaintype='T', uvrange="", solint=[], varchange=None, minsnr=3.0, applymode="calflag",
+                 gaintype='T', uvrange="", solint=[], varchange_imager=None, varchange_selfcal=None, minsnr=3.0, applymode="calflag",
                  flag_mode="rflag", combine="", flag_dataset_bool=False, restore_PSNR=False, subtract_source=False):
         initlocals = locals()
         initlocals.pop('self')
@@ -36,8 +36,14 @@ class Selfcal(metaclass=ABCMeta):
             raise ValueError(
                 "Error, self-calibration objects cannot run without an imager object")
 
-        if self.varchange is not None:
-            list_of_values = [value for key, value in self.varchange.items()]
+        if self.varchange_imager is not None:
+            list_of_values = [value for key, value in self.varchange_imager.items()]
+            it = iter(list_of_values)
+            if not all(len(l) == len(self.solint) for l in it):
+                raise ValueError("Error, length of solint and variable that changes through iterations must be the same")
+
+        if self.varchange_selfcal is not None:
+            list_of_values = [value for key, value in self.varchange_selfcal.items()]
             it = iter(list_of_values)
             if not all(len(l) == len(self.solint) for l in it):
                 raise ValueError("Error, length of solint and variable that changes through iterations must be the same")
@@ -107,10 +113,14 @@ class Selfcal(metaclass=ABCMeta):
         else:
             return False
 
-    def set_Imager_attributes_from_dict(self, iteration=0):
-        if self.varchange is not None:
-            for key in self.varchange.keys():
-                setattr(self.Imager, key, self.varchange[key][iteration])
+    def set_attributes_from_dicts(self, iteration=0):
+        if self.varchange_imager is not None:
+            for key in self.varchange_imager.keys():
+                setattr(self.Imager, key, self.varchange_imager[key][iteration])
+
+        if self.varchange_selfcal is not None:
+            for key in self.varchange_selfcal.keys():
+                setattr(self, key, self.varchange_selfcal[key][iteration])
 
     def plot_selfcal(self, caltable, xaxis="", yaxis="", iteration="", timerange="", antenna="", subplot=[1, 1],
                      plotrange=[], want_plot=False, **kwargs):
@@ -200,6 +210,9 @@ class Ampcal(Selfcal):
             caltable = 'ampcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
+
+            self.set_attributes_from_dicts(i)
+
             gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
                     uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
                     combine=self.combine, solint=self.solint[i], minsnr=self.minsnr, minblperant=self.minblperant,
@@ -220,8 +233,6 @@ class Ampcal(Selfcal):
                 self.flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_a' + str(i)
-
-            self.set_Imager_attributes_from_dict(i)
 
             self.Imager.run(imagename)
 
@@ -275,16 +286,19 @@ class Phasecal(Selfcal):
         caltable = "before_selfcal"
         self.save_selfcal(caltable_version=caltable, overwrite=True)
         self.caltables_versions.append(caltable)
-        imagename = self.imagename + '_original'
-        self.Imager.run(imagename)
-        print("Original: - PSNR: " + str(self.Imager.getPSNR()))
-        print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-        self.psnr_history.append(self.Imager.getPSNR())
+        if not self.ismodel_in_dataset():
+            imagename = self.imagename + '_original'
+            self.Imager.run(imagename)
+            print("Original: - PSNR: " + str(self.Imager.getPSNR()))
+            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            self.psnr_history.append(self.Imager.getPSNR())
 
         for i in range(0, self.loops):
             caltable = 'pcal' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
+
+            self.set_attributes_from_dicts(i)
 
             gaincal(vis=self.visfile, caltable=caltable, field=self.Imager.getField(), spw=self.Imager.getSpw(),
                     uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant,
@@ -307,8 +321,6 @@ class Phasecal(Selfcal):
                 self.flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_ph' + str(i)
-
-            self.set_Imager_attributes_from_dict(i)
 
             self.Imager.run(imagename)
 
@@ -368,6 +380,9 @@ class AmpPhasecal(Selfcal):
             caltable = 'apcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
+
+            self.set_attributes_from_dicts(i)
+
             if self.incremental:
                 gaincal(vis=self.visfile, field=self.Imager.getField(), caltable=caltable, spw=self.Imager.getSpw(),
                         uvrange=self.uvrange, gaintype=self.gaintype, refant=self.refant, calmode=self.calmode,
@@ -401,8 +416,6 @@ class AmpPhasecal(Selfcal):
                 self.flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_ap' + str(i)
-
-            self.set_Imager_attributes_from_dict(i)
 
             self.Imager.run(imagename)
 
