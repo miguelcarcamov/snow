@@ -296,8 +296,10 @@ class GPUvmem(Imager):
             args += " -U " + self.user_mask
 
         if self.force_noise is not None:
+            print("Force noise is not None")
+            print(self.force_noise)
             args += " -n " + str(self.force_noise)
-
+            raise ValueError
         if self.gridding:
             args += " -g " + str(self.griddingthreads)
 
