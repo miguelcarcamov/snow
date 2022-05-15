@@ -330,15 +330,16 @@ class Phasecal(Selfcal):
                   " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             if self.restore_PSNR:
-                if self.psnr_history[-1] <= self.psnr_history[-2]:
-                    self.restore_selfcal(
-                        caltable_version=self.caltables_versions[i])
-                    self.psnr_history.pop()
-                    self.caltables_versions.pop()
-                    self.caltables.pop()
-                    print(
-                        "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop")
-                    break
+                if len(self.psnr_history) > 1:
+                    if self.psnr_history[-1] <= self.psnr_history[-2]:
+                        self.restore_selfcal(
+                            caltable_version=self.caltables_versions[i])
+                        self.psnr_history.pop()
+                        self.caltables_versions.pop()
+                        self.caltables.pop()
+                        print(
+                            "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop")
+                        break
 
 
 class AmpPhasecal(Selfcal):
