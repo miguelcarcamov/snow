@@ -191,7 +191,7 @@ class Clean(Imager):
 class GPUvmem(Imager):
     def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0],
                  residualoutput="residuals.ms",
-                 model_input="", modelout="mod_out.fits", user_mask="", force_noise="", griddingthreads=4, positivity=True, ftol=1e-12,
+                 model_input="", modelout="mod_out.fits", user_mask="", force_noise=None, griddingthreads=4, positivity=True, ftol=1e-12,
                  noise_cut=10.0, gridding=False, printimages=False, **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
         self.name = "GPUvmem"
@@ -295,7 +295,7 @@ class GPUvmem(Imager):
         if self.user_mask != "":
             args += " -U " + self.user_mask
 
-        if self.force_noise != "":
+        if self.force_noise is not None:
             args += " -n " + str(self.force_noise)
 
         if self.gridding:
