@@ -21,8 +21,8 @@ def exportMStoFITS(msname=""):
 def calculatePSNR_FITS(signal_fits_name="", residual_fits_name="", pixels=100):
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
-    peak = np.max(signal_data)
-    stdv = np.std(res_data[0:pixels, 0:pixels])
+    peak = np.nanmax(signal_data)
+    stdv = np.nanstd(res_data[0:pixels, 0:pixels])
     return peak / stdv, peak, stdv
 
 

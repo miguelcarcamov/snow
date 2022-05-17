@@ -114,19 +114,19 @@ class Imager(metaclass=ABCMeta):
             psnr, peak, stdv = calculatePSNR_FITS(
                 signal_fits_name, residual_fits_name, stdv_pixels)
 
-            stdv_corrected = stdv * np.sqrt(self.nantennas-3)
-            self.psnr = peak / stdv_corrected
-            self.peak = peak
-            self.stdv = stdv_corrected
+        stdv_corrected = stdv * np.sqrt(self.nantennas-3)
+        self.psnr = peak / stdv_corrected
+        self.peak = peak
+        self.stdv = stdv_corrected
 
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=None):
         if stdv_pixels is None:
             psnr, peak, stdv = calculatePSNR_MS(
                 signal_ms_name, residual_ms_name, self.noise_pixels)
-            stdv_corrected = stdv * np.sqrt(self.nantennas - 3)
-            self.psnr = peak / stdv_corrected
-            self.peak = peak
-            self.stdv = stdv_corrected
+        stdv_corrected = stdv * np.sqrt(self.nantennas - 3)
+        self.psnr = peak / stdv_corrected
+        self.peak = peak
+        self.stdv = stdv_corrected
 
     @abstractmethod
     def run(self, imagename=""):
