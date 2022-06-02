@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import shutil
 import numpy as np
@@ -226,17 +225,12 @@ class Ampcal(Selfcal):
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            basevisname=os.path.basename(self.visfile)
-            if '.ms' in self.visfile:
-                basevisname=re.sub('\.ms','_amp'+str(i)+'.ms',self.visfile)
-            else:
-                sys.exit("visfile should have .ms in it")
-            currentvisfile=basevisname
+            currentvisfile=self.visfile+"_amp"+str(i)+"/"
             if self.restore_PSNR:
                 if i > 0:
                     if self.psnr_history[i] <= self.psnr_history[i - 1]:
                         #self.restore_selfcal(
-                        #    caltable_version=self.caltables_versions[i - 1])
+                        #    caltable_version=self.caltables_versions[i - 1]) DEV SIMON 
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -245,17 +239,14 @@ class Ampcal(Selfcal):
 
                         break
                     else:
-                        print("iter "+str(i)+" PSNR improved, copy file"+self.visfile+"/ "+currentvisfile)
                         os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
                         self.visfile= currentvisfile
-                        self.Imager.inputvis = currentvisfile
-
 
                 else:
                     if self.selfcal_object:
                         if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
-                            #self.restore_selfcal(
-                            #    caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
+                            self.restore_selfcal(
+                                caltable_version=self.selfcal_object.getCaltablesVersions()[-1])
                             self.psnr_history.pop()
                             self.caltables_versions.pop()
                             self.caltables.pop()
@@ -267,11 +258,8 @@ class Ampcal(Selfcal):
                                 "exiting loop")
                             break
                         else:
-                            print("iter "+str(i)+" PSNR improved, backup "+self.visfile+"/ "+currentvisfile)
                             os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
                             self.visfile= currentvisfile
-                            self.Imager.inputvis = currentvisfile
-
             
                             
 
@@ -299,12 +287,7 @@ class Phasecal(Selfcal):
             print("Original: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             self.psnr_history.append(self.Imager.getPSNR())
-            if '.ms' in self.visfile:
-                basevisname=re.sub('\.ms','_original.ms',self.visfile)
-            else:
-                sys.exit("visfile should have .ms in it")
-            currentvisfile=basevisname
-            print("backup "+self.visfile+"/ "+currentvisfile)
+            currentvisfile=self.visfile+"_original/"
             os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
 
 
@@ -337,8 +320,7 @@ class Phasecal(Selfcal):
             imagename = self.imagename + '_ph' + str(i)
 
             self.set_Imager_attributes_from_dict(i)
-            
-            print("Phasecal iter"+str(i)+" Calling imager with input visfile",self.Imager.inputvis)
+
             self.Imager.run(imagename)
 
             self.psnr_history.append(self.Imager.getPSNR())
@@ -346,15 +328,11 @@ class Phasecal(Selfcal):
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            if '.ms' in self.visfile:
-                basevisname=re.sub('\.ms','_ph'+str(i)+'.ms',self.visfile)
-            else:
-                sys.exit("visfile should have .ms in it")
-            currentvisfile=basevisname
+            currentvisfile=self.visfile+"_ph"+str(i)+"/"
             if self.restore_PSNR:
                 if self.psnr_history[-1] <= self.psnr_history[-2]:
                     #self.restore_selfcal(
-                    #    caltable_version=self.caltables_versions[i])
+                    #    caltable_version=self.caltables_versions[i]) DEV SIMON
                     self.psnr_history.pop()
                     self.caltables_versions.pop()
                     self.caltables.pop()
@@ -362,10 +340,8 @@ class Phasecal(Selfcal):
                         "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop")
                     break
                 else:
-                    print("iter "+str(i)+" PSNR improved, backup "+self.visfile+"/ "+currentvisfile)
                     os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
                     self.visfile= currentvisfile
-                    self.Imager.inputvis = currentvisfile
 
 
 
@@ -406,15 +382,7 @@ class AmpPhasecal(Selfcal):
             print("Before amplitude-phase self-cal: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             self.psnr_history.append(self.Imager.getPSNR())
-
-        if '.ms' in self.visfile:
-            basevisname=re.sub('\.ms','_before_apcal.ms',self.visfile)
-        else:
-            sys.exit("visfile should have .ms in it")
-
-        currentvisfile=basevisname
-        #currentvisfile=self.visfile+"_before_apcal/"
-        print("before apcal, backup "+self.visfile+"/ "+currentvisfile)
+        currentvisfile=self.visfile+"_before_apcal/"
         os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
 
         for i in range(0, self.loops):
@@ -466,17 +434,12 @@ class AmpPhasecal(Selfcal):
             print("Solint: " + str(self.solint[i]) +
                   " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            if '.ms' in self.visfile:
-                basevisname=re.sub('\.ms','_ap'+str(i)+'.ms',self.visfile)
-            else:
-                sys.exit("visfile should have .ms in it")
-            currentvisfile=basevisname
-            #currentvisfile=self.visfile+"_ap"+str(i)+"/"
+            currentvisfile=self.visfile+"_ap"+str(i)+"/"
             if self.restore_PSNR:
                 if i > 0:
                     if self.psnr_history[i] <= self.psnr_history[i - 1]:
                         #self.restore_selfcal(
-                        #    caltable_version=self.caltables_versions[i - 1])
+                        #    caltable_version=self.caltables_versions[i - 1]) DEV SIMON
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -484,11 +447,8 @@ class AmpPhasecal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                         break
                     else:
-                        print("iter "+str(i)+" PSNR improved, backup "+self.visfile+"/ "+currentvisfile)
                         os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
                         self.visfile= currentvisfile
-                        self.Imager.inputvis = currentvisfile
-
 
                     
                 else:
@@ -506,10 +466,6 @@ class AmpPhasecal(Selfcal):
                                 "PSNR decreasing in this solution interval - restoring to last MS and exiting loop")
                             break
                         else:
-                            print("iter "+str(i)+" PSNR improved, backup "+self.visfile+"/ "+currentvisfile)
-
                             os.system("rsync -va --delete "+self.visfile+"/ "+currentvisfile)
                             self.visfile= currentvisfile
-                            self.Imager.inputvis = currentvisfile
-
 

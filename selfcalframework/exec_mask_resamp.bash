@@ -5,7 +5,9 @@ file_out=$3
 temp=$( realpath "$0"  )
 zdir=$(dirname "$temp")
 
-/home/simon/anaconda3/bin/python $zdir/mask_resamp.py $file_canvas $file_mask $file_out
+#pyenv activate pyralysis
+python $zdir/mask_resamp.py $file_canvas $file_mask $file_out
+#deactivate
 
 echo back to shell
 
