@@ -1,10 +1,12 @@
-from astropy.io import fits
-from casatasks import exportfits
-import numpy as np
-from casatools import table
 import os
 
+import numpy as np
+from astropy.io import fits
+from casatasks import exportfits
+from casatools import table
+
 tb = table()
+
 
 def get_data(fits_name=""):
     image_data = fits.getdata(fits_name)
@@ -32,11 +34,13 @@ def calculatePSNR_MS(signal_ms_name="", residual_ms_name="", pixels=100):
     psnr, peak, stdv = calculatePSNR_FITS(fits_signal, fits_residual, pixels)
     return psnr, peak, stdv
 
+
 def calculate_number_antennas(ms_name=""):
     if ms_name != "":
         if os.path.exists(ms_name):
-            tb.open(tablename=ms_name+"/ANTENNA")
-            query_table = tb.taql("select NAME from "+ms_name+"/ANTENNA"+" where !FLAG_ROW")
+            tb.open(tablename=ms_name + "/ANTENNA")
+            query_table = tb.taql("select NAME from " + ms_name + "/ANTENNA" +
+                                  " where !FLAG_ROW")
             nrows = len(query_table.getcol("NAME"))
             tb.close()
             return nrows

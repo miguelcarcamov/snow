@@ -1,10 +1,12 @@
-from selfcalframework.selfcal import *
-from selfcalframework.imager import *
 import sys
+
 import numpy as np
 from concat import concat
 from initweights import initweights
 from statwt import statwt
+
+from selfcalframework.imager import *
+from selfcalframework.selfcal import *
 from selfcalframework.selfcal_utils import *
 
 if __name__ == '__main__':
@@ -39,7 +41,7 @@ if __name__ == '__main__':
 
     for i in range(0, len(visfiles)):
 
-        if(i > 0):
+        if (i > 0):
             concatname += "+" + configs[i]
             visnames.append(concatname + ".ms")
             concatvis.append(visfiles[i])
@@ -51,16 +53,42 @@ if __name__ == '__main__':
         print("Visnames: ", visnames)
         spwmap = [0] * getTableRows(visnames[i] + '/SPECTRAL_WINDOW')
 
-        clean_imager = Clean(inputvis=visnames[i], output=outputs[i], niter=100, M=1024, N=1024, cell=deltax_vector[i], stokes="I", datacolumn="corrected",
-                             robust=0.5, specmode="mfs", deconvolver="hogbom", gridder="standard",
-                             pbcor=True, savemodel=True, usemask='auto-multithresh', sidelobethreshold=1.25, noisethreshold=5.0,
-                             minbeamfrac=0.1, lownoisethreshold=2.0, negativethreshold=0.0, interactive=True)
+        clean_imager = Clean(inputvis=visnames[i],
+                             output=outputs[i],
+                             niter=100,
+                             M=1024,
+                             N=1024,
+                             cell=deltax_vector[i],
+                             stokes="I",
+                             datacolumn="corrected",
+                             robust=0.5,
+                             specmode="mfs",
+                             deconvolver="hogbom",
+                             gridder="standard",
+                             pbcor=True,
+                             savemodel=True,
+                             usemask='auto-multithresh',
+                             sidelobethreshold=1.25,
+                             noisethreshold=5.0,
+                             minbeamfrac=0.1,
+                             lownoisethreshold=2.0,
+                             negativethreshold=0.0,
+                             interactive=True)
 
-        shared_vars_dict = {'visfile': clean_imager.getVis(), 'minblperant': 4, 'refant': "VA05", 'spwmap': [
-            0, 0, 0, 0], 'gaintype': 'G', 'want_plot': want_plot}
+        shared_vars_dict = {
+            'visfile': clean_imager.getVis(),
+            'minblperant': 4,
+            'refant': "VA05",
+            'spwmap': [0, 0, 0, 0],
+            'gaintype': 'G',
+            'want_plot': want_plot
+        }
 
-        phscal = Phasecal(minsnr=2.0, solint=solint_phs,
-                          combine="spw", Imager=clean_imager, **shared_vars_dict)
+        phscal = Phasecal(minsnr=2.0,
+                          solint=solint_phs,
+                          combine="spw",
+                          Imager=clean_imager,
+                          **shared_vars_dict)
 
         phscal.run()
 
@@ -69,10 +97,14 @@ if __name__ == '__main__':
 
         # amp_caltable=ampcal.run()
 
-        apcal = AmpPhasecal(minsnr=2.0, solint=solint_ap, combine="",
-                            selfcal_object=phscal, Imager=clean_imager, **shared_vars_dict)
+        apcal = AmpPhasecal(minsnr=2.0,
+                            solint=solint_ap,
+                            combine="",
+                            selfcal_object=phscal,
+                            Imager=clean_imager,
+                            **shared_vars_dict)
 
         apcal.run()
 
-        if(i == len(visfiles) - 1):
+        if (i == len(visfiles) - 1):
             apcal.selfcal_output(overwrite=True)

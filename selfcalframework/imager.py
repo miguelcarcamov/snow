@@ -1,24 +1,35 @@
-import numpy as np
 import os
-import sys
-from casatasks import tclean
-from casatasks import fixvis
-from casatasks import importfits
-from casatasks import exportfits
-from casatasks import imhead
-from casatasks import immath
-from .image_utils import *
-from casatools import image
-from casatools import quanta
-from abc import ABCMeta, abstractmethod
 import shlex
 import subprocess
+import sys
+from abc import ABCMeta, abstractmethod
+
+import numpy as np
+from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
+from casatools import image, quanta
+
+from .image_utils import *
 
 
 class Imager(metaclass=ABCMeta):
 
-    def __init__(self, inputvis="", output="", cell="", robust=2.0, weighting="briggs", field="", spw="", stokes="I",
-                 phasecenter="", datacolumn="corrected", M=512, N=512, niter=100, noise_pixels=None, savemodel=True, verbose=True):
+    def __init__(self,
+                 inputvis="",
+                 output="",
+                 cell="",
+                 robust=2.0,
+                 weighting="briggs",
+                 field="",
+                 spw="",
+                 stokes="I",
+                 phasecenter="",
+                 datacolumn="corrected",
+                 M=512,
+                 N=512,
+                 niter=100,
+                 noise_pixels=None,
+                 savemodel=True,
+                 verbose=True):
         self.psnr = 0.0
         self.peak = 0.0
         self.stdv = 0.0
@@ -29,7 +40,7 @@ class Imager(metaclass=ABCMeta):
             setattr(self, a_attribute, initlocals[a_attribute])
 
         if self.noise_pixels is None:
-            self.noise_pixels = int(np.floor(M/5))
+            self.noise_pixels = int(np.floor(M / 5))
         self.nantennas = calculate_number_antennas(inputvis)
         # self.__dict__.update(kwargs)
 
@@ -106,23 +117,32 @@ class Imager(metaclass=ABCMeta):
     def setPhaseCenter(self, phasecenter=""):
         self.phasecenter = phasecenter
 
-    def calculateStatistics_FITS(self, signal_fits_name="", residual_fits_name="", stdv_pixels=None):
+    def calculateStatistics_FITS(self,
+                                 signal_fits_name="",
+                                 residual_fits_name="",
+                                 stdv_pixels=None):
         if stdv_pixels is None:
-            psnr, peak, stdv = calculatePSNR_FITS(
-                signal_fits_name, residual_fits_name, self.noise_pixels)
+            psnr, peak, stdv = calculatePSNR_FITS(signal_fits_name,
+                                                  residual_fits_name,
+                                                  self.noise_pixels)
         else:
-            psnr, peak, stdv = calculatePSNR_FITS(
-                signal_fits_name, residual_fits_name, stdv_pixels)
+            psnr, peak, stdv = calculatePSNR_FITS(signal_fits_name,
+                                                  residual_fits_name,
+                                                  stdv_pixels)
 
-        stdv_corrected = stdv * np.sqrt(self.nantennas-3)
+        stdv_corrected = stdv * np.sqrt(self.nantennas - 3)
         self.psnr = peak / stdv_corrected
         self.peak = peak
         self.stdv = stdv_corrected
 
-    def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=None):
+    def calculateStatistics_MSImage(self,
+                                    signal_ms_name="",
+                                    residual_ms_name="",
+                                    stdv_pixels=None):
         if stdv_pixels is None:
-            psnr, peak, stdv = calculatePSNR_MS(
-                signal_ms_name, residual_ms_name, self.noise_pixels)
+            psnr, peak, stdv = calculatePSNR_MS(signal_ms_name,
+                                                residual_ms_name,
+                                                self.noise_pixels)
         stdv_corrected = stdv * np.sqrt(self.nantennas - 3)
         self.psnr = peak / stdv_corrected
         self.peak = peak
@@ -134,11 +154,30 @@ class Imager(metaclass=ABCMeta):
 
 
 class Clean(Imager):
-    def __init__(self, nterms=1, threshold=0.0, nsigma=0.0, interactive=False, mask="", usemask="auto-multithresh",
-                 negativethreshold=0.0, lownoisethreshold=1.5, noisethreshold=4.25,
-                 sidelobethreshold=2.0, minbeamfrac=0.3, specmode="", gridder="standard", wprojplanes=-1,
-                 deconvolver="hogbom", uvtaper=[], scales=[], uvrange="", pbcor=False, cycleniter=0,
-                 clean_savemodel=None, **kwargs):
+
+    def __init__(self,
+                 nterms=1,
+                 threshold=0.0,
+                 nsigma=0.0,
+                 interactive=False,
+                 mask="",
+                 usemask="auto-multithresh",
+                 negativethreshold=0.0,
+                 lownoisethreshold=1.5,
+                 noisethreshold=4.25,
+                 sidelobethreshold=2.0,
+                 minbeamfrac=0.3,
+                 specmode="",
+                 gridder="standard",
+                 wprojplanes=-1,
+                 deconvolver="hogbom",
+                 uvtaper=[],
+                 scales=[],
+                 uvrange="",
+                 pbcor=False,
+                 cycleniter=0,
+                 clean_savemodel=None,
+                 **kwargs):
         super(Clean, self).__init__(**kwargs)
         self.name = "TClean"
         initlocals = locals()
@@ -164,17 +203,37 @@ class Clean(Imager):
 
     def run(self, imagename=""):
         imsize = [self.M, self.N]
-        tclean(vis=self.inputvis, imagename=imagename, field=self.field, phasecenter=self.phasecenter,
+        tclean(vis=self.inputvis,
+               imagename=imagename,
+               field=self.field,
+               phasecenter=self.phasecenter,
                uvrange=self.uvrange,
-               datacolumn=self.datacolumn, specmode=self.specmode, stokes=self.stokes, deconvolver=self.deconvolver,
-               scales=self.scales, nterms=self.nterms,
-               imsize=imsize, cell=self.cell, weighting=self.weighting, robust=self.robust, niter=self.niter,
-               threshold=self.threshold, nsigma=self.nsigma,
-               interactive=self.interactive, gridder=self.gridder, mask=self.mask, pbcor=self.pbcor,
-               uvtaper=self.uvtaper, savemodel=self.clean_savemodel, usemask=self.usemask,
-               negativethreshold=self.negativethreshold, lownoisethreshold=self.lownoisethreshold,
+               datacolumn=self.datacolumn,
+               specmode=self.specmode,
+               stokes=self.stokes,
+               deconvolver=self.deconvolver,
+               scales=self.scales,
+               nterms=self.nterms,
+               imsize=imsize,
+               cell=self.cell,
+               weighting=self.weighting,
+               robust=self.robust,
+               niter=self.niter,
+               threshold=self.threshold,
+               nsigma=self.nsigma,
+               interactive=self.interactive,
+               gridder=self.gridder,
+               mask=self.mask,
+               pbcor=self.pbcor,
+               uvtaper=self.uvtaper,
+               savemodel=self.clean_savemodel,
+               usemask=self.usemask,
+               negativethreshold=self.negativethreshold,
+               lownoisethreshold=self.lownoisethreshold,
                noisethreshold=self.noisethreshold,
-               sidelobethreshold=self.sidelobethreshold, minbeamfrac=self.minbeamfrac, cycleniter=self.cycleniter,
+               sidelobethreshold=self.sidelobethreshold,
+               minbeamfrac=self.minbeamfrac,
+               cycleniter=self.cycleniter,
                verbose=self.verbose)
 
         if self.deconvolver != "mtmfs":
@@ -184,14 +243,29 @@ class Clean(Imager):
             restored_image = imagename + ".image.tt0"
             residual_image = imagename + ".residual.tt0"
 
-        self.calculateStatistics_MSImage(
-            signal_ms_name=restored_image, residual_ms_name=residual_image)
+        self.calculateStatistics_MSImage(signal_ms_name=restored_image,
+                                         residual_ms_name=residual_image)
 
 
 class GPUvmem(Imager):
-    def __init__(self, executable="gpuvmem", gpublocks=[16, 16, 256], initialvalues=[], regfactors=[], gpuids=[0],
-                 residualoutput="residuals.ms", model_input="", modelout="mod_out.fits", user_mask="", force_noise=None,
-                 griddingthreads=4, positivity=True, ftol=1e-12, noise_cut=10.0, gridding=False, printimages=False,
+
+    def __init__(self,
+                 executable="gpuvmem",
+                 gpublocks=[16, 16, 256],
+                 initialvalues=[],
+                 regfactors=[],
+                 gpuids=[0],
+                 residualoutput="residuals.ms",
+                 model_input="",
+                 modelout="mod_out.fits",
+                 user_mask="",
+                 force_noise=None,
+                 griddingthreads=4,
+                 positivity=True,
+                 ftol=1e-12,
+                 noise_cut=10.0,
+                 gridding=False,
+                 printimages=False,
                  **kwargs):
         super(GPUvmem, self).__init__(**kwargs)
         self.name = "GPUvmem"
@@ -201,7 +275,10 @@ class GPUvmem(Imager):
             setattr(self, a_attribute, initlocals[a_attribute])
         # self.__dict__.update(kwargs)
         if self.phasecenter != "":
-            fixvis(vis=self.visfile, outputvis=self.visfile, field=self.field, phasecenter=self.phasecenter)
+            fixvis(vis=self.visfile,
+                   outputvis=self.visfile,
+                   field=self.field,
+                   phasecenter=self.phasecenter)
 
     def getRegfactors(self):
         return self.regfactors
@@ -209,12 +286,16 @@ class GPUvmem(Imager):
     def setRegFactors(self, regfactors):
         self.factors = regfactors
 
-    def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
+    def _restore(self,
+                 model_fits="",
+                 residual_ms="",
+                 restored_image="restored"):
         qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
         os.system("rm -rf *.log *.last " + residual_image +
-                  ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " + restored_image + ".fits")
+                  ".* mod_out convolved_mod_out convolved_mod_out.fits " +
+                  restored_image + " " + restored_image + ".fits")
 
         importfits(imagename="model_out", fitsimage=model_fits, overwrite=True)
         shape = imhead(imagename="model_out", mode="get", hdkey="shape")
@@ -224,12 +305,23 @@ class GPUvmem(Imager):
         cdeltd = qa.convert(v=cdelt, outunit="deg")
         pix_size = str(cdelta['value']) + "arcsec"
 
-        tclean(vis=residual_ms, imagename=residual_image, specmode='mfs', deconvolver='hogbom', niter=0,
-               stokes=self.stokes, nterms=1, weighting=self.weighting, robust=self.robust, imsize=[self.M, self.N],
-               cell=self.cell, datacolumn='data')
+        tclean(vis=residual_ms,
+               imagename=residual_image,
+               specmode='mfs',
+               deconvolver='hogbom',
+               niter=0,
+               stokes=self.stokes,
+               nterms=1,
+               weighting=self.weighting,
+               robust=self.robust,
+               imsize=[self.M, self.N],
+               cell=self.cell,
+               datacolumn='data')
 
         exportfits(imagename=residual_image + ".image",
-                   fitsimage=residual_image + ".image.fits", overwrite=True, history=False)
+                   fitsimage=residual_image + ".image.fits",
+                   overwrite=True,
+                   history=False)
 
         ia.open(infile=residual_image + ".image")
         rbeam = ia.restoringbeam()
@@ -237,24 +329,34 @@ class GPUvmem(Imager):
         ia.close()
 
         bmaj = imhead(imagename=residual_image + ".image",
-                      mode="get", hdkey="beammajor")
+                      mode="get",
+                      hdkey="beammajor")
         bmin = imhead(imagename=residual_image + ".image",
-                      mode="get", hdkey="beamminor")
+                      mode="get",
+                      hdkey="beamminor")
         bpa = imhead(imagename=residual_image + ".image",
-                     mode="get", hdkey="beampa")
+                     mode="get",
+                     hdkey="beampa")
 
         minor = qa.convert(v=bmin, outunit="deg")
         pa = qa.convert(v=bpa, outunit="deg")
 
         ia.open(infile="model_out")
-        im2 = ia.convolve2d(outfile="convolved_model_out", axes=[
-            0, 1], type='gauss', major=bmaj, minor=bmin, pa=bpa, overwrite=True)
+        im2 = ia.convolve2d(outfile="convolved_model_out",
+                            axes=[0, 1],
+                            type='gauss',
+                            major=bmaj,
+                            minor=bmin,
+                            pa=bpa,
+                            overwrite=True)
         im2.done()
         ia.done()
         ia.close()
 
         exportfits(imagename="convolved_model_out",
-                   fitsimage="convolved_model_out.fits", overwrite=True, history=False)
+                   fitsimage="convolved_model_out.fits",
+                   overwrite=True,
+                   history=False)
         ia.open(infile="convolved_model_out.fits")
         ia.setrestoringbeam(beam=rbeam)
         ia.done()
@@ -262,20 +364,33 @@ class GPUvmem(Imager):
 
         imagearr = ["convolved_model_out.fits", residual_image + ".image.fits"]
 
-        immath(imagename=imagearr, expr=" (IM0   + IM1) ", outfile=restored_image)
+        immath(imagename=imagearr,
+               expr=" (IM0   + IM1) ",
+               outfile=restored_image)
 
-        exportfits(imagename=restored_image, fitsimage=restored_image +
-                                                       ".fits", overwrite=True, history=False)
+        exportfits(imagename=restored_image,
+                   fitsimage=restored_image + ".fits",
+                   overwrite=True,
+                   history=False)
 
         return residual_image + ".image.fits", restored_image + ".fits"
 
     def _make_canvas(self, name="model_input"):
         fitsimage = name + '.fits'
-        tclean(vis=self.inputvis, imagename=name, specmode='mfs', niter=0,
-               deconvolver='hogbom', interactive=False, cell=self.cell, stokes=self.stokes, robust=self.robust,
-               imsize=[self.M, self.N], weighting=self.weighting)
+        tclean(vis=self.inputvis,
+               imagename=name,
+               specmode='mfs',
+               niter=0,
+               deconvolver='hogbom',
+               interactive=False,
+               cell=self.cell,
+               stokes=self.stokes,
+               robust=self.robust,
+               imsize=[self.M, self.N],
+               weighting=self.weighting)
         exportfits(imagename=name + '.image',
-                   fitsimage=fitsimage, overwrite=True)
+                   fitsimage=fitsimage,
+                   overwrite=True)
         return fitsimage
 
     def run(self, imagename=""):
@@ -325,15 +440,18 @@ class GPUvmem(Imager):
             sys.exit("The model image has not been created")
         else:
             # Restore the image
-            residual_fits, restored_fits = self._restore(model_fits=model_output,
-                                                         residual_ms=residual_output, restored_image=restored_image)
+            residual_fits, restored_fits = self._restore(
+                model_fits=model_output,
+                residual_ms=residual_output,
+                restored_image=restored_image)
 
         # Calculate SNR and standard deviation
-        self.calculateStatistics_FITS(
-            signal_fits_name=restored_fits, residual_fits_name=residual_fits)
+        self.calculateStatistics_FITS(signal_fits_name=restored_fits,
+                                      residual_fits_name=residual_fits)
 
 
 class WSClean(Imager):
+
     def __init__(self, **kwargs):
         super(WSClean, self).__init__(**kwargs)
         initlocals = locals()

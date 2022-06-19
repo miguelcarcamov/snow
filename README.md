@@ -1,55 +1,40 @@
 # Object Oriented Framework for Self-calibration of radio-interferometric datasets
 
 Many radioastronomers repeat the process of writing different scripts for self-calibration depending on their datasets. This repository holds an object oriented Framework for self-calibration of radio-interferometric datasets that will help radioastronomers to minimize the tedious work of writing self-calibration scripts once again. The idea is to call just one main Python script that will run an imager (tclean, wsclean, gpuvmem, rascil, etc.) and one or multuple self-calibration objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset as a result. **It is important to recall that this repository is heavily under development!**
+
 ## Requirements
 
-1. CASA (https://casa.nrao.edu/casa_obtaining.shtml)
+1. `Python == 3.8`
+2. Check CASA pip current version requirements [here](https://casadocs.readthedocs.io/en/stable/notebooks/introduction.html#Modular-Packages).
+3. Check the `requirements.txt` file.
 
 ## Installation
-We need to install the selfcalframework modules in CASA in order to call the different objects (selfcal and imager). The installation is very similar to the astropy installation in CASA.
 
-- If you want to modify or develop modules and test them:
+### From PYPI repository
 
-  1. Open CASA in the repository folder of the framework
-  2. Install pip inside CASA
-  3. Install astropy inside casa (Instructions: https://docs.astropy.org/en/stable/install.html)
-  ```Python
-  CASA <2>: from setuptools.command import easy_install
-  CASA <3>: easy_install.main(['--user', 'pip'])
-  ```
-  3. Quit CASA, re-open it and install the selfcalframework modules
-  ```Python
-  CASA <2>: import subprocess, sys
-  CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', '-e', '.'])
-  ```
-  4. Then close CASA again and open it, and you should be able to import `selfcalframework` from CASA or your CASA scripts
-  ```Python
-  CASA <2>: from selfcalframework.imager import *
-  CASA <3>: from selfcalframework.selfcal import *
-  ```
-- If you just want to use the modules inside CASA:
+- `pip install selfcalframework`
 
-  1. Open CASA
-  2. Install pip inside CASA
-  ```Python
-  CASA <2>: from setuptools.command import easy_install
-  CASA <3>: easy_install.main(['--user', 'pip'])
-  ```
-  3. Quit CASA, re-open it and install the selfcalframework modules
-  ```Python
-  CASA <2>: import subprocess, sys
-  CASA <3>: subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'selfcalframework'])
-  ```
-  4. Then close CASA again and open it, and you should be able to import `selfcalframework` from CASA or your CASA scripts
-  ```Python
-  CASA <2>: from selfcalframework.imager import *
-  CASA <3>: from selfcalframework.selfcal import *
-  ```
+### From Github
 
+- `pip install -U git+https://github.com/miguelcarcamov/objectoriented_selfcal`
 
-## Run your scripts
+### From source
 
-In the `main_files` folder there is a set of examples script to run your self-calibration. As a example we will show one of them here:
+```bash
+git clone https://github.com/miguelcarcamov/objectoriented_selfcal
+cd objectoriented_selfcal
+pip install .
+```
+
+### From source as developer
+
+```bash
+git clone https://github.com/miguelcarcamov/objectoriented_selfcal
+cd objectoriented_selfcal
+pip install e .
+```
+
+## Run selfcalframework
 
 ```Python
 # Import the modules that you want to use
@@ -80,7 +65,7 @@ if __name__ == '__main__':
                                   savemodel=True, usemask='auto-multithresh', threshold="0.025mJy", sidelobethreshold=3.0, noisethreshold=5.0,
                                   minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
-      # This is a dictionary with shared variables between self-cal objects                            
+      # This is a dictionary with shared variables between self-cal objects
       shared_vars_dict = {'visfile': visfile, 'minblperant': 6, 'refant': "DA51", 'spwmap': [
           0, 0, 0, 0], 'gaintype': 'T', 'want_plot': want_plot}
 
