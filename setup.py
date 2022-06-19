@@ -1,7 +1,20 @@
+import distutils.text_file
+# read the contents of your README file
+from pathlib import Path
+from typing import List
+
 from setuptools import find_packages, setup
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
+
+def _parse_requirements(filename: str) -> List[str]:
+    """Return requirements from requirements file."""
+    # Ref: https://stackoverflow.com/a/42033122/
+    return distutils.text_file.TextFile(
+        filename=str(Path(__file__).with_name(filename))).readlines()
+
 
 setup(
     name='selfcalframework',
@@ -12,6 +25,7 @@ setup(
     author_email='miguel.carcamo@manchester.ac.uk',
     long_description=long_description,
     long_description_content_type="text/markdown",
+    install_requires=_parse_requirements("requirements.txt"),
     license='GNU',
     packages=find_packages(),
     classifiers=[
