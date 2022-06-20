@@ -131,7 +131,7 @@ class Imager(metaclass=ABCMeta):
 
         self.psnr = peak / stdv
         self.peak = peak
-        self.stdv = stdv_corrected
+        self.stdv = stdv
 
     def calculateStatistics_MSImage(self, signal_ms_name="", residual_ms_name="", stdv_pixels=None):
         if stdv_pixels is None:
@@ -139,7 +139,7 @@ class Imager(metaclass=ABCMeta):
 
         self.psnr = peak / stdv
         self.peak = peak
-        self.stdv = stdv_corrected
+        self.stdv = stdv
 
     @abstractmethod
     def run(self, imagename=""):
