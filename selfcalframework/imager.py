@@ -42,7 +42,7 @@ class Imager(metaclass=ABCMeta):
             setattr(self, a_attribute, initlocals[a_attribute])
 
         if self.noise_pixels is None:
-            self.noise_pixels = int(np.floor(M / 5))
+            self.noise_pixels = -1  # Get to the last pixel for x and y axes
         self.nantennas = calculate_number_antennas(inputvis)
         # self.__dict__.update(kwargs)
 
