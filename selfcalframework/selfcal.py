@@ -46,6 +46,7 @@ class Selfcal(metaclass=ABCMeta):
         self.caltables_versions = []
         self.psnr_history = []
         self.output_caltables = self.Imager.output
+        self.psnr_file_backup = ""
 
         if self.Imager is None:
             print("Error, Imager Object is Nonetype")
@@ -96,6 +97,23 @@ class Selfcal(metaclass=ABCMeta):
 
     def getSubtractSource(self):
         return self.subtract_source
+
+    def read_first_line_file_backup(self):
+        first_line = ""
+        with open(self.psnr_file_backup, 'r') as f:
+            first_line = f.readline().rstrip()
+        return float(first_line)
+
+    def write_file_backup(self):
+        with open(self.psnr_file_backup, 'a') as f:
+            f.write("{0:0.5f}\n".format(self.Imager.getPSNR()))
+
+    def delete_last_lines(self):
+        with open(self.psnr_file_backup, 'r+') as f:
+            lines = f.readlines()
+            fp.seek(0)
+            fp.truncate()
+            fp.writelines(lines[0:1])
 
     def save_selfcal(self, caltable_version="", overwrite=True):
         if overwrite:
@@ -227,6 +245,7 @@ class Ampcal(Selfcal):
         self.calmode = 'a'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
+        self.psnr_file_backup = self.Imager.output + "/psnr_amp.txt"
 
         if self.selfcal_object is None and self.input_caltable == "":
             print("Error, Self-cal object is Nonetype and input_caltable is an empty string")
@@ -254,6 +273,7 @@ class Ampcal(Selfcal):
             self.Imager.run(imagename)
             print("Before amplitude self-cal: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            self.write_file_backup()
             self.psnr_history.append(self.Imager.getPSNR())
 
             path_object = Path(self.visfile)
@@ -264,6 +284,10 @@ class Ampcal(Selfcal):
             if os.path.exists(current_visfile):
                 shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
+        else:
+            psnr_file = self.read_first_line_file_backup()
+            self.psnr_history.append(psnr_file)
+            self.delete_last_lines()
 
         for i in range(0, self.loops):
             caltable = self.output_caltables + 'ampcal_' + str(i)
@@ -336,7 +360,7 @@ class Ampcal(Selfcal):
             if self.restore_PSNR:
                 if i > 0:
                     if self.psnr_history[i] <= self.psnr_history[i - 1]:
-                        # self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
+                        self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -354,6 +378,7 @@ class Ampcal(Selfcal):
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
                         self.Imager.inputvis = current_visfile
+                        self.write_file_backup()
 
                 else:
                     if self.selfcal_object:
@@ -382,6 +407,7 @@ class Ampcal(Selfcal):
                             shutil.copytree(self.visfile, current_visfile)
                             self.visfile = current_visfile
                             self.Imager.inputvis = current_visfile
+                            self.write_file_backup()
 
 
 class Phasecal(Selfcal):
@@ -396,6 +422,7 @@ class Phasecal(Selfcal):
         self.calmode = 'p'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
+        self.psnr_file_backup = self.Imager.output + "/psnr_ph.txt"
 
     def run(self):
         caltable = "before_selfcal"
@@ -406,7 +433,12 @@ class Phasecal(Selfcal):
             self.Imager.run(imagename)
             print("Original: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            self.write_file_backup()
             self.psnr_history.append(self.Imager.getPSNR())
+        else:
+            psnr_file = self.read_first_line_file_backup()
+            self.psnr_history.append(psnr_file)
+            self.delete_last_lines()
 
             path_object = Path(self.visfile)
             current_visfile = "{0}_{2}{1}".format(
@@ -488,7 +520,7 @@ class Phasecal(Selfcal):
             if self.restore_PSNR:
                 if len(self.psnr_history) > 1:
                     if self.psnr_history[-1] <= self.psnr_history[-2]:
-                        # self.restore_selfcal(caltable_version=self.caltables_versions[i])
+                        self.restore_selfcal(caltable_version=self.caltables_versions[i])
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -506,6 +538,7 @@ class Phasecal(Selfcal):
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
                         self.Imager.inputvis = current_visfile
+                        self.write_file_backup()
 
 
 class AmpPhasecal(Selfcal):
@@ -522,6 +555,7 @@ class AmpPhasecal(Selfcal):
         self.calmode = 'ap'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
+        self.psnr_file_backup = self.Imager.output + "/psnr_ap.txt"
 
         if self.selfcal_object is None and self.input_caltable == "":
             raise ValueError(
@@ -546,7 +580,12 @@ class AmpPhasecal(Selfcal):
             self.Imager.run(imagename)
             print("Before amplitude-phase self-cal: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            self.write_file_backup()
             self.psnr_history.append(self.Imager.getPSNR())
+        else:
+            psnr_file = self.read_first_line_file_backup()
+            self.psnr_history.append(psnr_file)
+            self.delete_last_lines()
 
         for i in range(0, self.loops):
             caltable = 'apcal_' + str(i)
@@ -655,7 +694,7 @@ class AmpPhasecal(Selfcal):
             if self.restore_PSNR:
                 if i > 0:
                     if self.psnr_history[i] <= self.psnr_history[i - 1]:
-                        # self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
+                        self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -673,6 +712,7 @@ class AmpPhasecal(Selfcal):
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
                         self.Imager.inputvis = current_visfile
+                        self.write_file_backup()
 
                 else:
                     if self.selfcal_object:
@@ -700,3 +740,4 @@ class AmpPhasecal(Selfcal):
                             shutil.copytree(self.visfile, current_visfile)
                             self.visfile = current_visfile
                             self.Imager.inputvis = current_visfile
+                            self.write_file_backup()
