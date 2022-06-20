@@ -261,6 +261,8 @@ class Ampcal(Selfcal):
                 Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
                 "before_apcal"
             )
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
 
         for i in range(0, self.loops):
@@ -347,6 +349,8 @@ class Ampcal(Selfcal):
                             "PSNR improved on iteration {0} - Copying measurement set files...".
                             format(i)
                         )
+                        if os.path.exists(current_visfile):
+                            shutil.rmtree(current_visfile)
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
                         self.Imager.inputvis = current_visfile
@@ -373,6 +377,8 @@ class Ampcal(Selfcal):
                                 "PSNR improved on iteration {0} - Copying measurement set files...".
                                 format(i)
                             )
+                            if os.path.exists(current_visfile):
+                                shutil.rmtree(current_visfile)
                             shutil.copytree(self.visfile, current_visfile)
                             self.visfile = current_visfile
                             self.Imager.inputvis = current_visfile
@@ -406,6 +412,8 @@ class Phasecal(Selfcal):
             current_visfile = "{0}_{2}{1}".format(
                 Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "original"
             )
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
 
         for i in range(0, self.loops):
@@ -474,6 +482,8 @@ class Phasecal(Selfcal):
                 Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
                 "ph" + str(i)
             )
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
             if self.restore_PSNR:
                 if len(self.psnr_history) > 1:
@@ -491,6 +501,8 @@ class Phasecal(Selfcal):
                             "PSNR improved on iteration {0} - Copying measurement set files...".
                             format(i)
                         )
+                        if os.path.exists(current_visfile):
+                            shutil.rmtree(current_visfile)
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
                         self.Imager.inputvis = current_visfile
@@ -637,6 +649,8 @@ class AmpPhasecal(Selfcal):
                 Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
                 "ap" + str(i)
             )
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
             if self.restore_PSNR:
                 if i > 0:
@@ -654,6 +668,8 @@ class AmpPhasecal(Selfcal):
                             "PSNR improved on iteration {0} - Copying measurement set files...".
                             format(i)
                         )
+                        if os.path.exists(current_visfile):
+                            shutil.rmtree(current_visfile)
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
                         self.Imager.inputvis = current_visfile
@@ -679,6 +695,8 @@ class AmpPhasecal(Selfcal):
                                 "PSNR improved on iteration {0} - Copying measurement set files...".
                                 format(i)
                             )
+                            if os.path.exists(current_visfile):
+                                shutil.rmtree(current_visfile)
                             shutil.copytree(self.visfile, current_visfile)
                             self.visfile = current_visfile
                             self.Imager.inputvis = current_visfile
