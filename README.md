@@ -87,4 +87,4 @@ if __name__ == '__main__':
       apcal.selfcal_output(overwrite=True)
 ```
 
-Then you can simply run the main script using `casa -c yourscript.py <arguments>`
+Then you can simply run the main script using `python yourscript.py <arguments>`

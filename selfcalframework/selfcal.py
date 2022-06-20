@@ -3,6 +3,7 @@ import shutil
 import sys
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from pathlib import Path
 
 from casatasks import (
     applycal, clearcal, delmod, flagdata, flagmanager, gaincal, rmtables, split, statwt, uvsub
@@ -28,6 +29,7 @@ class Selfcal(metaclass=ABCMeta):
         solint=[],
         varchange_imager=None,
         varchange_selfcal=None,
+        output_caltables="",
         minsnr=3.0,
         applymode="calflag",
         flag_mode="rflag",
@@ -43,6 +45,7 @@ class Selfcal(metaclass=ABCMeta):
         self.caltables = []
         self.caltables_versions = []
         self.psnr_history = []
+        self.output_caltables = self.Imager.output
 
         if self.Imager is None:
             print("Error, Imager Object is Nonetype")
@@ -253,8 +256,15 @@ class Ampcal(Selfcal):
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             self.psnr_history.append(self.Imager.getPSNR())
 
+            path_object = Path(self.visfile)
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                "before_apcal"
+            )
+            shutil.copytree(self.visfile, current_visfile)
+
         for i in range(0, self.loops):
-            caltable = 'ampcal_' + str(i)
+            caltable = self.output_caltables + 'ampcal_' + str(i)
             self.caltables.append(caltable)
             rmtables(caltable)
 
@@ -315,10 +325,16 @@ class Ampcal(Selfcal):
 
             print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+
+            path_object = Path(self.visfile)
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                "amp" + str(i)
+            )
             if self.restore_PSNR:
                 if i > 0:
                     if self.psnr_history[i] <= self.psnr_history[i - 1]:
-                        self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
+                        # self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -326,6 +342,15 @@ class Ampcal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
                         )
                         break
+                    else:
+                        print(
+                            "PSNR improved on iteration {0} - Copying measurement set files...".
+                            format(i)
+                        )
+                        shutil.copytree(self.visfile, current_visfile)
+                        self.visfile = current_visfile
+                        self.Imager.inputvis = current_visfile
+
                 else:
                     if self.selfcal_object:
                         if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
@@ -343,6 +368,14 @@ class Ampcal(Selfcal):
                                 "exiting loop"
                             )
                             break
+                        else:
+                            print(
+                                "PSNR improved on iteration {0} - Copying measurement set files...".
+                                format(i)
+                            )
+                            shutil.copytree(self.visfile, current_visfile)
+                            self.visfile = current_visfile
+                            self.Imager.inputvis = current_visfile
 
 
 class Phasecal(Selfcal):
@@ -368,6 +401,12 @@ class Phasecal(Selfcal):
             print("Original: - PSNR: " + str(self.Imager.getPSNR()))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
             self.psnr_history.append(self.Imager.getPSNR())
+
+            path_object = Path(self.visfile)
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "original"
+            )
+            shutil.copytree(self.visfile, current_visfile)
 
         for i in range(0, self.loops):
             caltable = 'pcal' + str(i)
@@ -430,10 +469,16 @@ class Phasecal(Selfcal):
 
             print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self.psnr_history[-1]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            path_object = Path(self.visfile)
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                "ph" + str(i)
+            )
+            shutil.copytree(self.visfile, current_visfile)
             if self.restore_PSNR:
                 if len(self.psnr_history) > 1:
                     if self.psnr_history[-1] <= self.psnr_history[-2]:
-                        self.restore_selfcal(caltable_version=self.caltables_versions[i])
+                        # self.restore_selfcal(caltable_version=self.caltables_versions[i])
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -441,6 +486,14 @@ class Phasecal(Selfcal):
                             "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop"
                         )
                         break
+                    else:
+                        print(
+                            "PSNR improved on iteration {0} - Copying measurement set files...".
+                            format(i)
+                        )
+                        shutil.copytree(self.visfile, current_visfile)
+                        self.visfile = current_visfile
+                        self.Imager.inputvis = current_visfile
 
 
 class AmpPhasecal(Selfcal):
@@ -578,10 +631,17 @@ class AmpPhasecal(Selfcal):
 
             print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self.psnr_history[i]))
             print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+
+            path_object = Path(self.visfile)
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                "ap" + str(i)
+            )
+            shutil.copytree(self.visfile, current_visfile)
             if self.restore_PSNR:
                 if i > 0:
                     if self.psnr_history[i] <= self.psnr_history[i - 1]:
-                        self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
+                        # self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
                         self.psnr_history.pop()
                         self.caltables_versions.pop()
                         self.caltables.pop()
@@ -589,6 +649,15 @@ class AmpPhasecal(Selfcal):
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
                         )
                         break
+                    else:
+                        print(
+                            "PSNR improved on iteration {0} - Copying measurement set files...".
+                            format(i)
+                        )
+                        shutil.copytree(self.visfile, current_visfile)
+                        self.visfile = current_visfile
+                        self.Imager.inputvis = current_visfile
+
                 else:
                     if self.selfcal_object:
                         if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
@@ -605,3 +674,11 @@ class AmpPhasecal(Selfcal):
                                 "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
                             )
                             break
+                        else:
+                            print(
+                                "PSNR improved on iteration {0} - Copying measurement set files...".
+                                format(i)
+                            )
+                            shutil.copytree(self.visfile, current_visfile)
+                            self.visfile = current_visfile
+                            self.Imager.inputvis = current_visfile
