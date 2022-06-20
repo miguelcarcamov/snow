@@ -53,27 +53,29 @@ if __name__ == '__main__':
         print("Visnames: ", visnames)
         spwmap = [0] * getTableRows(visnames[i] + '/SPECTRAL_WINDOW')
 
-        clean_imager = Clean(inputvis=visnames[i],
-                             output=outputs[i],
-                             niter=100,
-                             M=1024,
-                             N=1024,
-                             cell=deltax_vector[i],
-                             stokes="I",
-                             datacolumn="corrected",
-                             robust=0.5,
-                             specmode="mfs",
-                             deconvolver="hogbom",
-                             gridder="standard",
-                             pbcor=True,
-                             savemodel=True,
-                             usemask='auto-multithresh',
-                             sidelobethreshold=1.25,
-                             noisethreshold=5.0,
-                             minbeamfrac=0.1,
-                             lownoisethreshold=2.0,
-                             negativethreshold=0.0,
-                             interactive=True)
+        clean_imager = Clean(
+            inputvis=visnames[i],
+            output=outputs[i],
+            niter=100,
+            M=1024,
+            N=1024,
+            cell=deltax_vector[i],
+            stokes="I",
+            datacolumn="corrected",
+            robust=0.5,
+            specmode="mfs",
+            deconvolver="hogbom",
+            gridder="standard",
+            pbcor=True,
+            savemodel=True,
+            usemask='auto-multithresh',
+            sidelobethreshold=1.25,
+            noisethreshold=5.0,
+            minbeamfrac=0.1,
+            lownoisethreshold=2.0,
+            negativethreshold=0.0,
+            interactive=True
+        )
 
         shared_vars_dict = {
             'visfile': clean_imager.getVis(),
@@ -84,11 +86,9 @@ if __name__ == '__main__':
             'want_plot': want_plot
         }
 
-        phscal = Phasecal(minsnr=2.0,
-                          solint=solint_phs,
-                          combine="spw",
-                          Imager=clean_imager,
-                          **shared_vars_dict)
+        phscal = Phasecal(
+            minsnr=2.0, solint=solint_phs, combine="spw", Imager=clean_imager, **shared_vars_dict
+        )
 
         phscal.run()
 
@@ -97,12 +97,14 @@ if __name__ == '__main__':
 
         # amp_caltable=ampcal.run()
 
-        apcal = AmpPhasecal(minsnr=2.0,
-                            solint=solint_ap,
-                            combine="",
-                            selfcal_object=phscal,
-                            Imager=clean_imager,
-                            **shared_vars_dict)
+        apcal = AmpPhasecal(
+            minsnr=2.0,
+            solint=solint_ap,
+            combine="",
+            selfcal_object=phscal,
+            Imager=clean_imager,
+            **shared_vars_dict
+        )
 
         apcal.run()
 

@@ -39,8 +39,7 @@ def calculate_number_antennas(ms_name=""):
     if ms_name != "":
         if os.path.exists(ms_name):
             tb.open(tablename=ms_name + "/ANTENNA")
-            query_table = tb.taql("select NAME from " + ms_name + "/ANTENNA" +
-                                  " where !FLAG_ROW")
+            query_table = tb.taql("select NAME from " + ms_name + "/ANTENNA" + " where !FLAG_ROW")
             nrows = len(query_table.getcol("NAME"))
             tb.close()
             return nrows

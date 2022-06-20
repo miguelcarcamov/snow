@@ -15,49 +15,53 @@ if __name__ == '__main__':
     # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
     # The default clean object will use automasking values for short baselines
     # In this case we will use automasking values for long baselines
-    clean_imager_phs = Clean(inputvis=visfile,
-                             output=output,
-                             niter=100,
-                             M=1024,
-                             N=1024,
-                             cell="0.005arcsec",
-                             stokes="I",
-                             datacolumn="corrected",
-                             robust=0.5,
-                             specmode="mfs",
-                             deconvolver="hogbom",
-                             gridder="standard",
-                             savemodel=True,
-                             usemask='auto-multithresh',
-                             threshold="0.1mJy",
-                             sidelobethreshold=3.0,
-                             noisethreshold=5.0,
-                             minbeamfrac=0.3,
-                             lownoisethreshold=1.5,
-                             negativethreshold=0.0,
-                             interactive=True)
+    clean_imager_phs = Clean(
+        inputvis=visfile,
+        output=output,
+        niter=100,
+        M=1024,
+        N=1024,
+        cell="0.005arcsec",
+        stokes="I",
+        datacolumn="corrected",
+        robust=0.5,
+        specmode="mfs",
+        deconvolver="hogbom",
+        gridder="standard",
+        savemodel=True,
+        usemask='auto-multithresh',
+        threshold="0.1mJy",
+        sidelobethreshold=3.0,
+        noisethreshold=5.0,
+        minbeamfrac=0.3,
+        lownoisethreshold=1.5,
+        negativethreshold=0.0,
+        interactive=True
+    )
 
-    clean_imager_ampphs = Clean(inputvis=visfile,
-                                output=output,
-                                niter=100,
-                                M=1024,
-                                N=1024,
-                                cell="0.005arcsec",
-                                stokes="I",
-                                datacolumn="corrected",
-                                robust=0.5,
-                                specmode="mfs",
-                                deconvolver="hogbom",
-                                gridder="standard",
-                                savemodel=True,
-                                usemask='auto-multithresh',
-                                threshold="0.025mJy",
-                                sidelobethreshold=3.0,
-                                noisethreshold=5.0,
-                                minbeamfrac=0.3,
-                                lownoisethreshold=1.5,
-                                negativethreshold=0.0,
-                                interactive=True)
+    clean_imager_ampphs = Clean(
+        inputvis=visfile,
+        output=output,
+        niter=100,
+        M=1024,
+        N=1024,
+        cell="0.005arcsec",
+        stokes="I",
+        datacolumn="corrected",
+        robust=0.5,
+        specmode="mfs",
+        deconvolver="hogbom",
+        gridder="standard",
+        savemodel=True,
+        usemask='auto-multithresh',
+        threshold="0.025mJy",
+        sidelobethreshold=3.0,
+        noisethreshold=5.0,
+        minbeamfrac=0.3,
+        lownoisethreshold=1.5,
+        negativethreshold=0.0,
+        interactive=True
+    )
 
     shared_vars_dict = {
         'visfile': visfile,
@@ -73,11 +77,9 @@ if __name__ == '__main__':
     #solint_amp = ['1h']
     solint_ap = ['inf']
 
-    phscal = Phasecal(minsnr=3.0,
-                      solint=solint_phs,
-                      combine="spw",
-                      Imager=clean_imager_phs,
-                      **shared_vars_dict)
+    phscal = Phasecal(
+        minsnr=3.0, solint=solint_phs, combine="spw", Imager=clean_imager_phs, **shared_vars_dict
+    )
 
     phscal.run()
 
@@ -86,12 +88,14 @@ if __name__ == '__main__':
 
     #amp_caltable = ampcal.run()
 
-    apcal = AmpPhasecal(minsnr=3.0,
-                        solint=solint_ap,
-                        combine="",
-                        selfcal_object=phscal,
-                        Imager=clean_imager_ampphs,
-                        **shared_vars_dict)
+    apcal = AmpPhasecal(
+        minsnr=3.0,
+        solint=solint_ap,
+        combine="",
+        selfcal_object=phscal,
+        Imager=clean_imager_ampphs,
+        **shared_vars_dict
+    )
 
     apcal.run()
 

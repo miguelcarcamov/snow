@@ -18,31 +18,30 @@ if __name__ == '__main__':
 
     selfcal_vis = visfile.split("./../")[1][:-3] + ".flagged.ms"
     if not os.path.exists(selfcal_vis):
-        mstransform(vis=visfile,
-                    outputvis=selfcal_vis,
-                    datacolumn="corrected",
-                    field=field)
+        mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected", field=field)
 
-    clean_imager = Clean(inputvis=selfcal_vis,
-                         output=output,
-                         niter=10000,
-                         M=1024,
-                         N=1024,
-                         cell="0.02arcsec",
-                         stokes="I",
-                         datacolumn="corrected",
-                         robust=2.0,
-                         scales=[0, 3, 5, 10, 15, 20, 30, 40, 50, 80, 100],
-                         specmode="mfs",
-                         deconvolver="multiscale",
-                         gridder="standard",
-                         pbcor=False,
-                         savemodel=True,
-                         nsigma=3.0,
-                         interactive=False,
-                         cycleniter=100,
-                         usemask='user',
-                         mask=output + "_ph2.mask")
+    clean_imager = Clean(
+        inputvis=selfcal_vis,
+        output=output,
+        niter=10000,
+        M=1024,
+        N=1024,
+        cell="0.02arcsec",
+        stokes="I",
+        datacolumn="corrected",
+        robust=2.0,
+        scales=[0, 3, 5, 10, 15, 20, 30, 40, 50, 80, 100],
+        specmode="mfs",
+        deconvolver="multiscale",
+        gridder="standard",
+        pbcor=False,
+        savemodel=True,
+        nsigma=3.0,
+        interactive=False,
+        cycleniter=100,
+        usemask='user',
+        mask=output + "_ph2.mask"
+    )
 
     shared_vars_dict = {
         'visfile': clean_imager.getVis(),
@@ -69,85 +68,99 @@ if __name__ == '__main__':
     #phscal = Phasecal(minsnr=2.0, solint=solint_phs,
     #                  combine="spw", varchange=varchange_phs, Imager=clean_imager, **shared_vars_dict)
 
-    apcal = AmpPhasecal(minsnr=3.0,
-                        solint=solint_ap,
-                        varchange=varchange_ap,
-                        combine="spw",
-                        input_caltable="pcal1",
-                        applymode="calonly",
-                        Imager=clean_imager,
-                        uvrange=">60klambda",
-                        **shared_vars_dict)
+    apcal = AmpPhasecal(
+        minsnr=3.0,
+        solint=solint_ap,
+        varchange=varchange_ap,
+        combine="spw",
+        input_caltable="pcal1",
+        applymode="calonly",
+        Imager=clean_imager,
+        uvrange=">60klambda",
+        **shared_vars_dict
+    )
 
     if flagging:
         # Backup MS to the state before self-cal
-        flagmanager(vis=selfcal_vis,
-                    mode='save',
-                    versionname='before_selfcal_flagging')
+        flagmanager(vis=selfcal_vis, mode='save', versionname='before_selfcal_flagging')
 
         # Flag residual RFI
         mode = "rflag"
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="0",
-                 correlation="LL,RR",
-                 mode=mode,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="0",
-                 mode="extend",
-                 extendflags=False,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="1~2",
-                 correlation="LL,RR",
-                 mode=mode,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="1~2",
-                 mode="extend",
-                 extendflags=False,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="3~5",
-                 correlation="LL,RR",
-                 mode=mode,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="3~5",
-                 mode="extend",
-                 extendflags=False,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="5~7",
-                 correlation="LL,RR",
-                 mode=mode,
-                 action="apply",
-                 flagbackup=False)
-        flagdata(vis=selfcal_vis,
-                 datacolumn="data",
-                 spw="5~7",
-                 mode="extend",
-                 extendflags=False,
-                 action="apply",
-                 flagbackup=False)
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="0",
+            correlation="LL,RR",
+            mode=mode,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="0",
+            mode="extend",
+            extendflags=False,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="1~2",
+            correlation="LL,RR",
+            mode=mode,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="1~2",
+            mode="extend",
+            extendflags=False,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="3~5",
+            correlation="LL,RR",
+            mode=mode,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="3~5",
+            mode="extend",
+            extendflags=False,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="5~7",
+            correlation="LL,RR",
+            mode=mode,
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=selfcal_vis,
+            datacolumn="data",
+            spw="5~7",
+            mode="extend",
+            extendflags=False,
+            action="apply",
+            flagbackup=False
+        )
 
         # Backup MS to the state after self-cal
-        flagmanager(vis=selfcal_vis,
-                    mode='save',
-                    versionname='after_selfcal_flagging')
+        flagmanager(vis=selfcal_vis, mode='save', versionname='after_selfcal_flagging')
     #else:
     #    phscal.reset_selfcal(caltable_version="after_selfcal_flagging")
 
