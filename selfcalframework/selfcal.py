@@ -359,10 +359,9 @@ class Ampcal(Selfcal):
             )
             if self.restore_PSNR:
                 if i > 0:
-                    if self.psnr_history[i] <= self.psnr_history[i - 1]:
-                        self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
+                    if self.psnr_history[-1] <= self.psnr_history[-2]:
+                        self.restore_selfcal(caltable_version=self.caltables_versions[-1])
                         self.psnr_history.pop()
-                        self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
@@ -380,34 +379,32 @@ class Ampcal(Selfcal):
                         self.Imager.inputvis = current_visfile
                         self.write_file_backup()
 
-                else:
-                    if self.selfcal_object:
-                        if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
-                            self.restore_selfcal(
-                                caltable_version=self.selfcal_object.getCaltablesVersions()[-1]
-                            )
-                            self.psnr_history.pop()
-                            self.caltables_versions.pop()
-                            self.caltables.pop()
-                            self.caltables = self.selfcal_object.getCaltables()
-                            self.psnr_history = self.selfcal_object.getPSNRHistory()
-                            self.caltables_versions = self.selfcal_object.getCaltablesVersions()
-                            print(
-                                "PSNR decreasing or equal in this solution interval - restoring to last MS and "
-                                "exiting loop"
-                            )
-                            break
-                        else:
-                            print(
-                                "PSNR improved on iteration {0} - Copying measurement set files...".
-                                format(i)
-                            )
-                            if os.path.exists(current_visfile):
-                                shutil.rmtree(current_visfile)
-                            shutil.copytree(self.visfile, current_visfile)
-                            self.visfile = current_visfile
-                            self.Imager.inputvis = current_visfile
-                            self.write_file_backup()
+                elif self.selfcal_object:
+                    if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
+                        self.restore_selfcal(
+                            caltable_version=self.selfcal_object.getCaltablesVersions()[-1]
+                        )
+                        self.psnr_history.pop()
+                        self.caltables.pop()
+                        self.caltables = self.selfcal_object.getCaltables()
+                        self.psnr_history = self.selfcal_object.getPSNRHistory()
+                        self.caltables_versions = self.selfcal_object.getCaltablesVersions()
+                        print(
+                            "PSNR decreasing or equal in this solution interval - restoring to last MS and "
+                            "exiting loop"
+                        )
+                        break
+                    else:
+                        print(
+                            "PSNR improved on iteration {0} - Copying measurement set files...".
+                            format(i)
+                        )
+                        if os.path.exists(current_visfile):
+                            shutil.rmtree(current_visfile)
+                        shutil.copytree(self.visfile, current_visfile)
+                        self.visfile = current_visfile
+                        self.Imager.inputvis = current_visfile
+                        self.write_file_backup()
 
 
 class Phasecal(Selfcal):
@@ -522,7 +519,6 @@ class Phasecal(Selfcal):
                     if self.psnr_history[-1] <= self.psnr_history[-2]:
                         self.restore_selfcal(caltable_version=self.caltables_versions[i])
                         self.psnr_history.pop()
-                        self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
                             "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop"
@@ -693,10 +689,9 @@ class AmpPhasecal(Selfcal):
             shutil.copytree(self.visfile, current_visfile)
             if self.restore_PSNR:
                 if i > 0:
-                    if self.psnr_history[i] <= self.psnr_history[i - 1]:
-                        self.restore_selfcal(caltable_version=self.caltables_versions[i - 1])
+                    if self.psnr_history[-1] <= self.psnr_history[-2]:
+                        self.restore_selfcal(caltable_version=self.caltables_versions[-1])
                         self.psnr_history.pop()
-                        self.caltables_versions.pop()
                         self.caltables.pop()
                         print(
                             "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
@@ -714,30 +709,29 @@ class AmpPhasecal(Selfcal):
                         self.Imager.inputvis = current_visfile
                         self.write_file_backup()
 
-                else:
-                    if self.selfcal_object:
-                        if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
-                            self.restore_selfcal(
-                                caltable_version=self.selfcal_object.getCaltablesVersions()[-1]
-                            )
-                            self.psnr_history.pop()
-                            self.caltables_versions.pop()
-                            self.caltables.pop()
-                            self.caltables = self.selfcal_object.getCaltables()
-                            self.psnr_history = self.selfcal_object.getPSNRHistory()
-                            self.caltables_versions = self.selfcal_object.getCaltablesVersions()
-                            print(
-                                "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
-                            )
-                            break
-                        else:
-                            print(
-                                "PSNR improved on iteration {0} - Copying measurement set files...".
-                                format(i)
-                            )
-                            if os.path.exists(current_visfile):
-                                shutil.rmtree(current_visfile)
-                            shutil.copytree(self.visfile, current_visfile)
-                            self.visfile = current_visfile
-                            self.Imager.inputvis = current_visfile
-                            self.write_file_backup()
+                elif self.selfcal_object:
+                    if self.psnr_history[i] <= self.selfcal_object.getPSNRHistory()[-1]:
+                        self.restore_selfcal(
+                            caltable_version=self.selfcal_object.getCaltablesVersions()[-1]
+                        )
+                        self.psnr_history.pop()
+                        self.caltables_versions.pop()
+                        self.caltables.pop()
+                        self.caltables = self.selfcal_object.getCaltables()
+                        self.psnr_history = self.selfcal_object.getPSNRHistory()
+                        self.caltables_versions = self.selfcal_object.getCaltablesVersions()
+                        print(
+                            "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
+                        )
+                        break
+                    else:
+                        print(
+                            "PSNR improved on iteration {0} - Copying measurement set files...".
+                            format(i)
+                        )
+                        if os.path.exists(current_visfile):
+                            shutil.rmtree(current_visfile)
+                        shutil.copytree(self.visfile, current_visfile)
+                        self.visfile = current_visfile
+                        self.Imager.inputvis = current_visfile
+                        self.write_file_backup()
