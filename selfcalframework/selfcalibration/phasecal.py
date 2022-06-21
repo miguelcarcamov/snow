@@ -19,7 +19,7 @@ class Phasecal(Selfcal):
         self.calmode = 'p'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
-        self.psnr_file_backup = self.Imager.output + "/psnr_ph.txt"
+        self.psnr_file_backup = self.Imager.output + "psnr_ph.txt"
 
     def run(self):
         caltable = "before_selfcal"

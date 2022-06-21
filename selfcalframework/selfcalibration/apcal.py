@@ -21,7 +21,7 @@ class AmpPhasecal(Selfcal):
         self.calmode = 'ap'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
-        self.psnr_file_backup = self.Imager.output + "/psnr_ap.txt"
+        self.psnr_file_backup = self.Imager.output + "psnr_ap.txt"
 
         if self.selfcal_object is None and self.input_caltable == "":
             raise ValueError(
