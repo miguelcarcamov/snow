@@ -9,6 +9,9 @@ from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
 
 from .image_utils import *
+from pathlib import Path
+from astropy.io import fits
+import re
 
 
 class Imager(metaclass=ABCMeta):
@@ -258,6 +261,8 @@ class GPUvmem(Imager):
         model_input="",
         modelout="mod_out.fits",
         user_mask="",
+        user_mask_resampled="",
+        CheckMask=True,
         force_noise=None,
         griddingthreads=4,
         positivity=True,
@@ -410,7 +415,43 @@ class GPUvmem(Imager):
                + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
                + " -R " + str(self.robust) + " -t " + str(self.niter)
 
-        if self.user_mask != "":
+        if ((self.user_mask != "")):
+
+            if self.CheckMask:
+                print("imager: checking that mask and canvas have same WCS")
+                self.user_mask_resampled = self.user_mask
+                hdu_canvas = fits.open(self.model_input)
+                hdr_canvas = hdu_canvas[0].header
+                hdu_mask = fits.open(self.user_mask)
+                hdr_mask = hdu_mask[0].header
+                if (
+                    (
+                        np.fabs((hdr_mask['CDELT2'] - hdr_canvas['CDELT2']) / hdr_canvas['CDELT2'])
+                        < 1E-3
+                    ) | (hdr_mask['NAXIS1'] != hdr_canvas['NAXIS1'])
+                ):
+                    exec_maskresamp_script = Path(__file__).parent / "exec_mask_resamp.bash"
+                    mask_basename = os.path.basename(self.user_mask)
+                    mask_basename = re.sub('.fits', '_resamp.fits', mask_basename, re.IGNORECASE)
+                    full_path_mask = os.path.join(os.path.dirname(self.user_mask), mask_basename)
+                    print(
+                        "resampling input mask: ", "bash " + str(exec_maskresamp_script) + " " +
+                        imagename + "_input.fits" + " " + self.user_mask + " " + full_path_mask
+                    )
+                    os.system(
+                        "bash " + str(exec_maskresamp_script) + " " + imagename + "_input.fits" +
+                        " " + self.user_mask + " " + full_path_mask
+                    )
+                    self.user_mask = full_path_mask
+                    self.user_mask_resampled = full_path_mask
+                    print("assigned attribute ", self.user_mask)
+                self.CheckMask = False
+            else:
+                print("already checked mask in first iter")
+                self.user_mask = self.user_mask_resampled
+                print("assigned attribute ", self.user_mask)
+
+            print("USER MASK: ", self.user_mask)
             args += " -U " + self.user_mask
 
         if self.force_noise is not None:
