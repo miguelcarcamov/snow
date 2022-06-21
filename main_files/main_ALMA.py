@@ -1,11 +1,5 @@
-import os
-import sys
-
-import numpy as np
-from flagdata import flagdata
-
-from selfcalframework.imager import *
-from selfcalframework.selfcal import *
+from selfcalframework.imaging import Clean
+from selfcalframework.selfcalibration import AmpPhasecal, Phasecal
 
 if __name__ == '__main__':
     visfile = sys.argv[3]

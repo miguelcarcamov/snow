@@ -1,11 +1,7 @@
-import os
-import sys
+from casatasks import flagdata, mstransform
 
-import numpy as np
-from casatasks import clearcal, delmod, flagdata, flagmanager, mstransform
-
-from selfcalframework.imager import *
-from selfcalframework.selfcal import *
+from selfcalframework.imaging import Clean
+from selfcalframework.selfcalibration import AmpPhasecal, Phasecal
 
 if __name__ == '__main__':
 
