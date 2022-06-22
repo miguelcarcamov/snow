@@ -30,9 +30,9 @@ class Ampcal(Selfcal):
 
             gaincal(
                 vis=self.visfile,
-                field=self.Imager.getField(),
+                field=self.imager.field,
                 caltable=caltable,
-                spw=self.Imager.getSpw(),
+                spw=self.imager.spw,
                 uvrange=self.uvrange,
                 gaintype=self.gaintype,
                 refant=self.refant,
@@ -61,9 +61,9 @@ class Ampcal(Selfcal):
             self._caltables_versions.append(versionname)
             applycal(
                 vis=self.visfile,
-                spw=self.Imager.getSpw(),
+                spw=self.imager.spw,
                 spwmap=[self.spwmap, self.spwmap],
-                field=self.Imager.getField(),
+                field=self.imager.field,
                 gaintable=[self.input_caltable, caltable],
                 gainfield='',
                 calwt=False,

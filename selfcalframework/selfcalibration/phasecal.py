@@ -61,8 +61,8 @@ class Phasecal(Selfcal):
 
             applycal(
                 vis=self.visfile,
-                field=self.field,
-                spw=self.spw,
+                field=self.imager.field,
+                spw=self.imager.spw,
                 spwmap=self.spwmap,
                 gaintable=[caltable],
                 gainfield='',
