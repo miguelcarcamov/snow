@@ -247,6 +247,6 @@ class GPUvmem(Imager):
             )
 
         # Calculate SNR and standard deviation
-        self.calculateStatistics_FITS(
+        self._calculate_statistics_fits(
             signal_fits_name=restored_fits, residual_fits_name=residual_fits
         )

@@ -32,13 +32,15 @@ def get_header_and_data(fits_name: str = ""):
     return header, data
 
 
-def exportMStoFITS(msname: str = ""):
+def export_ms_to_fits(msname: str = ""):
     fitsfile_name = msname + ".fits"
     exportfits(msname, fitsfile_name)
     return fitsfile_name
 
 
-def calculatePSNR_FITS(signal_fits_name: str = "", residual_fits_name: str = "", pixels: int = 100):
+def calculate_psnr_fits(
+    signal_fits_name: str = "", residual_fits_name: str = "", pixels: int = 100
+):
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
     peak = np.nanmax(signal_data)
@@ -46,7 +48,7 @@ def calculatePSNR_FITS(signal_fits_name: str = "", residual_fits_name: str = "",
     return peak / stdv, peak, stdv
 
 
-def calculatePSNR_MS(signal_ms_name: str = "", residual_ms_name: str = "", pixels: int = 100):
+def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixels: int = 100):
     fits_signal = exportMStoFITS(msname=signal_ms_name)
     fits_residual = exportMStoFITS(msname=residual_ms_name)
     psnr, peak, stdv = calculatePSNR_FITS(fits_signal, fits_residual, pixels)
