@@ -21,7 +21,7 @@ class GPUvmem(Imager):
         regfactors: list = [],
         gpuids: list = [0],
         residual_output: str = "residuals.ms",
-        model_input: str = "",
+        model_input: str = None,
         model_out: str = "mod_out.fits",
         user_mask: str = None,
         force_noise: float = None,
@@ -194,7 +194,7 @@ class GPUvmem(Imager):
         return fits_image
 
     def run(self, imagename=""):
-        if self.model_input == "":
+        if self.model_input is None:
             self.model_input = self.__make_canvas(imagename + "_input")
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
