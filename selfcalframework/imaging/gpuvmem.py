@@ -241,7 +241,9 @@ class GPUvmem(Imager):
         else:
             # Restore the image
             residual_fits, restored_fits = self.__restore(
-                model_fits=model_output, residual_ms=residual_output, restored_image=restored_image
+                model_fits=model_output,
+                residual_ms=_residual_output,
+                restored_image=restored_image
             )
 
         # Calculate SNR and standard deviation
