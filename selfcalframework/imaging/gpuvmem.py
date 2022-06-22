@@ -12,46 +12,51 @@ class GPUvmem(Imager):
 
     def __init__(
         self,
-        executable="gpuvmem",
-        gpublocks=[16, 16, 256],
-        initialvalues=[],
-        regfactors=[],
-        gpuids=[0],
-        residualoutput="residuals.ms",
-        model_input="",
-        modelout="mod_out.fits",
-        user_mask="",
-        force_noise=None,
-        griddingthreads=4,
-        positivity=True,
-        ftol=1e-12,
-        noise_cut=10.0,
-        gridding=False,
-        printimages=False,
+        executable: str = "gpuvmem",
+        gpu_blocks: list = [16, 16, 256],
+        initialvalues: list = [],
+        regfactors: list = [],
+        gpuids: list = [0],
+        residual_output: str = "residuals.ms",
+        model_input: str = "",
+        model_out: str = "mod_out.fits",
+        user_mask: str = "",
+        force_noise: float = None,
+        gridding_threads: int = 4,
+        positivity: bool = True,
+        ftol: float = 1e-12,
+        noise_cut: float = 10.0,
+        gridding: bool = False,
+        print_images: bool = False,
         **kwargs
     ):
-        super(GPUvmem, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.name = "GPUvmem"
-        initlocals = locals()
-        initlocals.pop('self')
-        for a_attribute in initlocals.keys():
-            setattr(self, a_attribute, initlocals[a_attribute])
-        # self.__dict__.update(kwargs)
-        if self.phasecenter != "":
+        self.executable = executable
+        self.gpu_blocks = gpu_blocks
+        self.initialvalues = initialvalues
+        self.regfactors = regfactors
+        self.gpuids = gpuids
+        self.residual_output = residual_output
+        self.model_input = model_input
+        self.model_out = model_out
+        self.user_mask = user_mask
+        self.force_noise = force_noise
+        self.gridding_threads = gridding_threads
+        self.positivity = positivity
+        self.ftol = ftol
+        self.noise_cut = noise_cut
+        self.gridding = gridding
+        self.print_images = print_images
+        if self.phase_center != "":
             fixvis(
                 vis=self.visfile,
                 outputvis=self.visfile,
                 field=self.field,
-                phasecenter=self.phasecenter
+                phasecenter=self.phase_center
             )
 
-    def getRegfactors(self):
-        return self.regfactors
-
-    def setRegFactors(self, regfactors):
-        self.factors = regfactors
-
-    def _restore(self, model_fits="", residual_ms="", restored_image="restored"):
+    def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
@@ -141,8 +146,8 @@ class GPUvmem(Imager):
 
         return residual_image + ".image.fits", restored_image + ".fits"
 
-    def _make_canvas(self, name="model_input"):
-        fitsimage = name + '.fits'
+    def __make_canvas(self, name="model_input"):
+        fits_image = name + '.fits'
         tclean(
             vis=self.inputvis,
             imagename=name,
@@ -156,19 +161,19 @@ class GPUvmem(Imager):
             imsize=[self.M, self.N],
             weighting=self.weighting
         )
-        exportfits(imagename=name + '.image', fitsimage=fitsimage, overwrite=True)
-        return fitsimage
+        exportfits(imagename=name + '.image', fitsimage=fits_image, overwrite=True)
+        return fits_image
 
     def run(self, imagename=""):
         if self.model_input == "":
-            self.model_input = self._make_canvas(imagename + "_input")
+            self.model_input = self.__make_canvas(imagename + "_input")
         model_output = imagename + ".fits"
-        residual_output = imagename + "_" + self.residualoutput
+        _residual_output = imagename + "_" + self.residual_output
         restored_image = imagename + ".restored"
 
-        args = self.executable + " -X " + str(self.gpublocks[0]) + " -Y " + str(self.gpublocks[1]) + " -V " + str(
-            self.gpublocks[2]) \
-               + " -i " + self.inputvis + " -o " + residual_output + " -z " + ",".join(map(str, self.initialvalues)) \
+        args = self.executable + " -X " + str(self.gpu_blocks[0]) + " -Y " + str(self.gpu_blocks[1]) + " -V " + str(
+            self.gpu_blocks[2]) \
+               + " -i " + self.inputvis + " -o " + _residual_output + " -z " + ",".join(map(str, self.initial_values)) \
                + " -Z " + ",".join(map(str, self.regfactors)) + " -G " + ",".join(map(str, self.gpuids)) \
                + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
                + " -R " + str(self.robust) + " -t " + str(self.niter)
@@ -180,7 +185,7 @@ class GPUvmem(Imager):
             args += " -n " + str(self.force_noise)
 
         if self.gridding:
-            args += " -g " + str(self.griddingthreads)
+            args += " -g " + str(self.gridding_threads)
 
         if self.printimages:
             args += " --print-images"
@@ -206,7 +211,7 @@ class GPUvmem(Imager):
             raise FileNotFoundError("The model image has not been created")
         else:
             # Restore the image
-            residual_fits, restored_fits = self._restore(
+            residual_fits, restored_fits = self.__restore(
                 model_fits=model_output, residual_ms=residual_output, restored_image=restored_image
             )
 

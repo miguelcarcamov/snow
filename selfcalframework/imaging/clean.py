@@ -14,46 +14,50 @@ class Clean(Imager):
         nsigma=0.0,
         interactive=False,
         mask="",
-        usemask="auto-multithresh",
-        negativethreshold=0.0,
-        lownoisethreshold=1.5,
-        noisethreshold=4.25,
-        sidelobethreshold=2.0,
-        minbeamfrac=0.3,
+        use_mask="auto-multithresh",
+        negative_threshold=0.0,
+        low_noise_threshold=1.5,
+        noise_threshold=4.25,
+        sidelobe_threshold=2.0,
+        min_beam_frac=0.3,
         specmode="",
         gridder="standard",
-        wprojplanes=-1,
+        wproj_planes=-1,
         deconvolver="hogbom",
         uvtaper=[],
         scales=[],
         uvrange="",
         pbcor=False,
-        cycleniter=0,
+        cycle_niter=0,
         clean_savemodel=None,
         **kwargs
     ):
-        super(Clean, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.name = "TClean"
-        initlocals = locals()
-        initlocals.pop('self')
-        for a_attribute in initlocals.keys():
-            setattr(self, a_attribute, initlocals[a_attribute])
-        # self.__dict__.update(kwargs)
-
-        if (self.savemodel):
-            self.clean_savemodel = "modelcolumn"
-
-    def getNSigma(self):
-        return self.nsigma
-
-    def setNSigma(self, nsigma):
+        self.nterms = nterms
+        self.threshold = threshold
         self.nsigma = nsigma
+        self.interactive = interactive
+        self.mask = mask
+        self.use_mask = use_mask
+        self.negative_threshold = negative_threshold
+        self.low_noise_threshold = low_noise_threshold
+        self.noise_threshold = noise_threshold
+        self.sidelobe_threshold = sidelobe_threshold
+        self.min_beam_frac = min_beam_frac
+        self.specmode = specmode
+        self.gridder = gridder
+        self.wproj_planes = wproj_planes
+        self.deconvolver = deconvolver
+        self.uvtaper = uvtaper
+        self.scales = scales
+        self.uvrange = uvrange
+        self.pbcor = pbcor
+        self.cycle_niter = cycle_niter
+        self.clean_savemodel = clean_savemodel
 
-    def getThreshold(self):
-        return self.threshold
-
-    def setThreshold(self):
-        return self.threshold
+        if self.save_model:
+            self.clean_savemodel = "modelcolumn"
 
     def run(self, imagename=""):
         imsize = [self.M, self.N]
@@ -61,9 +65,9 @@ class Clean(Imager):
             vis=self.inputvis,
             imagename=imagename,
             field=self.field,
-            phasecenter=self.phasecenter,
+            phasecenter=self.phase_center,
             uvrange=self.uvrange,
-            datacolumn=self.datacolumn,
+            datacolumn=self.data_column,
             specmode=self.specmode,
             stokes=self.stokes,
             deconvolver=self.deconvolver,
@@ -83,12 +87,12 @@ class Clean(Imager):
             uvtaper=self.uvtaper,
             savemodel=self.clean_savemodel,
             usemask=self.usemask,
-            negativethreshold=self.negativethreshold,
-            lownoisethreshold=self.lownoisethreshold,
-            noisethreshold=self.noisethreshold,
-            sidelobethreshold=self.sidelobethreshold,
-            minbeamfrac=self.minbeamfrac,
-            cycleniter=self.cycleniter,
+            negativethreshold=self.negative_threshold,
+            lownoisethreshold=self.low_noise_threshold,
+            noisethreshold=self.noise_threshold,
+            sidelobethreshold=self.sidelobe_threshold,
+            minbeamfrac=self.min_beam_frac,
+            cycleniter=self.cycle_niter,
             verbose=self.verbose
         )
 
