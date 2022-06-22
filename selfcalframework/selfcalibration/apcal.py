@@ -21,7 +21,7 @@ class AmpPhasecal(Selfcal):
         caltable = ""
         self._init_run("before_apcal")
 
-        for i in range(0, self.loops):
+        for i in range(0, self._loops):
             caltable = self.output_caltables + 'apcal_' + str(i)
             self._caltables.append(caltable)
             rmtables(caltable)
