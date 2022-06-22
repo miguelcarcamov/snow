@@ -10,6 +10,8 @@ from casatasks import (
 )
 from casatools import table
 
+from ..imaging.imager import Imager
+
 tb = table()
 
 
@@ -17,38 +19,59 @@ class Selfcal(metaclass=ABCMeta):
 
     def __init__(
         self,
-        visfile="",
-        Imager=None,
-        refant="",
-        spwmap=[],
-        minblperant=4,
-        want_plot=True,
-        interp='linear',
-        gaintype='T',
-        uvrange="",
-        solint=[],
-        varchange_imager=None,
-        varchange_selfcal=None,
-        output_caltables="",
-        minsnr=3.0,
-        applymode="calflag",
-        flag_mode="rflag",
-        combine="",
-        flag_dataset_bool=False,
-        restore_PSNR=False,
-        subtract_source=False
+        visfile: str = "",
+        imager: Imager = None,
+        refant: str = "",
+        spwmap: list = [],
+        minblperant: int = 4,
+        want_plot: bool = True,
+        interp: str = 'linear',
+        gaintype: str = 'T',
+        uvrange: str = "",
+        solint: list = [],
+        varchange_imager: dict = None,
+        varchange_selfcal: dict = None,
+        output_caltables: str = None,
+        minsnr: float = 3.0,
+        applymode: str = "calflag",
+        flag_mode: str = "rflag",
+        combine: str = "",
+        flag_dataset: bool = False,
+        restore_psnr: bool = False,
+        subtract_source: bool = False
     ):
-        initlocals = locals()
-        initlocals.pop('self')
-        for a_attribute in initlocals.keys():
-            setattr(self, a_attribute, initlocals[a_attribute])
-        self.caltables = []
-        self.caltables_versions = []
-        self.psnr_history = []
-        self.output_caltables = self.Imager.output
-        self.psnr_file_backup = ""
+        # Public variables
+        self.visfile = visfile
+        self.imager = imager
+        self.refant = refant
+        self.spwmap = spwmap
+        self.minblperant = minblperant
+        self.want_plot = want_plot
+        self.interp = interp
+        self.gaintype = gaintype
+        self.uvrange = uvrange
+        self.solint = solint
+        self.varchange_imager = varchange_imager
+        self.varchange_selfcal = varchange_selfcal
+        self.output_caltables = output_caltables
+        self.minsnr = minsnr
+        self.applymode = applymode
+        self.flag_mode = flag_mode
+        self.combine = combine
+        self.flag_dataset = flag_dataset
+        self.restore_psnr = restore_psnr
+        self.subtract_source = subtract_source
+        # Protected variables
+        self._caltables = []
+        self._caltables_versions = []
+        self._psnr_history = []
+        self._psnr_file_backup = ""
+        self._calmode = ""
 
-        if self.Imager is None:
+        if output_caltables is None:
+            self.output_caltables = self.imager.output
+
+        if self.imager is None:
             print("Error, Imager Object is Nonetype")
             raise ValueError("Error, self-calibration objects cannot run without an imager object")
 
