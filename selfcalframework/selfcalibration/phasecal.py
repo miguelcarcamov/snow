@@ -77,4 +77,4 @@ class Phasecal(Selfcal):
 
             self._run_imager(i)
 
-            if not self._finish_selfcal_loop(i): break
+            if self._finish_selfcal_loop(i): break

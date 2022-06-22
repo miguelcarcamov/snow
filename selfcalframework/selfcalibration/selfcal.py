@@ -159,34 +159,13 @@ class Selfcal(metaclass=ABCMeta):
         shutil.copytree(self.visfile, current_visfile)
 
         if self.restore_psnr:
-            print(
-                "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
-                    self._psnr_history[-2], self._psnr_history[-1]
-                )
-            )
-            if iter > 0:
-                if self._psnr_history[-1] <= self._psnr_history[-2]:
-
-                    print(
-                        "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop..."
-                    )
-                    self._restore_selfcal(caltable_version=self._caltables_versions[-1])
-                    self._psnr_history.pop()
-                    self._caltables.pop()
-                    return False
-                else:
-                    print(
-                        "PSNR improved on iteration {0} - Copying measurement set files...".
-                        format(i)
-                    )
-                    if os.path.exists(current_visfile):
-                        shutil.rmtree(current_visfile)
-                    shutil.copytree(self.visfile, current_visfile)
-                    self.visfile = current_visfile
-                    self.imager.inputvis = current_visfile
-                    return True
-            elif iter == 0 and self.previous_selfcal:
+            if self.previous_selfcal is not None and iter == 0:
                 if self._psnr_history[-1] <= self.previous_selfcal._psnr_history[-1]:
+                    print(
+                        "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
+                            self._previous_selfcal._psnr_history[-1], self._psnr_history[-1]
+                        )
+                    )
                     self._restore_selfcal(
                         caltable_version=self.previous_selfcal._caltables_versions[-1]
                     )
@@ -199,7 +178,7 @@ class Selfcal(metaclass=ABCMeta):
                     print(
                         "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
                     )
-                    return False
+                    return True
                 else:
                     print(
                         "PSNR improved on iteration {0} - Copying measurement set files...".
@@ -210,9 +189,38 @@ class Selfcal(metaclass=ABCMeta):
                     shutil.copytree(self.visfile, current_visfile)
                     self.visfile = current_visfile
                     self.imager.inputvis = current_visfile
+                    return False
+            elif self.previous_selfcal is None and len(_psnr_history) > 1:
+                print(
+                    "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
+                        self._psnr_history[-2], self._psnr_history[-1]
+                    )
+                )
+
+                if self._psnr_history[-1] <= self._psnr_history[-2]:
+
+                    print(
+                        "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop..."
+                    )
+                    self._restore_selfcal(caltable_version=self._caltables_versions[-1])
+                    self._psnr_history.pop()
+                    self._caltables.pop()
                     return True
+                else:
+                    print(
+                        "PSNR improved on iteration {0} - Copying measurement set files...".
+                        format(iter)
+                    )
+                    if os.path.exists(current_visfile):
+                        shutil.rmtree(current_visfile)
+                    shutil.copytree(self.visfile, current_visfile)
+                    self.visfile = current_visfile
+                    self.imager.inputvis = current_visfile
+                    return False
+            else:
+                return False
         else:
-            return True
+            return False
 
     def _flag_dataset(
         self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
