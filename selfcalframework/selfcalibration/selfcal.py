@@ -98,11 +98,14 @@ class Selfcal(metaclass=ABCMeta):
     def getSubtractSource(self):
         return self.subtract_source
 
-    def read_first_line_file_backup(self):
+    @staticmethod
+    def read_last_line_file_backup(file_name: str = ""):
         first_line = ""
-        with open(self.psnr_file_backup, 'r') as f:
-            first_line = f.readline().rstrip()
-        return float(first_line)
+        with open(file_name, 'rb') as f:
+            file.seek(-2, os.SEEK_END)
+            while f.read(1) != b'\n':
+                f.seek(-2, os.SEEK_CUR)
+            return float(f.readline().decode())
 
     def write_file_backup(self):
         with open(self.psnr_file_backup, 'a') as f:

@@ -59,7 +59,7 @@ class Ampcal(Selfcal):
                 shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
         else:
-            psnr_file = self.read_first_line_file_backup()
+            psnr_file = self.read_last_line_file_backup(self.selfcal_object.psnr_file_backup)
             self.psnr_history.append(psnr_file)
             self.delete_last_lines()
 

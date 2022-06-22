@@ -33,7 +33,7 @@ class Phasecal(Selfcal):
             self.write_file_backup()
             self.psnr_history.append(self.Imager.getPSNR())
         else:
-            psnr_file = self.read_first_line_file_backup()
+            psnr_file = self.read_last_line_file_backup(self.psnr_file_backup)
             self.psnr_history.append(psnr_file)
             self.delete_last_lines()
 
