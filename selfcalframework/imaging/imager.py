@@ -7,22 +7,22 @@ class Imager(metaclass=ABCMeta):
 
     def __init__(
         self,
-        inputvis="",
-        output="",
-        cell="",
-        robust=2.0,
-        weighting="briggs",
-        field="",
-        spw="",
-        stokes="I",
-        phase_center="",
-        data_column="corrected",
-        M=512,
-        N=512,
-        niter=100,
-        noise_pixels=None,
-        save_model=True,
-        verbose=True
+        inputvis: str = "",
+        output: str = "",
+        cell: str = "",
+        robust: float = 2.0,
+        weighting: str = "briggs",
+        field: str = "",
+        spw: str = "",
+        stokes: str = "I",
+        phase_center: str = "",
+        data_column: str = "corrected",
+        M: int = 512,
+        N: int = 512,
+        niter: int = 100,
+        noise_pixels: int = None,
+        save_model: bool = True,
+        verbose: bool = True
     ):
         self.inputvis = inputvis
         self.output = output
