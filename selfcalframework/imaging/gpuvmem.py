@@ -17,7 +17,7 @@ class GPUvmem(Imager):
         self,
         executable: str = "gpuvmem",
         gpu_blocks: list = [16, 16, 256],
-        initialvalues: list = [],
+        initial_values: list = [],
         regfactors: list = [],
         gpuids: list = [0],
         residual_output: str = "residuals.ms",
@@ -37,7 +37,7 @@ class GPUvmem(Imager):
         self.name = "GPUvmem"
         self.executable = executable
         self.gpu_blocks = gpu_blocks
-        self.initialvalues = initialvalues
+        self.initial_values = initial_values
         self.regfactors = regfactors
         self.gpuids = gpuids
         self.residual_output = residual_output
