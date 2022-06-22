@@ -23,7 +23,7 @@ class Ampcal(Selfcal):
 
         for i in range(0, self.loops):
             caltable = self.output_caltables + 'ampcal_' + str(i)
-            self.caltables.append(caltable)
+            self._caltables.append(caltable)
             rmtables(caltable)
 
             self._set_attributes_from_dicts(i)

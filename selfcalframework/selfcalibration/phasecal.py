@@ -19,11 +19,11 @@ class Phasecal(Selfcal):
     def run(self):
         caltable = "before_selfcal"
         self._save_selfcal(caltable_version=caltable, overwrite=True)
-        self.caltables_versions.append(caltable)
+        self._caltables_versions.append(caltable)
         self._init_run("_original")
 
         for i in range(0, self._loops):
-            caltable = 'pcal' + str(i)
+            caltable = self.output_caltables + 'pcal' + str(i)
             self._caltables.append(caltable)
             rmtables(caltable)
 
