@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import os
 import shutil
 import sys
@@ -124,6 +125,7 @@ class Selfcal(metaclass=ABCMeta):
     def _init_selfcal(self):
         if self.previous_selfcal is not None:
             self.input_caltable = self.previous_selfcal._caltables[-1]
+            self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
 
         if self.input_caltable != "":
             if not os.path.exists(self.input_caltable):
@@ -138,8 +140,6 @@ class Selfcal(metaclass=ABCMeta):
             print("Original: - PSNR: " + str(self.imager.psnr))
             print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
             self._psnr_history.append(self.imager.psnr)
-        elif self.previous_selfcal is not None:
-            self._psnr_history.append(self.previous_selfcal._psnr_history[-1])
 
     def _run_imager(self, iter: int = 0):
         imagename = self._image_name + '_' + self._calmode + str(iter)
@@ -162,38 +162,8 @@ class Selfcal(metaclass=ABCMeta):
         shutil.copytree(self.visfile, current_visfile)
 
         if self.restore_psnr:
-            if self.previous_selfcal is not None and iter == 0:
-                if self._psnr_history[-1] <= self.previous_selfcal._psnr_history[-1]:
-                    print(
-                        "Old PSNR {0:0.3f} vs last PSNR {1:0.3f}".format(
-                            self._previous_selfcal._psnr_history[-1], self._psnr_history[-1]
-                        )
-                    )
-                    self._restore_selfcal(
-                        caltable_version=self.previous_selfcal._caltables_versions[-1]
-                    )
-                    self._psnr_history.pop()
-                    self._caltables_versions.pop()
-                    self._caltables.pop()
-                    self._caltables = self.previous_selfcal._caltables
-                    self._psnr_history = self.previous_selfcal._psnr_history
-                    self._caltables_versions = self.previous_selfcal._caltables_versions
-                    print(
-                        "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
-                    )
-                    return True
-                else:
-                    print(
-                        "PSNR improved on iteration {0} - Copying measurement set files...".
-                        format(iter)
-                    )
-                    if os.path.exists(current_visfile):
-                        shutil.rmtree(current_visfile)
-                    shutil.copytree(self.visfile, current_visfile)
-                    self.visfile = current_visfile
-                    self.imager.inputvis = current_visfile
-                    return False
-            elif self.previous_selfcal is None and len(self._psnr_history) > 1:
+            if len(self._psnr_history) > 1:
+
                 print(
                     "Old PSNR {0:0.3f} vs last PSNR {1:0.3f}".format(
                         self._psnr_history[-2], self._psnr_history[-1]
