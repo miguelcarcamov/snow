@@ -1,10 +1,13 @@
 import os
 import shlex
 import subprocess
+from pathlib import Path
 
 from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
+from reproject import reproject_interp
 
+from ..utils.image_utils import get_hdu, get_header
 from .imager import Imager
 
 
@@ -20,7 +23,7 @@ class GPUvmem(Imager):
         residual_output: str = "residuals.ms",
         model_input: str = "",
         model_out: str = "mod_out.fits",
-        user_mask: str = "",
+        user_mask: str = None,
         force_noise: float = None,
         gridding_threads: int = 4,
         positivity: bool = True,
@@ -48,6 +51,7 @@ class GPUvmem(Imager):
         self.noise_cut = noise_cut
         self.gridding = gridding
         self.print_images = print_images
+
         if self.phase_center != "":
             fixvis(
                 vis=self.visfile,
@@ -55,6 +59,31 @@ class GPUvmem(Imager):
                 field=self.field,
                 phasecenter=self.phase_center
             )
+
+    @property
+    def user_mask(self):
+        return self.__user_mask
+
+    @user_mask.setter
+    def user_mask(self, user_mask):
+        self.__user_mask = user_mask
+        self.__check_mask()
+
+    def __check_mask(self):
+        if self.user_mask is not None and self.model_input is not None:
+            hdu_mask = get_hdu(self.user_mask)
+            header_model = get_header(self.model_input)
+
+            if hdu_mask.header != header_model:
+                print("The mask WCS is not the same as the model image, resampling...")
+                array, footprint = reproject_interp(hdu_mask, header_model)
+                path_object = Path(self.user_mask)
+                resampled_mask_name = "{0}_{2}{1}".format(
+                    Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                    "resampled"
+                )
+                fits.writeto(resampled_mask_name, array, header_model, overwrite=True)
+                self.user_mask = resampled_mask_name
 
     def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()
@@ -178,7 +207,7 @@ class GPUvmem(Imager):
                + " -m " + self.model_input + " -O " + model_output + " -N " + str(self.noise_cut) \
                + " -R " + str(self.robust) + " -t " + str(self.niter)
 
-        if self.user_mask != "":
+        if self.user_mask is not None and type(self.user_mask) is str:
             args += " -U " + self.user_mask
 
         if self.force_noise is not None:
