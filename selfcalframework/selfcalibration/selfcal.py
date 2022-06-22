@@ -190,7 +190,7 @@ class Selfcal(metaclass=ABCMeta):
                     self.visfile = current_visfile
                     self.imager.inputvis = current_visfile
                     return False
-            elif self.previous_selfcal is None and len(_psnr_history) > 1:
+            elif self.previous_selfcal is None and len(self._psnr_history) > 1:
                 print(
                     "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
                         self._psnr_history[-2], self._psnr_history[-1]
