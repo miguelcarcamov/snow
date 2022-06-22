@@ -138,6 +138,16 @@ class Selfcal(metaclass=ABCMeta):
         elif self.previous_selfcal is not None:
             self._psnr_history.append(self.previous_selfcal._psnr_history[-1])
 
+    def _run_imager(self, iter: int = 0):
+        imagename = self.image_name + '_' + self._calmode + str(iter)
+
+        self.imager.run(imagename)
+
+        self._psnr_history.append(self.imager.psnr)
+
+        print("Solint: " + str(self.solint[iter]) + " - PSNR: " + str(self._psnr_history[-1]))
+        print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
+
     def _finish_selfcal_loop(self, iter: int = 0):
         path_object = Path(self.visfile)
         current_visfile = "{0}_{2}{1}".format(
@@ -279,7 +289,7 @@ class Selfcal(metaclass=ABCMeta):
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)
 
-    def _selfcal_output(self, overwrite=False, _statwt=False):
+    def selfcal_output(self, overwrite=False, _statwt=False):
         output_vis = self.visfile + '.selfcal'
 
         if overwrite:

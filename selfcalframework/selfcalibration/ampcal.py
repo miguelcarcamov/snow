@@ -75,13 +75,6 @@ class Ampcal(Selfcal):
             if self.flag_dataset_bool:
                 self._flag_dataset(mode=self.flag_mode)
 
-            imagename = self.image_name + '_a' + str(i)
-
-            self.Imager.run(imagename)
-
-            self._psnr_history.append(self.imager.psnr)
-
-            print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self._psnr_history[-1]))
-            print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
+            self._run_imager(i)
 
             if not self._finish_selfcal_loop(i): break
