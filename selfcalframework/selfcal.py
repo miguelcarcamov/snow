@@ -245,7 +245,7 @@ class Ampcal(Selfcal):
         self.calmode = 'a'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
-        self.psnr_file_backup = self.Imager.output + "/psnr_amp.txt"
+        self.psnr_file_backup = self.Imager.output + "psnr_amp.txt"
 
         if self.selfcal_object is None and self.input_caltable == "":
             print("Error, Self-cal object is Nonetype and input_caltable is an empty string")
@@ -419,7 +419,7 @@ class Phasecal(Selfcal):
         self.calmode = 'p'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
-        self.psnr_file_backup = self.Imager.output + "/psnr_ph.txt"
+        self.psnr_file_backup = self.Imager.output + "psnr_ph.txt"
 
     def run(self):
         caltable = "before_selfcal"
@@ -551,7 +551,7 @@ class AmpPhasecal(Selfcal):
         self.calmode = 'ap'
         self.loops = len(self.solint)
         self.imagename = self.Imager.getOutputPath()
-        self.psnr_file_backup = self.Imager.output + "/psnr_ap.txt"
+        self.psnr_file_backup = self.Imager.output + "psnr_ap.txt"
 
         if self.selfcal_object is None and self.input_caltable == "":
             raise ValueError(
