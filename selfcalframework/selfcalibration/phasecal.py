@@ -1,6 +1,5 @@
 import os
 import shutil
-from pathlib import Path
 
 from casatasks import applycal, gaincal, rmtables
 
@@ -15,18 +14,13 @@ class Phasecal(Selfcal):
         self._calmode = 'p'
         self._loops = len(self.solint)
 
+        self._init_selfcal()
+
     def run(self):
         caltable = "before_selfcal"
         self._save_selfcal(caltable_version=caltable, overwrite=True)
         self.caltables_versions.append(caltable)
-        if not self._ismodel_in_dataset() and self.previous_selfcal is None:
-            imagename = self._image_name + '_original'
-            self.imager.run(imagename)
-            print("Original: - PSNR: " + str(self.imager.psnr))
-            print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
-            self._psnr_history.append(self.Imager.getPSNR())
-        elif self.previous_selfcal is not None:
-            self.psnr_history.append(self.previous_selfcal._psnr_history[-1])
+        self._init_run("_original")
 
         for i in range(0, self._loops):
             caltable = 'pcal' + str(i)
@@ -43,7 +37,7 @@ class Phasecal(Selfcal):
                 uvrange=self.uvrange,
                 gaintype=self.gaintype,
                 refant=self.refant,
-                calmode=self.calmode,
+                calmode=self._calmode,
                 combine=self.combine,
                 solint=self.solint[i],
                 minsnr=self.minsnr,
@@ -81,41 +75,13 @@ class Phasecal(Selfcal):
             if self.flag_dataset:
                 self._flag_dataset(mode=self.flag_mode)
 
-            imagename = self.imagename + '_ph' + str(i)
+            imagename = self.image_name + '_ph' + str(i)
 
             self.imager.run(imagename)
 
-            self.psnr_history.append(self.imager.psnr)
+            self._psnr_history.append(self.imager.psnr)
 
             print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self._psnr_history[-1]))
             print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
-            path_object = Path(self.visfile)
-            current_visfile = "{0}_{2}{1}".format(
-                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                "ph" + str(i)
-            )
 
-            if os.path.exists(current_visfile):
-                shutil.rmtree(current_visfile)
-            shutil.copytree(self.visfile, current_visfile)
-
-            if self.restore_psnr:
-                if len(self._psnr_history) > 1:
-                    if self._psnr_history[-1] <= self._psnr_history[-2]:
-                        self._restore_selfcal(caltable_version=self._caltables_versions[i])
-                        self._psnr_history.pop()
-                        self._caltables.pop()
-                        print(
-                            "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop"
-                        )
-                        break
-                    else:
-                        print(
-                            "PSNR improved on iteration {0} - Copying measurement set files...".
-                            format(i)
-                        )
-                        if os.path.exists(current_visfile):
-                            shutil.rmtree(current_visfile)
-                        shutil.copytree(self.visfile, current_visfile)
-                        self.visfile = current_visfile
-                        self.imager.inputvis = current_visfile
+            if not self._finish_selfcal_loop(i): break

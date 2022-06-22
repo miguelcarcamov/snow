@@ -118,6 +118,92 @@ class Selfcal(metaclass=ABCMeta):
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
+    def _init_selfcal(self):
+        if self.previous_selfcal is not None:
+            self.input_caltable = self.previous_selfcal._caltables[-1]
+
+        if self.input_caltable != "":
+            if not os.path.exists(self.input_caltable):
+                raise FileNotFoundError(
+                    "The caltable " + self.input_caltable + " needs to be created"
+                )
+
+    def _init_run(self, image_name_string: str = ""):
+        if not self._ismodel_in_dataset() and self.previous_selfcal is None:
+            imagename = self._image_name + image_name_string
+            self.imager.run(imagename)
+            print("Original: - PSNR: " + str(self.imager.psnr))
+            print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
+            self._psnr_history.append(self.imager.psnr)
+        elif self.previous_selfcal is not None:
+            self._psnr_history.append(self.previous_selfcal._psnr_history[-1])
+
+    def _finish_selfcal_loop(self, iter: int = 0):
+        path_object = Path(self.visfile)
+        current_visfile = "{0}_{2}{1}".format(
+            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+            self._calmode + str(iter)
+        )
+        if os.path.exists(current_visfile):
+            shutil.rmtree(current_visfile)
+        shutil.copytree(self.visfile, current_visfile)
+
+        if self.restore_psnr:
+            print(
+                "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
+                    self._psnr_history[-2], self._psnr_history[-1]
+                )
+            )
+            if iter > 0:
+                if self._psnr_history[-1] <= self._psnr_history[-2]:
+
+                    print(
+                        "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop..."
+                    )
+                    self._restore_selfcal(caltable_version=self._caltables_versions[-1])
+                    self._psnr_history.pop()
+                    self._caltables.pop()
+                    return False
+                else:
+                    print(
+                        "PSNR improved on iteration {0} - Copying measurement set files...".
+                        format(i)
+                    )
+                    if os.path.exists(current_visfile):
+                        shutil.rmtree(current_visfile)
+                    shutil.copytree(self.visfile, current_visfile)
+                    self.visfile = current_visfile
+                    self.imager.inputvis = current_visfile
+                    return True
+            elif iter == 0 and self.previous_selfcal:
+                if self._psnr_history[-1] <= self.previous_selfcal._psnr_history[-1]:
+                    self._restore_selfcal(
+                        caltable_version=self.previous_selfcal._caltables_versions[-1]
+                    )
+                    self._psnr_history.pop()
+                    self._caltables_versions.pop()
+                    self._caltables.pop()
+                    self._caltables = self.previous_selfcal._caltables
+                    self._psnr_history = self.previous_selfcal._psnr_history
+                    self._caltables_versions = self.previous_selfcal._caltables_versions
+                    print(
+                        "PSNR decreasing in this solution interval - restoring to last MS and exiting loop"
+                    )
+                    return False
+                else:
+                    print(
+                        "PSNR improved on iteration {0} - Copying measurement set files...".
+                        format(iter)
+                    )
+                    if os.path.exists(current_visfile):
+                        shutil.rmtree(current_visfile)
+                    shutil.copytree(self.visfile, current_visfile)
+                    self.visfile = current_visfile
+                    self.imager.inputvis = current_visfile
+                    return True
+        else:
+            return True
+
     def _flag_dataset(
         self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
     ):
