@@ -225,7 +225,7 @@ class GPUvmem(Imager):
         if self.verbose:
             args += " --verbose"
 
-        if self.savemodel:
+        if self.save_model:
             args += " --save_modelcolumn"
 
         print(args)
