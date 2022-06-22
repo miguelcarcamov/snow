@@ -1,11 +1,11 @@
-from casatasks import tclean
+from casatasks import tclean as tclean
 
 from selfcalframework.utils.image_utils import *
 
 from .imager import Imager
 
 
-class Clean(Imager):
+class Tclean(Imager):
 
     def __init__(
         self,

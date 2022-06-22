@@ -9,54 +9,37 @@ from .selfcal import Selfcal
 
 class Phasecal(Selfcal):
 
-    def __init__(self, input_caltable="", **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        initlocals = locals()
-        initlocals.pop('self')
-        for a_attribute in initlocals.keys():
-            setattr(self, a_attribute, initlocals[a_attribute])
 
-        self.calmode = 'p'
-        self.loops = len(self.solint)
-        self.imagename = self.Imager.getOutputPath()
-        self.psnr_file_backup = self.Imager.output + "psnr_ph.txt"
+        self._calmode = 'p'
+        self._loops = len(self.solint)
 
     def run(self):
         caltable = "before_selfcal"
-        self.save_selfcal(caltable_version=caltable, overwrite=True)
+        self._save_selfcal(caltable_version=caltable, overwrite=True)
         self.caltables_versions.append(caltable)
-        if not self.ismodel_in_dataset():
-            imagename = self.imagename + '_original'
-            self.Imager.run(imagename)
-            print("Original: - PSNR: " + str(self.Imager.getPSNR()))
-            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
-            self.write_file_backup()
-            self.psnr_history.append(self.Imager.getPSNR())
-        else:
-            psnr_file = self.read_last_line_file_backup(self.psnr_file_backup)
-            self.psnr_history.append(psnr_file)
-            self.delete_last_lines()
+        if not self._ismodel_in_dataset() and self.previous_selfcal is None:
+            imagename = self._image_name + '_original'
+            self.imager.run(imagename)
+            print("Original: - PSNR: " + str(self.imager.psnr))
+            print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
+            self._psnr_history.append(self.Imager.getPSNR())
+        elif self.previous_selfcal is not None:
+            self.psnr_history.append(self.previous_selfcal._psnr_history[-1])
 
-            path_object = Path(self.visfile)
-            current_visfile = "{0}_{2}{1}".format(
-                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "original"
-            )
-            if os.path.exists(current_visfile):
-                shutil.rmtree(current_visfile)
-            shutil.copytree(self.visfile, current_visfile)
-
-        for i in range(0, self.loops):
+        for i in range(0, self._loops):
             caltable = 'pcal' + str(i)
-            self.caltables.append(caltable)
+            self._caltables.append(caltable)
             rmtables(caltable)
 
-            self.set_attributes_from_dicts(i)
+            self._set_attributes_from_dicts(i)
 
             gaincal(
                 vis=self.visfile,
                 caltable=caltable,
-                field=self.Imager.getField(),
-                spw=self.Imager.getSpw(),
+                field=self.imager.field,
+                spw=self.imager.spw,
                 uvrange=self.uvrange,
                 gaintype=self.gaintype,
                 refant=self.refant,
@@ -68,7 +51,7 @@ class Phasecal(Selfcal):
                 minblperant=self.minblperant
             )
 
-            self.plot_selfcal(
+            self._plot_selfcal(
                 caltable,
                 xaxis="time",
                 yaxis="phase",
@@ -79,13 +62,13 @@ class Phasecal(Selfcal):
             )
 
             versionname = 'before_phasecal_' + str(i)
-            self.save_selfcal(caltable_version=versionname, overwrite=True)
-            self.caltables_versions.append(versionname)
+            self._save_selfcal(caltable_version=versionname, overwrite=True)
+            self._caltables_versions.append(versionname)
 
             applycal(
                 vis=self.visfile,
-                field=self.Imager.getField(),
-                spw=self.Imager.getSpw(),
+                field=self.field,
+                spw=self.spw,
                 spwmap=self.spwmap,
                 gaintable=[caltable],
                 gainfield='',
@@ -95,31 +78,33 @@ class Phasecal(Selfcal):
                 applymode=self.applymode
             )
 
-            if self.flag_dataset_bool:
-                self.flag_dataset(mode=self.flag_mode)
+            if self.flag_dataset:
+                self._flag_dataset(mode=self.flag_mode)
 
             imagename = self.imagename + '_ph' + str(i)
 
-            self.Imager.run(imagename)
+            self.imager.run(imagename)
 
-            self.psnr_history.append(self.Imager.getPSNR())
+            self.psnr_history.append(self.imager.psnr)
 
-            print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self.psnr_history[-1]))
-            print("Noise: " + str(self.Imager.getSTDV() * 1000.0) + " mJy/beam")
+            print("Solint: " + str(self.solint[i]) + " - PSNR: " + str(self._psnr_history[-1]))
+            print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
             path_object = Path(self.visfile)
             current_visfile = "{0}_{2}{1}".format(
                 Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
                 "ph" + str(i)
             )
+
             if os.path.exists(current_visfile):
                 shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
-            if self.restore_PSNR:
-                if len(self.psnr_history) > 1:
-                    if self.psnr_history[-1] <= self.psnr_history[-2]:
-                        self.restore_selfcal(caltable_version=self.caltables_versions[i])
-                        self.psnr_history.pop()
-                        self.caltables.pop()
+
+            if self.restore_psnr:
+                if len(self._psnr_history) > 1:
+                    if self._psnr_history[-1] <= self._psnr_history[-2]:
+                        self._restore_selfcal(caltable_version=self._caltables_versions[i])
+                        self._psnr_history.pop()
+                        self._caltables.pop()
                         print(
                             "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop"
                         )
@@ -133,5 +118,4 @@ class Phasecal(Selfcal):
                             shutil.rmtree(current_visfile)
                         shutil.copytree(self.visfile, current_visfile)
                         self.visfile = current_visfile
-                        self.Imager.inputvis = current_visfile
-                        self.write_file_backup()
+                        self.imager.inputvis = current_visfile

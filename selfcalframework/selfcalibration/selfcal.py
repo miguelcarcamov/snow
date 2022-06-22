@@ -32,6 +32,8 @@ class Selfcal(metaclass=ABCMeta):
         varchange_imager: dict = None,
         varchange_selfcal: dict = None,
         output_caltables: str = None,
+        previous_selfcal: Selfcal = None,
+        input_caltable: str = "",
         minsnr: float = 3.0,
         applymode: str = "calflag",
         flag_mode: str = "rflag",
@@ -54,6 +56,7 @@ class Selfcal(metaclass=ABCMeta):
         self.varchange_imager = varchange_imager
         self.varchange_selfcal = varchange_selfcal
         self.output_caltables = output_caltables
+        self.previous_selfcal = previous_selfcal
         self.minsnr = minsnr
         self.applymode = applymode
         self.flag_mode = flag_mode
@@ -67,6 +70,8 @@ class Selfcal(metaclass=ABCMeta):
         self._psnr_history = []
         self._psnr_file_backup = ""
         self._calmode = ""
+        self._loops = 0
+        self._image_name = ""
 
         if output_caltables is None:
             self.output_caltables = self.imager.output
@@ -74,6 +79,8 @@ class Selfcal(metaclass=ABCMeta):
         if self.imager is None:
             print("Error, Imager Object is Nonetype")
             raise ValueError("Error, self-calibration objects cannot run without an imager object")
+        else:
+            self._image_name = self.imager.output
 
         if self.varchange_imager is not None:
             list_of_values = [value for key, value in self.varchange_imager.items()]
@@ -97,41 +104,23 @@ class Selfcal(metaclass=ABCMeta):
                     "Error, phase center needs to be set if a source is going to be subtracted"
                 )
 
-    @staticmethod
-    def read_last_line_file_backup(file_name: str = ""):
-        first_line = ""
-        with open(file_name, 'rb') as f:
-            file.seek(-2, os.SEEK_END)
-            while f.read(1) != b'\n':
-                f.seek(-2, os.SEEK_CUR)
-            return float(f.readline().decode())
-
-    def write_file_backup(self):
-        with open(self.psnr_file_backup, 'a') as f:
-            f.write("{0:0.5f}\n".format(self.Imager.getPSNR()))
-
-    def delete_last_lines(self):
-        with open(self.psnr_file_backup, 'r+') as f:
-            lines = f.readlines()
-            fp.seek(0)
-            fp.truncate()
-            fp.writelines(lines[0:1])
-
-    def save_selfcal(self, caltable_version="", overwrite=True):
+    def _save_selfcal(self, caltable_version="", overwrite=True):
         if overwrite:
             flagmanager(vis=self.visfile, mode='delete', versionname=caltable_version)
         flagmanager(vis=self.visfile, mode='save', versionname=caltable_version)
 
-    def reset_selfcal(self, caltable_version=""):
+    def _reset_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         clearcal(self.visfile)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def restore_selfcal(self, caltable_version=""):
+    def _restore_selfcal(self, caltable_version=""):
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def flag_dataset(self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0):
+    def _flag_dataset(
+        self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
+    ):
         # NOTE1: RESIDUAL = CORRECTED - MODEL
         # RESIDUAL_DATA = DATA - MODEL
         # NOTE2: When datacolumn is WEIGHT, the task will
@@ -161,7 +150,7 @@ class Selfcal(metaclass=ABCMeta):
             writeflags=True
         )
 
-    def ismodel_in_dataset(self):
+    def _ismodel_in_dataset(self):
         tb.open(tablename=self.visfile)
         columns = tb.colnames()
         tb.close()
@@ -170,7 +159,7 @@ class Selfcal(metaclass=ABCMeta):
         else:
             return False
 
-    def set_attributes_from_dicts(self, iteration=0):
+    def _set_attributes_from_dicts(self, iteration=0):
         if self.varchange_imager is not None:
             for key in self.varchange_imager.keys():
                 setattr(self.Imager, key, self.varchange_imager[key][iteration])
@@ -179,7 +168,7 @@ class Selfcal(metaclass=ABCMeta):
             for key in self.varchange_selfcal.keys():
                 setattr(self, key, self.varchange_selfcal[key][iteration])
 
-    def plot_selfcal(
+    def _plot_selfcal(
         self,
         caltable,
         xaxis="",
@@ -204,30 +193,30 @@ class Selfcal(metaclass=ABCMeta):
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)
 
-    def selfcal_output(self, overwrite=False, _statwt=False):
-        outputvis = self.visfile + '.selfcal'
+    def _selfcal_output(self, overwrite=False, _statwt=False):
+        output_vis = self.visfile + '.selfcal'
 
         if overwrite:
-            os.system('rm -rf ' + outputvis)
-        split(vis=self.visfile, outputvis=outputvis, datacolumn='corrected')
+            os.system('rm -rf ' + output_vis)
+        split(vis=self.visfile, outputvis=output_vis, datacolumn='corrected')
         if _statwt:
-            statwt_path = outputvis + '.statwt'
+            statwt_path = output_vis + '.statwt'
             if os.path.exists(statwt_path):
                 shutil.rmtree(statwt_path)
-            shutil.copytree(outputvis, statwt_path)
+            shutil.copytree(output_vis, statwt_path)
             statwt(vis=statwt_path, datacolumn="data")
-        return outputvis
+        return output_vis
 
-    def uvsubtract(self):
+    def _uvsubtract(self):
         uvsub(vis=self.visfile, reverse=False)
 
-    def uvsubtract(vis=""):
+    def _uvsubtract(vis=""):
         uvsub(vis=vis, reverse=False)
 
-    def uvadd(self):
+    def _uvadd(self):
         uvsub(vis=self.visfile, reverse=True)
 
-    def uvadd(vis=""):
+    def _uvadd(vis=""):
         uvsub(vis=vis, reverse=True)
 
     @abstractmethod
