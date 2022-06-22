@@ -216,7 +216,7 @@ class GPUvmem(Imager):
         if self.gridding:
             args += " -g " + str(self.gridding_threads)
 
-        if self.printimages:
+        if self.print_images:
             args += " --print-images"
 
         if not self.positivity:
