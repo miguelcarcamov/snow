@@ -142,7 +142,7 @@ class Selfcal(metaclass=ABCMeta):
             self._psnr_history.append(self.previous_selfcal._psnr_history[-1])
 
     def _run_imager(self, iter: int = 0):
-        imagename = self.image_name + '_' + self._calmode + str(iter)
+        imagename = self._image_name + '_' + self._calmode + str(iter)
 
         self.imager.run(imagename)
 
