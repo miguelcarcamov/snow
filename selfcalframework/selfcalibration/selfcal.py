@@ -59,6 +59,7 @@ class Selfcal(metaclass=ABCMeta):
         self.varchange_selfcal = varchange_selfcal
         self.output_caltables = output_caltables
         self.previous_selfcal = previous_selfcal
+        self.input_caltable = input_caltable
         self.minsnr = minsnr
         self.applymode = applymode
         self.flag_mode = flag_mode
