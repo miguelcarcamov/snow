@@ -165,7 +165,7 @@ class Selfcal(metaclass=ABCMeta):
             if self.previous_selfcal is not None and iter == 0:
                 if self._psnr_history[-1] <= self.previous_selfcal._psnr_history[-1]:
                     print(
-                        "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
+                        "Old PSNR {0:0.3f} vs last PSNR {1:0.3f}".format(
                             self._previous_selfcal._psnr_history[-1], self._psnr_history[-1]
                         )
                     )
@@ -195,7 +195,7 @@ class Selfcal(metaclass=ABCMeta):
                     return False
             elif self.previous_selfcal is None and len(self._psnr_history) > 1:
                 print(
-                    "Old PSNR {0:0.3f} vs last PSNR {0:0.3f}".format(
+                    "Old PSNR {0:0.3f} vs last PSNR {1:0.3f}".format(
                         self._psnr_history[-2], self._psnr_history[-1]
                     )
                 )
