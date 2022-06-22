@@ -12,7 +12,7 @@ class AmpPhasecal(Selfcal):
     def __init__(
         self, selfcal_object=None, input_caltable="", incremental=False, solnorm=True, **kwargs
     ):
-        super(AmpPhasecal, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():

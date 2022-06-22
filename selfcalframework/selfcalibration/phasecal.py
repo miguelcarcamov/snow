@@ -10,7 +10,7 @@ from .selfcal import Selfcal
 class Phasecal(Selfcal):
 
     def __init__(self, input_caltable="", **kwargs):
-        super(Phasecal, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():

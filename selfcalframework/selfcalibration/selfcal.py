@@ -74,30 +74,6 @@ class Selfcal(metaclass=ABCMeta):
                     "Error, phase center needs to be set if a source is going to be subtracted"
                 )
 
-    def getVisfile(self):
-        return self.getvisfile
-
-    def getImager(self):
-        return self.Imager
-
-    def getRefant(self):
-        return self.refant
-
-    def getSpwmap(self):
-        return self.spwmap
-
-    def getCaltables(self):
-        return self.caltables
-
-    def getCaltablesVersions(self):
-        return self.caltables_versions
-
-    def getPSNRHistory(self):
-        return self.psnr_history
-
-    def getSubtractSource(self):
-        return self.subtract_source
-
     @staticmethod
     def read_last_line_file_backup(file_name: str = ""):
         first_line = ""

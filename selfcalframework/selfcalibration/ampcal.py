@@ -10,7 +10,7 @@ from .selfcal import Selfcal
 class Ampcal(Selfcal):
 
     def __init__(self, selfcal_object=None, input_caltable="", **kwargs):
-        super(Ampcal, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         initlocals = locals()
         initlocals.pop('self')
         for a_attribute in initlocals.keys():
