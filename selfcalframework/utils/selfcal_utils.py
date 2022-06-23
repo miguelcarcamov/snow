@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from casatools import table
 
