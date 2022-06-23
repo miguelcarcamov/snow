@@ -86,7 +86,12 @@ class GPUvmem(Imager):
                     (header_mask['CDELT2'] - header_model['CDELT2']) / header_model['CDELT2']
                 ) < 1E-3 or header_mask['NAXIS1'] != header_model['NAXIS1']:
                     print("The mask header is not the same as the model image, resampling...")
-                    array, footprint = reproject_interp(self.user_mask, model_WCS, order=order)
+                    array, footprint = reproject_interp(
+                        self.user_mask,
+                        model_WCS,
+                        order=order,
+                        shape_out=(header_model['NAXIS1'], header_model['NAXIS2'])
+                    )
                     path_object = Path(self.user_mask)
                     resampled_mask_name = "{0}_{2}{1}".format(
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
