@@ -27,7 +27,7 @@ class AmpPhasecal(Selfcal):
             self._caltables.append(caltable)
             rmtables(caltable)
 
-            self.set_attributes_from_dicts(i)
+            self._set_attributes_from_dicts(i)
 
             if self.__incremental:
                 gaincal(
