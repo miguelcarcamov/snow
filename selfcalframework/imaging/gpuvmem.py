@@ -67,7 +67,10 @@ class GPUvmem(Imager):
     @user_mask.setter
     def user_mask(self, user_mask):
         self.__user_mask = user_mask
-        self.__check_mask()
+        if self.__user_mask == "":
+            pass
+        else:
+            self.__check_mask()
 
     def __check_mask(self):
 
