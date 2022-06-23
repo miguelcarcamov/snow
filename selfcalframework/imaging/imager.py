@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from ..utils.image_utils import calculate_psnr_fits, calculate_psnr_ms
-from ..utils.selfcal_utils import calculate_number_antennas
+from ..utils import (calculate_number_antennas, calculate_psnr_fits, calculate_psnr_ms)
 
 
 class Imager(metaclass=ABCMeta):
