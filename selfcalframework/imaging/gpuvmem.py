@@ -77,11 +77,12 @@ class GPUvmem(Imager):
         if self.user_mask is not None and self.model_input is not None:
             if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
                 hdul_mask = get_hdul(self.user_mask)
+                hdu_mask = hdul_mask[0]
                 header_model = get_header(self.model_input)
 
                 if hdu_mask.header != header_model:
                     print("The mask WCS is not the same as the model image, resampling...")
-                    array, footprint = reproject_interp(hdul_mask[0], header_model)
+                    array, footprint = reproject_interp(hdu_mask, header_model)
                     hdul_mask.close()
                     path_object = Path(self.user_mask)
                     resampled_mask_name = "{0}_{2}{1}".format(
