@@ -7,7 +7,7 @@ from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
 from reproject import reproject_interp
 
-from ..utils.image_utils import get_hdu, get_header
+from ..utils.image_utils import get_hdul, get_header
 from .imager import Imager
 
 
