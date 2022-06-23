@@ -1,11 +1,11 @@
 import os
+from pathlib import Path
 
 import numpy as np
 from astropy.io import fits
+from astropy.wcs import WCS
 from casatasks import exportfits
-from casatools import table
-
-tb = table()
+from reproject import reproject_interp
 
 
 def get_header(fits_name: str = ""):
@@ -60,15 +60,36 @@ def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixe
     return psnr, peak, stdv
 
 
-def calculate_number_antennas(ms_name: str = ""):
-    if ms_name != "":
-        if os.path.exists(ms_name):
-            tb.open(tablename=ms_name + "/ANTENNA")
-            query_table = tb.taql("select NAME from " + ms_name + "/ANTENNA" + " where !FLAG_ROW")
-            nrows = len(query_table.getcol("NAME"))
-            tb.close()
-            return nrows
-        else:
-            raise FileNotFoundError("The Measurement Set File does not exist")
+def reproject(fits_file_to_resamp, fits_file_model):
+    if os.path.exists(fits_file_to_resamp, ) and os.path.exists(fits_file_model):
+        header_mask = get_header(fits_file_to_resamp)
+        data_mask = get_data(fits_file_to_resamp)
+        header_model = get_header(fits_file_model)
+        model_WCS = WCS(header=header_model, naxis=2)
+        mask_WCS = WCS(header=header_mask, naxis=2)
+
+        model_M = header_model['NAXIS1']
+        model_N = header_model['NAXIS2']
+        model_dy = header_model['CDELT2']
+
+        mask_M = header_mask['NAXIS1']
+        mask_N = header_mask['NAXIS2']
+        mask_dy = header_mask['CDELT2']
+
+        if np.fabs(
+            (model_dy - mask_dy) / model_dy
+        ) < 1E-3 or mask_M != model_M or mask_N != model_N:
+            print("The mask header is not the same as the model image, resampling...")
+            reprojected_array, footprint = reproject_interp(
+                (data_mask, mask_WCS), model_WCS, order=order, shape_out=(model_M, model_N)
+            )
+            path_object = Path(fits_file_to_resamp)
+            resampled_mask_name = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "resampled"
+            )
+            fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
+            return resampled_mask_name
     else:
-        raise ValueError("Measurement Set File cannot be empty")
+        print("Fits file to reproject: {0}".format(fits_file_to_resamp))
+        print("Fits file model: {0}".format(fits_file_model))
+        raise FileNotFoundError("Either user mask of model input does not exist")
