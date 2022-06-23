@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 import numpy as np
+from astropy.io import fits
 from astropy.wcs import WCS
 from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
@@ -96,7 +97,7 @@ class GPUvmem(Imager):
                     (model_dy - mask_dy) / model_dy
                 ) < 1E-3 or mask_M != model_M or mask_N != model_N:
                     print("The mask header is not the same as the model image, resampling...")
-                    array, footprint = reproject_interp(
+                    reprojected_array, footprint = reproject_interp(
                         (data_mask, mask_WCS), model_WCS, order=order, shape_out=(model_M, model_N)
                     )
                     path_object = Path(self.user_mask)
@@ -104,7 +105,9 @@ class GPUvmem(Imager):
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
                         "resampled"
                     )
-                    fits.writeto(resampled_mask_name, array, header_model, overwrite=True)
+                    fits.writeto(
+                        resampled_mask_name, reprojected_array, header_model, overwrite=True
+                    )
                     self.user_mask = resampled_mask_name
             else:
                 print("User mask: {0}".format(self.user_mask))
