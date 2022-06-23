@@ -72,7 +72,7 @@ class GPUvmem(Imager):
         else:
             self.__check_mask()
 
-    def __check_mask(self):
+    def __check_mask(self, order="bilinear"):
 
         if self.user_mask is not None and self.model_input is not None:
             if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
@@ -80,7 +80,7 @@ class GPUvmem(Imager):
 
                 if hdu_mask.header != header_model:
                     print("The mask WCS is not the same as the model image, resampling...")
-                    array, footprint = reproject_interp(self.user_mask, header_model)
+                    array, footprint = reproject_interp(self.user_mask, header_model, order=order)
                     path_object = Path(self.user_mask)
                     resampled_mask_name = "{0}_{2}{1}".format(
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
