@@ -9,6 +9,7 @@ from .selfcal import Selfcal
 class AmpPhasecal(Selfcal):
 
     def __init__(self, incremental=False, solnorm=True, **kwargs):
+        super().__init__(**kwargs)
 
         self._calmode = 'ap'
         self._loops = len(self.solint)
