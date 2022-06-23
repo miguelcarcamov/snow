@@ -60,7 +60,7 @@ class Tclean(Imager):
             self.clean_savemodel = "modelcolumn"
 
     def run(self, imagename=""):
-        imsize = [self.M, self.N]
+        __imsize = [self.M, self.N]
         tclean(
             vis=self.inputvis,
             imagename=imagename,
@@ -73,7 +73,7 @@ class Tclean(Imager):
             deconvolver=self.deconvolver,
             scales=self.scales,
             nterms=self.nterms,
-            imsize=imsize,
+            imsize=__imsize,
             cell=self.cell,
             weighting=self.weighting,
             robust=self.robust,
