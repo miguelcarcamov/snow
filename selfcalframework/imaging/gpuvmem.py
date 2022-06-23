@@ -70,20 +70,26 @@ class GPUvmem(Imager):
         self.__check_mask()
 
     def __check_mask(self):
-        if self.user_mask is not None and self.model_input is not None:
-            hdu_mask = get_hdu(self.user_mask)
-            header_model = get_header(self.model_input)
 
-            if hdu_mask.header != header_model:
-                print("The mask WCS is not the same as the model image, resampling...")
-                array, footprint = reproject_interp(hdu_mask, header_model)
-                path_object = Path(self.user_mask)
-                resampled_mask_name = "{0}_{2}{1}".format(
-                    Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                    "resampled"
-                )
-                fits.writeto(resampled_mask_name, array, header_model, overwrite=True)
-                self.user_mask = resampled_mask_name
+        if self.user_mask is not None and self.model_input is not None:
+            if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
+                hdu_mask = get_hdu(self.user_mask)
+                header_model = get_header(self.model_input)
+
+                if hdu_mask.header != header_model:
+                    print("The mask WCS is not the same as the model image, resampling...")
+                    array, footprint = reproject_interp(hdu_mask, header_model)
+                    path_object = Path(self.user_mask)
+                    resampled_mask_name = "{0}_{2}{1}".format(
+                        Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                        "resampled"
+                    )
+                    fits.writeto(resampled_mask_name, array, header_model, overwrite=True)
+                    self.user_mask = resampled_mask_name
+            else:
+                print("User mask: {0}".format(self.user_mask))
+                print("Model input: {0}".format(self.model_input))
+                raise FileNotFoundError("Either user mask of model input does not exist")
 
     def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()
