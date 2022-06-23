@@ -76,6 +76,7 @@ class GPUvmem(Imager):
 
         if self.user_mask is not None and self.model_input is not None:
             if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
+                header_mask = get_header(self.user_mask)
                 header_model = get_header(self.model_input)
 
                 if hdu_mask.header != header_model:
