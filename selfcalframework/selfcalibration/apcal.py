@@ -92,6 +92,7 @@ class AmpPhasecal(Selfcal):
                     interp=self.interp,
                     applymode=self.applymode
                 )
+                self.input_caltable = caltable
             else:
                 applycal(
                     vis=self.visfile,
@@ -105,7 +106,6 @@ class AmpPhasecal(Selfcal):
                     interp=self.interp,
                     applymode=self.applymode
                 )
-
             if self.flag_dataset_bool:
                 self._flag_dataset(mode=self.flag_mode)
 

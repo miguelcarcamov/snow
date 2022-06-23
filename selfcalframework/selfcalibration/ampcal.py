@@ -59,6 +59,7 @@ class Ampcal(Selfcal):
             versionname = 'before_ampcal_' + str(i)
             self._save_selfcal(caltable_version=versionname, overwrite=True)
             self._caltables_versions.append(versionname)
+
             applycal(
                 vis=self.visfile,
                 spw=self.imager.spw,
@@ -71,6 +72,7 @@ class Ampcal(Selfcal):
                 interp=self.interp,
                 applymode=self.applymode
             )
+            self.input_caltable = caltable
 
             if self.flag_dataset_bool:
                 self._flag_dataset(mode=self.flag_mode)
