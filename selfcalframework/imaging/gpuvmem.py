@@ -75,7 +75,7 @@ class GPUvmem(Imager):
     def __check_mask(self, order="bilinear"):
 
         if self.__user_mask is not None and self.model_input is not None:
-            reproject(self.__user_mask, self.model_input)
+            reproject(self.__user_mask, self.model_input, order=order)
 
     def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
         qa = quanta()

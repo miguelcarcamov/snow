@@ -60,8 +60,8 @@ def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixe
     return psnr, peak, stdv
 
 
-def reproject(fits_file_to_resamp, fits_file_model):
-    if os.path.exists(fits_file_to_resamp, ) and os.path.exists(fits_file_model):
+def reproject(fits_file_to_resamp="", fits_file_model="", order="bilinear"):
+    if os.path.exists(fits_file_to_resamp) and os.path.exists(fits_file_model):
         header_mask = get_header(fits_file_to_resamp)
         data_mask = get_data(fits_file_to_resamp)
         header_model = get_header(fits_file_model)
