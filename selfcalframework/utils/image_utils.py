@@ -19,6 +19,11 @@ def get_hdu(fits_name: str = ""):
     return hdu
 
 
+def get_hdul(fits_name: str = ""):
+    hdul = fits.open(fits_name)
+    return hdul
+
+
 def get_data(fits_name: str = ""):
     image_data = fits.getdata(fits_name)
     image_data = np.nan_to_num(image_data)
