@@ -9,7 +9,7 @@ from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
 from reproject import reproject_interp
 
-from ..utils.image_utils import get_hdul, get_header
+from ..utils.image_utils import get_data, get_header
 from .imager import Imager
 
 
@@ -79,18 +79,25 @@ class GPUvmem(Imager):
         if self.user_mask is not None and self.model_input is not None:
             if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
                 header_mask = get_header(self.user_mask)
+                data_mask = get_data(self.user_mask)
                 header_model = get_header(self.model_input)
                 model_WCS = WCS(header=header_model, naxis=2)
+                mask_WCS = WCS(header=header_mask, naxis=2)
+
+                model_M = header_model['NAXIS1']
+                model_N = header_model['NAXIS2']
+                model_dy = header_model['CDELT2']
+
+                mask_M = header_mask['NAXIS1']
+                mask_N = header_mask['NAXIS2']
+                mask_dy = header_mask['CDELT2']
 
                 if np.fabs(
-                    (header_mask['CDELT2'] - header_model['CDELT2']) / header_model['CDELT2']
-                ) < 1E-3 or header_mask['NAXIS1'] != header_model['NAXIS1']:
+                    (model_dy - mask_dy) / model_dy
+                ) < 1E-3 or mask_M != model_M or mask_N != model_N:
                     print("The mask header is not the same as the model image, resampling...")
                     array, footprint = reproject_interp(
-                        self.user_mask,
-                        model_WCS,
-                        order=order,
-                        shape_out=(header_model['NAXIS1'], header_model['NAXIS2'])
+                        (data_mask, mask_WCS), model_WCS, order=order, shape_out=(model_M, model_N)
                     )
                     path_object = Path(self.user_mask)
                     resampled_mask_name = "{0}_{2}{1}".format(
