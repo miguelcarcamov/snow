@@ -3,6 +3,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
+import numpy as np
 from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
 from reproject import reproject_interp
