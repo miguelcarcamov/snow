@@ -36,7 +36,7 @@ class Selfcal(metaclass=ABCMeta):
         varchange_selfcal: dict = None,
         output_caltables: str = None,
         previous_selfcal: Selfcal = None,
-        input_caltable: str = "",
+        input_caltable: str = None,
         minsnr: float = 3.0,
         applymode: str = "calflag",
         flag_mode: str = "rflag",
@@ -108,6 +108,22 @@ class Selfcal(metaclass=ABCMeta):
                     "Error, phase center needs to be set if a source is going to be subtracted"
                 )
 
+    @property
+    def input_caltable(self):
+        return self.__input_caltable
+
+    @input_caltable.setter
+    def input_caltable(self, caltable):
+        if caltable is not None:
+            if not os.path.exists(caltable):
+                raise FileNotFoundError(
+                    "The caltable " + self.input_caltable + " needs to be created"
+                )
+            else:
+                self.__input_caltable = caltable
+        else:
+            self.__input_caltable = ""
+
     def _save_selfcal(self, caltable_version="", overwrite=True):
         if overwrite:
             flagmanager(vis=self.visfile, mode='delete', versionname=caltable_version)
@@ -127,14 +143,8 @@ class Selfcal(metaclass=ABCMeta):
             self.input_caltable = self.previous_selfcal._caltables[-1]
             self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
 
-        if self.input_caltable != "":
-            if not os.path.exists(self.input_caltable):
-                raise FileNotFoundError(
-                    "The caltable " + self.input_caltable + " needs to be created"
-                )
-
     def _init_run(self, image_name_string: str = ""):
-        if not self._ismodel_in_dataset() and self.previous_selfcal is None:
+        if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
             print("Original: - PSNR: " + str(self.imager.psnr))
