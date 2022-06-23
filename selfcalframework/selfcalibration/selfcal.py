@@ -161,7 +161,7 @@ class Selfcal(metaclass=ABCMeta):
         print("Solint: " + str(self.solint[iter]) + " - PSNR: " + str(self._psnr_history[-1]))
         print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
 
-    def _finish_selfcal_loop(self, iter: int = 0):
+    def _finish_selfcal_iteration(self, iter: int = 0):
 
         if self.restore_psnr:
             if len(self._psnr_history) > 1:

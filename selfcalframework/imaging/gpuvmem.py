@@ -54,8 +54,8 @@ class GPUvmem(Imager):
 
         if self.phase_center != "":
             fixvis(
-                vis=self.visfile,
-                outputvis=self.visfile,
+                vis=self.inputvis,
+                outputvis=self.inputvis,
                 field=self.field,
                 phasecenter=self.phase_center
             )

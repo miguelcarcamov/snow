@@ -111,4 +111,4 @@ class AmpPhasecal(Selfcal):
 
             self._run_imager(i)
 
-            if self._finish_selfcal_loop(i): break
+            if self._finish_selfcal_iteration(i): break
