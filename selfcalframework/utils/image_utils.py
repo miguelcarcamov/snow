@@ -89,6 +89,8 @@ def reproject(fits_file_to_resamp="", fits_file_model="", order="bilinear"):
             )
             fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
             return resampled_mask_name
+        else:
+            return None
     else:
         print("Fits file to reproject: {0}".format(fits_file_to_resamp))
         print("Fits file model: {0}".format(fits_file_model))

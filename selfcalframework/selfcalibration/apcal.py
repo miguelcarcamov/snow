@@ -45,7 +45,7 @@ class AmpPhasecal(Selfcal):
                     minblperant=self.minblperant,
                     gaintable=self.input_caltable,
                     spwmap=self.spwmap,
-                    solnorm=self.solnorm
+                    solnorm=self.__solnorm
                 )
             else:
                 gaincal(
@@ -62,7 +62,7 @@ class AmpPhasecal(Selfcal):
                     minsnr=self.minsnr,
                     minblperant=self.minblperant,
                     spwmap=self.spwmap,
-                    solnorm=self.solnorm
+                    solnorm=self.__solnorm
                 )
 
             self.plot_selfcal(
