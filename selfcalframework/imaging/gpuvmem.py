@@ -77,10 +77,10 @@ class GPUvmem(Imager):
 
     def __check_mask(self, order="bilinear"):
 
-        if self.user_mask is not None and self.model_input is not None:
-            if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
-                header_mask = get_header(self.user_mask)
-                data_mask = get_data(self.user_mask)
+        if self.__user_mask is not None and self.model_input is not None:
+            if os.path.exists(self.__user_mask) and os.path.exists(self.model_input):
+                header_mask = get_header(self.__user_mask)
+                data_mask = get_data(self.__user_mask)
                 header_model = get_header(self.model_input)
                 model_WCS = WCS(header=header_model, naxis=2)
                 mask_WCS = WCS(header=header_mask, naxis=2)
@@ -100,7 +100,7 @@ class GPUvmem(Imager):
                     reprojected_array, footprint = reproject_interp(
                         (data_mask, mask_WCS), model_WCS, order=order, shape_out=(model_M, model_N)
                     )
-                    path_object = Path(self.user_mask)
+                    path_object = Path(self.__user_mask)
                     resampled_mask_name = "{0}_{2}{1}".format(
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
                         "resampled"
@@ -108,9 +108,9 @@ class GPUvmem(Imager):
                     fits.writeto(
                         resampled_mask_name, reprojected_array, header_model, overwrite=True
                     )
-                    self.user_mask = resampled_mask_name
+                    self.__user_mask = resampled_mask_name
             else:
-                print("User mask: {0}".format(self.user_mask))
+                print("User mask: {0}".format(self.__user_mask))
                 print("Model input: {0}".format(self.model_input))
                 raise FileNotFoundError("Either user mask of model input does not exist")
 
