@@ -162,14 +162,6 @@ class Selfcal(metaclass=ABCMeta):
         print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
 
     def _finish_selfcal_loop(self, iter: int = 0):
-        path_object = Path(self.visfile)
-        current_visfile = "{0}_{2}{1}".format(
-            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-            self._calmode + str(iter)
-        )
-        if os.path.exists(current_visfile):
-            shutil.rmtree(current_visfile)
-        shutil.copytree(self.visfile, current_visfile)
 
         if self.restore_psnr:
             if len(self._psnr_history) > 1:
@@ -194,9 +186,18 @@ class Selfcal(metaclass=ABCMeta):
                         "PSNR improved on iteration {0} - Copying measurement set files...".
                         format(iter)
                     )
+
+                    path_object = Path(self.visfile)
+
+                    current_visfile = "{0}_{2}{1}".format(
+                        Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                        self._calmode + str(iter)
+                    )
+                    # Copying dataset and overwriting if it has already been created
                     if os.path.exists(current_visfile):
                         shutil.rmtree(current_visfile)
                     shutil.copytree(self.visfile, current_visfile)
+                    # Changing visfile attribute to new current_visfile for selfcal and imager
                     self.visfile = current_visfile
                     self.imager.inputvis = current_visfile
                     return False

@@ -106,7 +106,7 @@ class AmpPhasecal(Selfcal):
                     interp=self.interp,
                     applymode=self.applymode
                 )
-            if self.flag_dataset_bool:
+            if self.flag_dataset:
                 self._flag_dataset(mode=self.flag_mode)
 
             self._run_imager(i)
