@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 import numpy as np
+from astropy.wcs import WCS
 from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
 from casatools import image, quanta
 from reproject import reproject_interp
@@ -79,12 +80,13 @@ class GPUvmem(Imager):
             if os.path.exists(self.user_mask) and os.path.exists(self.model_input):
                 header_mask = get_header(self.user_mask)
                 header_model = get_header(self.model_input)
+                model_WCS = WCS(header=header_model, naxis=2)
 
                 if np.fabs(
                     (header_mask['CDELT2'] - header_model['CDELT2']) / header_model['CDELT2']
                 ) < 1E-3 or header_mask['NAXIS1'] != header_model['NAXIS1']:
                     print("The mask header is not the same as the model image, resampling...")
-                    array, footprint = reproject_interp(self.user_mask, header_model, order=order)
+                    array, footprint = reproject_interp(self.user_mask, model_WCS, order=order)
                     path_object = Path(self.user_mask)
                     resampled_mask_name = "{0}_{2}{1}".format(
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
