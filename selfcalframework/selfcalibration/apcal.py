@@ -65,7 +65,7 @@ class AmpPhasecal(Selfcal):
                     solnorm=self.__solnorm
                 )
 
-            self.plot_selfcal(
+            self._plot_selfcal(
                 caltable,
                 xaxis="time",
                 yaxis="amp",

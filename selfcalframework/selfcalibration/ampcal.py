@@ -9,11 +9,12 @@ from .selfcal import Selfcal
 
 class Ampcal(Selfcal):
 
-    def __init__(self, **kwargs):
+    def __init__(self, solnorm=True, **kwargs):
         super().__init__(**kwargs)
 
         self._calmode = 'a'
         self._loops = len(self.solint)
+        self.__solnorm = solnorm
 
         self._init_selfcal()
 
@@ -43,10 +44,10 @@ class Ampcal(Selfcal):
                 minblperant=self.minblperant,
                 gaintable=self.input_caltable,
                 spwmap=self.spwmap,
-                solnorm=True
+                solnorm=self.__solnorm
             )
 
-            self.plot_selfcal(
+            self._plot_selfcal(
                 caltable,
                 xaxis="time",
                 yaxis="amp",
