@@ -1,0 +1,8 @@
+FROM ghcr.io/miguelcarcamov/selfcalframework:base
+
+RUN python3 --version
+RUN pip3 --version
+RUN echo "Installing Selfcal-framework"
+RUN pip3 install git+https://github.com/miguelcarcamov/selfcalframework.git
+RUN echo "Hello from Selfcal-framework production image"
+LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/selfcalframework"
