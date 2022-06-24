@@ -1,7 +1,9 @@
 FROM ubuntu:20.04
-
 RUN apt-get update -y && \
-    apt-get install -y build-essential && \
+  DEBIAN_FRONTEND=noninteractive && \
+  apt-get install -y tzdata
+
+RUN apt-get install -y build-essential && \
     apt-get install -y zlib1g-dev libncurses5-dev && \
     apt-get install -y libgdbm-dev libnss3-dev libssl-dev  && \
     apt-get install -y libreadline-dev libffi-dev wget && \
@@ -15,6 +17,7 @@ RUN apt-get update -y && \
     apt-get install -y liblapacke-dev && \
     apt-get install -y git && \
     apt-get install -y libopenmpi-dev && \
+    apt-get install -y libcr-dev mpich2 mpich2-doc && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN python3 --version
