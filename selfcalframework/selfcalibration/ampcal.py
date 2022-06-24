@@ -9,7 +9,7 @@ from .selfcal import Selfcal
 
 class Ampcal(Selfcal):
 
-    def __init__(self, solnorm=True, **kwargs):
+    def __init__(self, solnorm: bool = True, **kwargs):
         super().__init__(**kwargs)
 
         self._calmode = 'a'
