@@ -44,17 +44,10 @@ jobs:
         python3 -m pip install --upgrade pip wheel setuptools setuptools-scm
         python3 -m pip install virtualenv
         python3 -m pip install build
-    - name: Create virtual environment
-      run: |
-        virtualenv --system-site-packages venv
-        . venv/bin/activate
-        export PIP_IGNORE_INSTALLED=0
-        python -m pip install --upgrade pip setuptools setuptools-scm wheel
-        pip install build
     - name: Build package
-      run: python -m build
+      run: python3 -m build
     - name: Build bdist package
-      run: python setup.py bdist_wheel
+      run: python3 setup.py bdist_wheel
     - name: Install selfcalframework
       run: pip install dist/*.tar.gz
     - name: Upload artifacts
