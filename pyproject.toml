@@ -21,7 +21,7 @@ classifiers = [
 dynamic = ["version", "dependencies"]
 
 [project.urls]
-Source = "https://github.com/miguelcarcamov/objectoriented_selfcal"
+Source = "https://github.com/miguelcarcamov/selfcalframework"
 
 [tool.setuptools.packages.find]
 where = ["src"]
