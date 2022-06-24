@@ -16,5 +16,5 @@ RUN python3 --version
 RUN pip3 --version
 RUN python3 -m pip install --upgrade pip
 RUN pip3
-RUN echo "Hello from Selfcal-framework base image"
-LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/csromer"
+RUN echo "Hello from selfcalframework base image"
+LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/selfcalframework"
