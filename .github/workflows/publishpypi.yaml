@@ -40,7 +40,7 @@ jobs:
     - name: Create virtual environment
       run: |
         virtualenv --system-site-packages venv
-        source venv/bin/activate
+        . venv/bin/activate
         export PIP_IGNORE_INSTALLED=0
         python -m pip install --upgrade pip setuptools setuptools-scm wheel
         pip install build
