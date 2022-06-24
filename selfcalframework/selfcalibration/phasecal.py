@@ -55,9 +55,9 @@ class Phasecal(Selfcal):
                 want_plot=self.want_plot
             )
 
-            versionname = 'before_phasecal_' + str(i)
-            self._save_selfcal(caltable_version=versionname, overwrite=True)
-            self._caltables_versions.append(versionname)
+            version_name = 'before_phasecal_' + str(i)
+            self._save_selfcal(caltable_version=version_name, overwrite=True)
+            self._caltables_versions.append(version_name)
 
             applycal(
                 vis=self.visfile,

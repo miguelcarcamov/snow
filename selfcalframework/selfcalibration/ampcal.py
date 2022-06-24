@@ -19,7 +19,6 @@ class Ampcal(Selfcal):
         self._init_selfcal()
 
     def run(self):
-        caltable = ""
         self._init_run("before_ampcal")
 
         for i in range(0, self._loops):
@@ -57,9 +56,9 @@ class Ampcal(Selfcal):
                 want_plot=self.want_plot
             )
 
-            versionname = 'before_ampcal_' + str(i)
-            self._save_selfcal(caltable_version=versionname, overwrite=True)
-            self._caltables_versions.append(versionname)
+            version_name = 'before_ampcal_' + str(i)
+            self._save_selfcal(caltable_version=version_name, overwrite=True)
+            self._caltables_versions.append(version_name)
 
             applycal(
                 vis=self.visfile,

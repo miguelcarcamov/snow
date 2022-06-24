@@ -19,7 +19,6 @@ class AmpPhasecal(Selfcal):
         self._init_selfcal()
 
     def run(self):
-        caltable = ""
         self._init_run("before_apcal")
 
         for i in range(0, self._loops):
@@ -75,9 +74,9 @@ class AmpPhasecal(Selfcal):
                 want_plot=self.want_plot
             )
 
-            versionname = 'before_apcal_' + str(i)
-            self._save_selfcal(caltable_version=versionname, overwrite=True)
-            self._caltables_versions.append(versionname)
+            version_name = 'before_apcal_' + str(i)
+            self._save_selfcal(caltable_version=version_name, overwrite=True)
+            self._caltables_versions.append(version_name)
 
             if self.__incremental:
                 applycal(

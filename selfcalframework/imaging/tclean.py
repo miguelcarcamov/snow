@@ -1,6 +1,4 @@
-from casatasks import tclean as tclean
-
-from selfcalframework.utils.image_utils import *
+from casatasks import tclean
 
 from .imager import Imager
 
