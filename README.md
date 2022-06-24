@@ -1,6 +1,12 @@
 # Object Oriented Framework for Self-calibration of radio-interferometric datasets
 
-Many radioastronomers repeat the process of writing different scripts for self-calibration depending on their datasets. This repository holds an object oriented Framework for self-calibration of radio-interferometric datasets that will help radioastronomers to minimize the tedious work of writing self-calibration scripts once again. The idea is to call just one main Python script that will run an imager (tclean, wsclean, gpuvmem, rascil, etc.) and one or multuple self-calibration objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset as a result. **It is important to recall that this repository is heavily under development!**
+Many radioastronomers repeat the process of writing different scripts for self-calibration 
+depending on their datasets. This repository holds an object-oriented Framework for self-calibration
+of radio-interferometric datasets that will help radio astronomers to minimize the tedious work of 
+writing self-calibration scripts once again. The idea is to call just one main Python script that
+will run an imager (tclean, wsclean, gpuvmem, rascil, etc.) and one or multiple self-calibration 
+objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset as a result. 
+**It is important to recall that this repository is heavily under development!**
 
 ## Requirements
 
