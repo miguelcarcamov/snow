@@ -110,7 +110,7 @@ class Selfcal(metaclass=ABCMeta):
             else:
                 self.__imager = input_imager
                 self.__imager.inputvis = self.visfile
-                self._image_name = self.__imager.outputs
+                self._image_name = self.__imager.output
         else:
             self.__imager = None
 
