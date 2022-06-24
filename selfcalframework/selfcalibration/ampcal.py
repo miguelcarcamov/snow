@@ -1,7 +1,3 @@
-import os
-import shutil
-from pathlib import Path
-
 from casatasks import applycal, gaincal, rmtables
 
 from .selfcal import Selfcal

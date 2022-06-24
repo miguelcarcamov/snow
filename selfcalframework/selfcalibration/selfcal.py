@@ -3,14 +3,10 @@ from __future__ import annotations
 import copy
 import os
 import shutil
-import sys
 from abc import ABCMeta, abstractmethod
-from datetime import datetime
 from pathlib import Path
 
-from casatasks import (
-    applycal, clearcal, delmod, flagdata, flagmanager, gaincal, rmtables, split, statwt, uvsub
-)
+from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, uvsub)
 from casatools import table
 
 from ..imaging.imager import Imager

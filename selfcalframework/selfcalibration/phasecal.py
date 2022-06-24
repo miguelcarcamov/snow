@@ -1,6 +1,3 @@
-import os
-import shutil
-
 from casatasks import applycal, gaincal, rmtables
 
 from .selfcal import Selfcal
