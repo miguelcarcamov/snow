@@ -14,6 +14,8 @@ RUN apt-get update -y && \
     apt-get install -y liblapack-dev && \
     apt-get install -y liblapacke-dev && \
     apt-get install -y git && \
+    apt-get install -y libopenmpi-dev && \
+    apt-get install -y libcr-dev mpich2 mpich2-doc && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN python3 --version
