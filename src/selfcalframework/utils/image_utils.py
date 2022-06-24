@@ -54,9 +54,9 @@ def calculate_psnr_fits(
 
 
 def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixels: int = 100):
-    fits_signal = exportMStoFITS(msname=signal_ms_name)
-    fits_residual = exportMStoFITS(msname=residual_ms_name)
-    psnr, peak, stdv = calculatePSNR_FITS(fits_signal, fits_residual, pixels)
+    fits_signal = export_ms_to_fits(msname=signal_ms_name)
+    fits_residual = export_ms_to_fits(msname=residual_ms_name)
+    psnr, peak, stdv = calculate_psnr_fits(fits_signal, fits_residual, pixels)
     return psnr, peak, stdv
 
 
