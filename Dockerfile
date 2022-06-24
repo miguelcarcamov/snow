@@ -1,6 +1,10 @@
 FROM ubuntu:20.04
-RUN apt-get update -y && \
-  DEBIAN_FRONTEND=noninteractive && \
+RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt bionic main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb mirror://mirrors.ubuntu.com/mirrors.txt bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb mirror://mirrors.ubuntu.com/mirrors.txt bionic-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    apt-get update -y
+
+RUN DEBIAN_FRONTEND=noninteractive && \
   apt-get install -y tzdata && \
   apt-get install -y keyboard-configuration
 
