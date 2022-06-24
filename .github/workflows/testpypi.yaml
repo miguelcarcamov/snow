@@ -34,10 +34,15 @@ jobs:
         python3 -m pip install --upgrade pip wheel setuptools setuptools-scm
         python3 -m pip install virtualenv
         python3 -m pip install build
+        virtualenv --system-site-packages venv
+        source venv/bin/activate
+        export PIP_IGNORE_INSTALLED=0
+        python -m pip install --upgrade pip setuptools setuptools-scm wheel
+        pip install build
     - name: Build package
-      run: python3 -m build
+      run: python -m build
     - name: Build bdist package
-      run: python3 setup.py bdist_wheel
+      run: python setup.py bdist_wheel
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@master
       with:
