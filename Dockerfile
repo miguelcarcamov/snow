@@ -18,7 +18,7 @@ RUN apt-get install -y build-essential && \
     apt-get install -y liblapacke-dev && \
     apt-get install -y git && \
     apt-get install -y ImageMagick* && \
-    apt-get install -y xorg-x11-server-Xvfb && \
+    apt-get install -y xorg && \
     apt-get install -y compat-libgfortran-48 && \
     apt-get install -y libnsl && \
     apt-get install -y openmpi-devel && \
