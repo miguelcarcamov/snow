@@ -6,7 +6,8 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted univ
 
 RUN DEBIAN_FRONTEND=noninteractive && \
   apt-get install -y tzdata && \
-  apt-get install -y keyboard-configuration
+  apt-get install -y keyboard-configuration && \
+  apt-get install -y software-properties-common
 
 RUN add-apt-repository main && \
   add-apt-repository universe && \
