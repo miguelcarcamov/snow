@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted universe multiverse" > /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal-security main restricted universe multiverse" >> /etc/apt/sources.list && \
-    apt-get update -Y
+    apt-get update -y
 
 RUN DEBIAN_FRONTEND=noninteractive && \
   apt-get install -y tzdata && \
