@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=62.3.2", "setuptools-scm", "wheel"]
+requires = ["setuptools>=62.6.0", "setuptools-scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -29,4 +29,4 @@ include = ["selfcalframework*"]
 namespaces = false
 
 [tool.setuptools_scm]
-write_to = "selfcalframework/_version.py"
+write_to = "src/selfcalframework/_version.py"
