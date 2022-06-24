@@ -75,10 +75,10 @@ jobs:
     - name: Force directory safe
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
-    - name: Install pytest and pycov
-      run: |
-        pip3 install pytest
-        pip3 install pytest-cov
+    #- name: Install pytest and pycov
+    #  run: |
+    #    pip3 install pytest
+    #    pip3 install pytest-cov
     - uses: actions/download-artifact@v3
       id: download
       with:
