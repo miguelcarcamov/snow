@@ -23,9 +23,10 @@ dynamic = ["version", "dependencies"]
 [project.urls]
 Source = "https://github.com/miguelcarcamov/objectoriented_selfcal"
 
-[tool.setuptools]
-packages = ["selfcalframework"]
-include-package-data = true
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["selfcalframework*"]
+namespaces = false
 
 [tool.setuptools_scm]
 write_to = "selfcalframework/_version.py"

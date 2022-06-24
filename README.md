@@ -1,11 +1,11 @@
 # Object Oriented Framework for Self-calibration of radio-interferometric datasets
 
-Many radioastronomers repeat the process of writing different scripts for self-calibration 
+Many radioastronomers repeat the process of writing different scripts for self-calibration
 depending on their datasets. This repository holds an object-oriented Framework for self-calibration
-of radio-interferometric datasets that will help radio astronomers to minimize the tedious work of 
+of radio-interferometric datasets that will help radio astronomers to minimize the tedious work of
 writing self-calibration scripts once again. The idea is to call just one main Python script that
-will run an imager (tclean, wsclean, gpuvmem, rascil, etc.) and one or multiple self-calibration 
-objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset as a result. 
+will run an imager (tclean, wsclean, gpuvmem, rascil, etc.) and one or multiple self-calibration
+objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset as a result.
 **It is important to recall that this repository is heavily under development!**
 
 ## Requirements
@@ -46,8 +46,8 @@ pip install e .
 # Import the modules that you want to use
 import sys
 import numpy as np
-from selfcalframework.selfcalibration import Phasecal, AmpPhasecal
-from selfcalframework.imaging import Tclean
+from src.selfcalframework.selfcalibration import Phasecal, AmpPhasecal
+from src.selfcalframework.imaging import Tclean
 
 if __name__ == '__main__':
  # This step is up to you, and option to capture your arguments from terminal is using sys.argv
@@ -60,18 +60,19 @@ if __name__ == '__main__':
  # In this case we will use automasking values for long baselines
  # Create different imagers with different thresholds (this is optional, you can create just one)
  clean_imager_phs = Tclean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, cell="0.005arcsec",
-                          stokes="I", datacolumn="corrected", robust=0.5,
-                          specmode="mfs", deconvolver="hogbom", gridder="standard",
-                          savemodel=True, usemask='auto-multithresh', threshold="0.1mJy", sidelobethreshold=3.0,
-                          noisethreshold=5.0,
-                          minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
+                           stokes="I", datacolumn="corrected", robust=0.5,
+                           specmode="mfs", deconvolver="hogbom", gridder="standard",
+                           savemodel=True, usemask='auto-multithresh', threshold="0.1mJy", sidelobethreshold=3.0,
+                           noisethreshold=5.0,
+                           minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
  clean_imager_ampphs = Tclean(inputvis=visfile, output=output, niter=100, M=1024, N=1024, cell="0.005arcsec",
-                             stokes="I", datacolumn="corrected", robust=0.5,
-                             specmode="mfs", deconvolver="hogbom", gridder="standard",
-                             savemodel=True, usemask='auto-multithresh', threshold="0.025mJy", sidelobethreshold=3.0,
-                             noisethreshold=5.0,
-                             minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
+                              stokes="I", datacolumn="corrected", robust=0.5,
+                              specmode="mfs", deconvolver="hogbom", gridder="standard",
+                              savemodel=True, usemask='auto-multithresh', threshold="0.025mJy",
+                              sidelobethreshold=3.0,
+                              noisethreshold=5.0,
+                              minbeamfrac=0.3, lownoisethreshold=1.5, negativethreshold=0.0, interactive=True)
 
  # This is a dictionary with shared variables between self-cal objects
  shared_vars_dict = {'visfile': visfile, 'minblperant': 6, 'refant': "DA51", 'spwmap': [

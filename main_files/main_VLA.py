@@ -1,5 +1,5 @@
-from selfcalframework.imaging import Clean
-from selfcalframework.selfcalibration import AmpPhasecal, Phasecal
+from src.selfcalframework.imaging import Clean
+from src.selfcalframework.selfcalibration import AmpPhasecal, Phasecal
 
 if __name__ == '__main__':
     visfile = sys.argv[3]
