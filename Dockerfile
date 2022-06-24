@@ -17,7 +17,7 @@ RUN apt-get install -y build-essential && \
     apt-get install -y liblapacke-dev && \
     apt-get install -y git && \
     apt-get install -y libopenmpi-dev && \
-    apt-get install -y libcr-dev mpich2 mpich2-doc && \
+    apt-get install -y libcr-dev mpich2 && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN python3 --version

@@ -76,13 +76,6 @@ class Selfcal(metaclass=ABCMeta):
         if output_caltables is None:
             self.output_caltables = self.imager.output
 
-        if self.imager is None:
-            print("Error, Imager Object is Nonetype")
-            raise ValueError("Error, self-calibration objects cannot run without an imager object")
-        else:
-            self.imager.inputvis = self.visfile
-            self._image_name = self.imager.output
-
         if self.varchange_imager is not None:
             list_of_values = [value for key, value in self.varchange_imager.items()]
             it = iter(list_of_values)
@@ -104,6 +97,22 @@ class Selfcal(metaclass=ABCMeta):
                 raise ValueError(
                     "Error, phase center needs to be set if a source is going to be subtracted"
                 )
+
+    @property
+    def imager(self):
+        return self.__imager
+
+    @imager.setter
+    def imager(self, input_imager):
+        if input_imager is not None:
+            if not isinstance(input_imager, Imager):
+                raise ValueError("The imager attribute must be an instance of Imager")
+            else:
+                self.__imager = input_imager
+                self.__imager.inputvis = self.visfile
+                self._image_name = self.__imager.outputs
+        else:
+            self.__imager = None
 
     @property
     def input_caltable(self):
