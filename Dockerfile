@@ -16,12 +16,17 @@ RUN apt-get install -y build-essential && \
     apt-get install -y liblapack-dev && \
     apt-get install -y liblapacke-dev && \
     apt-get install -y git && \
-    apt-get install -y libopenmpi-dev && \
-    apt-get install -y libcr-dev mpich2 && \
+    apt-get install -y ImageMagick* && \
+    apt-get install -y xorg-x11-server-Xvfb && \
+    apt-get install -y compat-libgfortran-48 && \
+    apt-get install -y libnsl && \
+    apt-get install -y openmpi-devel && \
+    apt-get install -y mpich-devel && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN python3 --version
 RUN pip3 --version
 RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install mpi4py --no-cache-dir
 RUN echo "Hello from selfcalframework base image"
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/selfcalframework"
