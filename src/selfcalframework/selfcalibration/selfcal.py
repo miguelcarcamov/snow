@@ -80,6 +80,7 @@ class Selfcal(metaclass=ABCMeta):
             print("Error, Imager Object is Nonetype")
             raise ValueError("Error, self-calibration objects cannot run without an imager object")
         else:
+            self.imager.inputvis = self.visfile
             self._image_name = self.imager.output
 
         if self.varchange_imager is not None:
