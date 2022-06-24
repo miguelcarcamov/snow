@@ -71,7 +71,9 @@ class Selfcal(metaclass=ABCMeta):
         self._psnr_file_backup = ""
         self._calmode = ""
         self._loops = 0
-        self._image_name = ""
+
+        if self.imager is None:
+            self._image_name = ""
 
         if output_caltables is None:
             self.output_caltables = self.imager.output
