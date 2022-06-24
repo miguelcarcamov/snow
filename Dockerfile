@@ -1,4 +1,4 @@
-FROM matthewfeickert/docker-python3-ubuntu:3.8.0
+FROM ubuntu:20.04
 
 RUN apt-get update -y && \
     apt-get install -y build-essential && \
@@ -9,7 +9,8 @@ RUN apt-get update -y && \
     apt-get install -y libblas-dev && \
     apt-get install -y liblapack-dev && \
     apt-get install -y liblapacke-dev && \
-    apt-get install -y git
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN python3 --version
 RUN pip3 --version
