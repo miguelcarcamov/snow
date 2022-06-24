@@ -8,7 +8,7 @@ from .selfcal import Selfcal
 
 class AmpPhasecal(Selfcal):
 
-    def __init__(self, incremental=False, solnorm=True, **kwargs):
+    def __init__(self, incremental: bool = False, solnorm: bool = True, **kwargs):
         super().__init__(**kwargs)
 
         self._calmode = 'ap'
