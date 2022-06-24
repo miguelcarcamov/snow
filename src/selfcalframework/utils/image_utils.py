@@ -44,16 +44,22 @@ def export_ms_to_fits(msname: str = ""):
 
 
 def calculate_psnr_fits(
-    signal_fits_name: str = "", residual_fits_name: str = "", pixels: int = 100
+    signal_fits_name: str = "", residual_fits_name: str = "", pixels: int = None
 ):
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
+
+    if pixels is None:
+        stdv = np.nanstd(res_data)
+    else:
+        stdv = np.nanstd(res_data[0:pixels, 0:pixels])
+
     peak = np.nanmax(signal_data)
-    stdv = np.nanstd(res_data[0:pixels, 0:pixels])
+
     return peak / stdv, peak, stdv
 
 
-def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixels: int = 100):
+def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixels: int = None):
     fits_signal = export_ms_to_fits(msname=signal_ms_name)
     fits_residual = export_ms_to_fits(msname=residual_ms_name)
     psnr, peak, stdv = calculate_psnr_fits(fits_signal, fits_residual, pixels)
