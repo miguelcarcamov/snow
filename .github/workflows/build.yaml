@@ -44,6 +44,8 @@ jobs:
         python3 -m pip install --upgrade pip wheel setuptools setuptools-scm
         python3 -m pip install virtualenv
         python3 -m pip install build
+    - name: Create virtual environment
+      run: |
         virtualenv --system-site-packages venv
         source venv/bin/activate
         export PIP_IGNORE_INSTALLED=0
