@@ -31,7 +31,6 @@ RUN apt-get install -y build-essential && \
     apt-get install -y ImageMagick* && \
     apt-get install -y xorg && \
     apt-get install -y libgfortran4 && \
-    apt-get install -y libnsl-dev && \
     apt-get install -y libopenmpi-dev && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
