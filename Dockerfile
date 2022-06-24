@@ -12,9 +12,9 @@ RUN apt-get update -y && \
     apt-get install -y git && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-RUN python3 --version
-RUN pip3 --version
-RUN python3 -m pip install --upgrade pip
-RUN pip3
+RUN python --version
+RUN pip --version
+RUN python -m pip install --upgrade pip
+RUN pip
 RUN echo "Hello from selfcalframework base image"
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/selfcalframework"
