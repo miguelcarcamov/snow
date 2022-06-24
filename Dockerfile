@@ -2,11 +2,17 @@ FROM ubuntu:20.04
 RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted universe multiverse" > /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt focal-security main restricted universe multiverse" >> /etc/apt/sources.list && \
-    apt-get update -y
+    apt-get update -Y
 
 RUN DEBIAN_FRONTEND=noninteractive && \
   apt-get install -y tzdata && \
   apt-get install -y keyboard-configuration
+
+RUN add-apt-repository main && \
+  add-apt-repository universe && \
+  add-apt-repository restricted && \
+  add-apt-repository multiverse && \
+  apt-get update -y
 
 RUN apt-get install -y build-essential && \
     apt-get install -y zlib1g-dev libncurses5-dev && \
