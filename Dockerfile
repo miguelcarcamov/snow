@@ -1,7 +1,8 @@
 FROM ubuntu:20.04
 RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive && \
-  apt-get install -y tzdata
+  apt-get install -y tzdata && \
+  apt-get install -y keyboard-configuration
 
 RUN apt-get install -y build-essential && \
     apt-get install -y zlib1g-dev libncurses5-dev && \
