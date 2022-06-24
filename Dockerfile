@@ -9,8 +9,7 @@ RUN apt-get update -y && \
     apt-get install -y libblas-dev && \
     apt-get install -y liblapack-dev && \
     apt-get install -y liblapacke-dev && \
-    apt-get install -y git && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    apt-get install -y git
 
 RUN python3 --version
 RUN pip3 --version
