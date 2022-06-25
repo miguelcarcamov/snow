@@ -2,7 +2,7 @@ import os
 import shlex
 import subprocess
 
-from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
+from casatasks import exportfits, fixvis, immath, importfits, tclean
 from casatools import image
 
 from ..utils.image_utils import reproject
