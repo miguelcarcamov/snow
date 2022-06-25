@@ -81,6 +81,7 @@ class GPUvmem(Imager):
     def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
+        residual_casa_image = residual_image + ".image"
 
         os.system(
             "rm -rf *.log *.last " + residual_image +
@@ -106,13 +107,13 @@ class GPUvmem(Imager):
         )
 
         exportfits(
-            imagename=residual_image + ".image",
-            fitsimage=residual_image + ".image.fits",
+            imagename=residual_casa_image,
+            fitsimage=residual_casa_image + ".fits",
             overwrite=True,
             history=False
         )
 
-        ia.open(infile=residual_image + ".image")
+        ia.open(infile=residual_casa_image)
         record_beam = ia.restoringbeam()
         ia.done()
         ia.close()
@@ -137,9 +138,14 @@ class GPUvmem(Imager):
         ia.done()
         ia.close()
 
-        image_name_list = ["convolved_model_out", residual_image + ".image"]
+        image_name_list = ["convolved_model_out", residual_casa_image]
 
-        immath(imagename=image_name_list, expr=" (IM0   + IM1) ", outfile=restored_image)
+        immath(
+            imagename=image_name_list,
+            expr=" (IM0   + IM1) ",
+            outfile=restored_image,
+            imagemd=residual_casa_image
+        )
 
         exportfits(
             imagename=restored_image,
@@ -148,7 +154,7 @@ class GPUvmem(Imager):
             history=False
         )
 
-        return residual_image + ".image.fits", restored_image + ".fits"
+        return residual_casa_image + ".fits", restored_image + ".fits"
 
     def __make_canvas(self, name="model_input"):
         fits_image = name + '.fits'
