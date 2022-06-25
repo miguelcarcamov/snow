@@ -113,13 +113,19 @@ class GPUvmem(Imager):
         )
 
         ia.open(infile=residual_image + ".image")
-        rbeam = ia.restoringbeam()
+        record_beam = ia.restoringbeam()
         ia.done()
         ia.close()
 
         ia.open(infile="model_out")
         im2 = ia.convolve2d(
-            outfile="convolved_model_out", axes=[0, 1], type='gauss', beam=rbeam, overwrite=True
+            outfile="convolved_model_out",
+            axes=[0, 1],
+            type='gauss',
+            major=record_beam["major"],
+            minor=record_beam["minor"],
+            pa=record_beam["positionangle"],
+            overwrite=True
         )
         im2.done()
         ia.done()
@@ -127,7 +133,7 @@ class GPUvmem(Imager):
 
         ia.open(infile="convolved_model_out")
         ia.setrestoringbeam(remove=True)
-        ia.setrestoringbeam(beam=rbeam)
+        ia.setrestoringbeam(beam=record_beam)
         ia.done()
         ia.close()
 
