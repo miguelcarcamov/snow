@@ -138,13 +138,15 @@ class GPUvmem(Imager):
         ia.done()
         ia.close()
 
-        image_name_list = ["convolved_model_out", residual_casa_image]
+        imhead(imagename="convolved_model_out")
+
+        image_name_list = ["convolved_model_out", residual_casa_image + ".fits"]
 
         immath(
             imagename=image_name_list,
             expr=" (IM0   + IM1) ",
             outfile=restored_image,
-            imagemd=residual_casa_image
+            imagemd=residual_casa_image + ".fits"
         )
 
         exportfits(
