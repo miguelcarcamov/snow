@@ -155,8 +155,9 @@ class Selfcal(metaclass=ABCMeta):
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
-            print("Original: - PSNR: " + str(self.imager.psnr))
-            print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
+            print("Original: - PSNR: {0:0.3f}".format(self.imager.psnr))
+            print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
+            print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
             self._psnr_history.append(self.imager.psnr)
 
     def _run_imager(self, iter: int = 0):
@@ -166,8 +167,9 @@ class Selfcal(metaclass=ABCMeta):
 
         self._psnr_history.append(self.imager.psnr)
 
-        print("Solint: " + str(self.solint[iter]) + " - PSNR: " + str(self._psnr_history[-1]))
-        print("Noise: " + str(self.imager.stdv * 1000.0) + " mJy/beam")
+        print("Solint: {0} - PSNR: {1:0.3f}".format(self.solint[iter], self._psnr_history[-1]))
+        print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
+        print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
 
     def _finish_selfcal_iteration(self, iter: int = 0):
 

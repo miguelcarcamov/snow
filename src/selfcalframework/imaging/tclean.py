@@ -101,6 +101,6 @@ class Tclean(Imager):
             restored_image = imagename + ".image.tt0"
             residual_image = imagename + ".residual.tt0"
 
-        self.calculateStatistics_MSImage(
+        self._calculate_statistics_msimage(
             signal_ms_name=restored_image, residual_ms_name=residual_image
         )

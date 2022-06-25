@@ -45,8 +45,6 @@ class Imager(metaclass=ABCMeta):
         self.stdv = 0.0
         self.name = ""
 
-        if self.noise_pixels is None:
-            self.noise_pixels = -1  # Get to the last pixel for x and y axes
         if self.inputvis is not None and self.inputvis != "":
             self.nantennas = calculate_number_antennas(self.inputvis)
         # self.__dict__.update(kwargs)
