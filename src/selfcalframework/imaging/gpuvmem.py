@@ -239,7 +239,7 @@ class GPUvmem(Imager):
                 restored_image=restored_image
             )
 
-        # Calculate SNR and standard deviation
+        # Calculate PSNR and RMS using astropy and numpy
         self._calculate_statistics_fits(
             signal_fits_name=restored_fits, residual_fits_name=residual_fits
         )

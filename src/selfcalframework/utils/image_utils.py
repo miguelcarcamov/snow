@@ -4,8 +4,16 @@ from pathlib import Path
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
-from casatasks import exportfits
+from casatasks import exportfits, imstat
 from reproject import reproject_interp
+
+
+def nanrms(x, axis=None):
+    return np.sqrt(np.nanmean(x**2, axis=axis))
+
+
+def rms(x, axis=None):
+    return np.sqrt(np.mean(x**2, axis=axis))
 
 
 def get_header(fits_name: str = ""):
@@ -26,7 +34,6 @@ def get_hdul(fits_name: str = ""):
 
 def get_data(fits_name: str = ""):
     image_data = fits.getdata(fits_name)
-    image_data = np.nan_to_num(image_data)
     return image_data.squeeze()
 
 
@@ -49,20 +56,23 @@ def calculate_psnr_fits(
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
 
-    if pixels is None:
-        stdv = np.nanstd(res_data)
-    else:
-        stdv = np.nanstd(res_data[0:pixels, 0:pixels])
-
+    stdv = nanrms(res_data[0:pixels, 0:pixels])
     peak = np.nanmax(signal_data)
+    psnr = peak / stdv
 
-    return peak / stdv, peak, stdv
+    return psnr, peak, stdv
 
 
 def calculate_psnr_ms(signal_ms_name: str = "", residual_ms_name: str = "", pixels: int = None):
-    fits_signal = export_ms_to_fits(msname=signal_ms_name)
-    fits_residual = export_ms_to_fits(msname=residual_ms_name)
-    psnr, peak, stdv = calculate_psnr_fits(fits_signal, fits_residual, pixels)
+    box = ""
+    if pixels is not None:
+        box = "0,0," + str(pixels - 1) + "," + str(pixels - 1)
+
+    stats_signal = imstat(signal_ms_name, box=box)
+    stats_residuals = imstat(residual_ms_name, box=box)
+    peak = stats_signal["max"][0]
+    stdv = stats_residuals["rms"][0]
+    psnr = peak / stdv
     return psnr, peak, stdv
 
 

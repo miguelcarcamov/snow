@@ -50,6 +50,7 @@ class Imager(metaclass=ABCMeta):
         if self.inputvis is not None and self.inputvis != "":
             self.nantennas = calculate_number_antennas(self.inputvis)
         # self.__dict__.update(kwargs)
+
     def _calculate_statistics_fits(
         self, signal_fits_name="", residual_fits_name="", stdv_pixels=None
     ):
