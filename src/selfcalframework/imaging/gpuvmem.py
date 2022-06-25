@@ -135,9 +135,15 @@ class GPUvmem(Imager):
         ia.done()
         ia.close()
 
-        imhead(imagename="convolved_model_out", mode="put", hdkey="beammajor", hdvalue=bmaj)
-        imhead(imagename="convolved_model_out", mode="put", hdkey="beamminor", hdvalue=bmin)
-        imhead(imagename="convolved_model_out", mode="put", hdkey="beampa", hdvalue=bpa)
+        ia.open(infile="convolved_model_out")
+        ia.setrestoringbeam(remove=True)
+        ia.setrestoringbeam(beam=rbeam)
+        ia.done()
+        ia.close()
+
+        # imhead(imagename="convolved_model_out", mode="put", hdkey="beammajor", hdvalue=bmaj)
+        # imhead(imagename="convolved_model_out", mode="put", hdkey="beamminor", hdvalue=bmin)
+        # imhead(imagename="convolved_model_out", mode="put", hdkey="beampa", hdvalue=bpa)
 
         image_name_list = ["convolved_model_out", residual_image + ".image"]
 
