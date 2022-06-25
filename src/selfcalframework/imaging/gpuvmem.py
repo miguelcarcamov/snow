@@ -3,7 +3,7 @@ import shlex
 import subprocess
 
 from casatasks import exportfits, fixvis, imhead, immath, importfits, tclean
-from casatools import image, quanta
+from casatools import image
 
 from ..utils.image_utils import reproject
 from .imager import Imager
@@ -79,9 +79,9 @@ class GPUvmem(Imager):
                 self.__user_mask = new_mask_name
 
     def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
-        qa = quanta()
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
+
         os.system(
             "rm -rf *.log *.last " + residual_image +
             ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " +
@@ -89,12 +89,6 @@ class GPUvmem(Imager):
         )
 
         importfits(imagename="model_out", fitsimage=model_fits, overwrite=True)
-        shape = imhead(imagename="model_out", mode="get", hdkey="shape")
-        pix_num = shape[0]
-        cdelt = imhead(imagename="model_out", mode="get", hdkey="cdelt2")
-        cdelta = qa.convert(v=cdelt, outunit="arcsec")
-        cdeltd = qa.convert(v=cdelt, outunit="deg")
-        pix_size = str(cdelta['value']) + "arcsec"
 
         tclean(
             vis=residual_ms,
@@ -127,9 +121,6 @@ class GPUvmem(Imager):
         bmin = imhead(imagename=residual_image + ".image", mode="get", hdkey="beamminor")
         bpa = imhead(imagename=residual_image + ".image", mode="get", hdkey="beampa")
 
-        minor = qa.convert(v=bmin, outunit="deg")
-        pa = qa.convert(v=bpa, outunit="deg")
-
         ia.open(infile="model_out")
         im2 = ia.convolve2d(
             outfile="convolved_model_out",
@@ -144,18 +135,12 @@ class GPUvmem(Imager):
         ia.done()
         ia.close()
 
-        exportfits(
-            imagename="convolved_model_out",
-            fitsimage="convolved_model_out.fits",
-            overwrite=True,
-            history=False
-        )
-        ia.open(infile="convolved_model_out.fits")
+        ia.open(infile="convolved_model_out")
         ia.setrestoringbeam(beam=rbeam)
         ia.done()
         ia.close()
 
-        imagearr = ["convolved_model_out.fits", residual_image + ".image.fits"]
+        imagearr = ["convolved_model_out", residual_image + ".image"]
 
         immath(imagename=imagearr, expr=" (IM0   + IM1) ", outfile=restored_image)
 
