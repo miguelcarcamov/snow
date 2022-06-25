@@ -117,19 +117,9 @@ class GPUvmem(Imager):
         ia.done()
         ia.close()
 
-        bmaj = imhead(imagename=residual_image + ".image", mode="get", hdkey="beammajor")
-        bmin = imhead(imagename=residual_image + ".image", mode="get", hdkey="beamminor")
-        bpa = imhead(imagename=residual_image + ".image", mode="get", hdkey="beampa")
-
         ia.open(infile="model_out")
         im2 = ia.convolve2d(
-            outfile="convolved_model_out",
-            axes=[0, 1],
-            type='gauss',
-            major=bmaj,
-            minor=bmin,
-            pa=bpa,
-            overwrite=True
+            outfile="convolved_model_out", axes=[0, 1], type='gauss', beam=rbeam, overwrite=True
         )
         im2.done()
         ia.done()
@@ -140,10 +130,6 @@ class GPUvmem(Imager):
         ia.setrestoringbeam(beam=rbeam)
         ia.done()
         ia.close()
-
-        # imhead(imagename="convolved_model_out", mode="put", hdkey="beammajor", hdvalue=bmaj)
-        # imhead(imagename="convolved_model_out", mode="put", hdkey="beamminor", hdvalue=bmin)
-        # imhead(imagename="convolved_model_out", mode="put", hdkey="beampa", hdvalue=bpa)
 
         image_name_list = ["convolved_model_out", residual_image + ".image"]
 
