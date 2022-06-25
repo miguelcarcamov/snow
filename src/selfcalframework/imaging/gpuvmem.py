@@ -135,14 +135,13 @@ class GPUvmem(Imager):
         ia.done()
         ia.close()
 
-        ia.open(infile="convolved_model_out")
-        ia.setrestoringbeam(beam=rbeam)
-        ia.done()
-        ia.close()
+        imhead(imagename="convolved_model_out", mode="put", hdkey="beammajor", hdvalue=bmaj)
+        imhead(imagename="convolved_model_out", mode="put", hdkey="beamminor", hdvalue=bmin)
+        imhead(imagename="convolved_model_out", mode="put", hdkey="beampa", hdvalue=bpa)
 
-        imagearr = ["convolved_model_out", residual_image + ".image"]
+        image_name_list = ["convolved_model_out", residual_image + ".image"]
 
-        immath(imagename=imagearr, expr=" (IM0   + IM1) ", outfile=restored_image)
+        immath(imagename=image_name_list, expr=" (IM0   + IM1) ", outfile=restored_image)
 
         exportfits(
             imagename=restored_image,
