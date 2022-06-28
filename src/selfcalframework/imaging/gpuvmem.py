@@ -156,7 +156,7 @@ class GPUvmem(Imager):
 
         return residual_casa_image + ".fits", restored_image + ".fits"
 
-    def __make_canvas(self, name="model_input"):
+    def __create_model_input(self, name="model_input"):
         fits_image = name + '.fits'
         tclean(
             vis=self.inputvis,
@@ -177,7 +177,7 @@ class GPUvmem(Imager):
 
     def run(self, imagename=""):
         if self.model_input is None:
-            self.model_input = self.__make_canvas(imagename + "_input")
+            self.model_input = self.__create_model_input(imagename + "_input")
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
         restored_image = imagename + ".restored"
