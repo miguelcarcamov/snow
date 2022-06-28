@@ -70,6 +70,27 @@ class GPUvmem(Imager):
         else:
             self.__check_mask()
 
+    @property
+    def model_input(self):
+        return self.__model_input
+
+    @model_input.setter
+    def model_input(self, model_input):
+        if model_input is not None:
+            if isinstance(model_input, str):
+                if model_input != "":
+                    self.__model_input = model_input
+                else:
+                    if os.path.exists(model_input):
+                        self.__model_input = model_input
+                        self.__check_mask()
+                    else:
+                        raise FileNotFoundError("Model input image does not exist...")
+            else:
+                raise ValueError("Model input can only be instantiated as string object")
+        else:
+            self.__model_input = model_input
+
     def __check_mask(self, order="bilinear"):
 
         if self.__user_mask is not None and self.model_input is not None:
