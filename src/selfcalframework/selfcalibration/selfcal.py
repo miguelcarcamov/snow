@@ -94,7 +94,7 @@ class Selfcal(metaclass=ABCMeta):
                     "Error, length of solint and variable that changes through iterations must be the same"
                 )
 
-        if self.subtract_source == True:
+        if self.subtract_source:
             if self.Imager.getPhaseCenter() != "":
                 raise ValueError(
                     "Error, phase center needs to be set if a source is going to be subtracted"
@@ -148,7 +148,10 @@ class Selfcal(metaclass=ABCMeta):
 
     def _init_selfcal(self):
         if self.previous_selfcal is not None:
-            self.input_caltable = self.previous_selfcal._caltables[-1]
+            if self.previous_selfcal._caltables:
+                self.input_caltable = self.previous_selfcal._caltables[-1]
+            else:
+                self.input_caltable = ""
             self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
 
     def _init_run(self, image_name_string: str = ""):
