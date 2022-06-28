@@ -40,8 +40,6 @@ class GPUvmem(Imager):
         self.gpuids = gpuids
         self.residual_output = residual_output
         self.model_out = model_out
-        self.model_input = model_input
-        self.user_mask = user_mask
         self.force_noise = force_noise
         self.gridding_threads = gridding_threads
         self.positivity = positivity
@@ -57,6 +55,8 @@ class GPUvmem(Imager):
                 field=self.field,
                 phasecenter=self.phase_center
             )
+        self.model_input = model_input
+        self.user_mask = user_mask
 
     @property
     def user_mask(self):
@@ -78,8 +78,8 @@ class GPUvmem(Imager):
     def model_input(self, model_input):
         if model_input is not None:
             if isinstance(model_input, str):
-                if model_input != "":
-                    self.__model_input = model_input
+                if model_input == "":
+                    self.__model_input = self.__create_model_input()
                 else:
                     if os.path.exists(model_input):
                         self.__model_input = model_input
@@ -89,7 +89,7 @@ class GPUvmem(Imager):
             else:
                 raise ValueError("Model input can only be instantiated as string object")
         else:
-            self.__model_input = model_input
+            self.__model_input = self.__create_model_input()
 
     def __check_mask(self, order="bilinear"):
 
