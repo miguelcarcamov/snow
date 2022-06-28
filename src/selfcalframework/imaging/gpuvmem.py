@@ -83,6 +83,8 @@ class GPUvmem(Imager):
                 else:
                     if os.path.exists(model_input):
                         self.__model_input = model_input
+                        if self.user_mask is not None:
+                            self.__check_mask()
                     else:
                         raise FileNotFoundError("Model input image does not exist...")
             else:
@@ -198,7 +200,6 @@ class GPUvmem(Imager):
     def run(self, imagename=""):
         if self.model_input is None:
             self.model_input = self.__create_model_input(imagename + "_input")
-            self.__check_mask()
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
         restored_image = imagename + ".restored"
