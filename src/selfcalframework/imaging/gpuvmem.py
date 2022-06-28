@@ -83,7 +83,6 @@ class GPUvmem(Imager):
                 else:
                     if os.path.exists(model_input):
                         self.__model_input = model_input
-                        self.__check_mask()
                     else:
                         raise FileNotFoundError("Model input image does not exist...")
             else:
