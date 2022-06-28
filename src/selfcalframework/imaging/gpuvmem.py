@@ -39,9 +39,9 @@ class GPUvmem(Imager):
         self.regfactors = regfactors
         self.gpuids = gpuids
         self.residual_output = residual_output
-        self.model_input = model_input
         self.model_out = model_out
         self.user_mask = user_mask
+        self.model_input = model_input
         self.force_noise = force_noise
         self.gridding_threads = gridding_threads
         self.positivity = positivity
