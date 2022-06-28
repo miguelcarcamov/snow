@@ -172,6 +172,7 @@ class GPUvmem(Imager):
             weighting=self.weighting
         )
         exportfits(imagename=name + '.image', fitsimage=fits_image, overwrite=True)
+        self.__check_mask()
         return fits_image
 
     def run(self, imagename=""):
