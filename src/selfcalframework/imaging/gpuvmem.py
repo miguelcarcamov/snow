@@ -79,7 +79,7 @@ class GPUvmem(Imager):
         if model_input is not None:
             if isinstance(model_input, str):
                 if model_input == "":
-                    self.__model_input = self.__create_model_input()
+                    self.__model_input = model_input
                 else:
                     if os.path.exists(model_input):
                         self.__model_input = model_input
@@ -88,7 +88,7 @@ class GPUvmem(Imager):
             else:
                 raise ValueError("Model input can only be instantiated as string object")
         else:
-            self.__model_input = self.__create_model_input()
+            self.__model_input = model_input
 
     def __check_mask(self, order="bilinear"):
 
@@ -198,6 +198,7 @@ class GPUvmem(Imager):
     def run(self, imagename=""):
         if self.model_input is None:
             self.model_input = self.__create_model_input(imagename + "_input")
+            self.__check_mask()
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
         restored_image = imagename + ".restored"
