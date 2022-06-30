@@ -95,7 +95,7 @@ class Selfcal(metaclass=ABCMeta):
                 )
 
         if self.subtract_source:
-            if self.Imager.getPhaseCenter() != "":
+            if self.imager.getPhaseCenter() != "":
                 raise ValueError(
                     "Error, phase center needs to be set if a source is going to be subtracted"
                 )
@@ -263,7 +263,7 @@ class Selfcal(metaclass=ABCMeta):
     def _set_attributes_from_dicts(self, iteration=0):
         if self.varchange_imager is not None:
             for key in self.varchange_imager.keys():
-                setattr(self.Imager, key, self.varchange_imager[key][iteration])
+                setattr(self.imager, key, self.varchange_imager[key][iteration])
 
         if self.varchange_selfcal is not None:
             for key in self.varchange_selfcal.keys():

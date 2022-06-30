@@ -92,9 +92,9 @@ def reproject(fits_file_to_resamp="", fits_file_model="", order="bilinear"):
         mask_N = header_mask['NAXIS2']
         mask_dy = header_mask['CDELT2']
 
-        if np.fabs(
-            (model_dy - mask_dy) / model_dy
-        ) < 1E-3 or mask_M != model_M or mask_N != model_N:
+        same_astrometry_cond = np.fabs((model_dy / mask_dy) - 1.) < 1E-3
+
+        if same_astrometry_cond or mask_M != model_M or mask_N != model_N:
             print("The mask header is not the same as the model image, resampling...")
             reprojected_array, footprint = reproject_interp(
                 (data_mask, mask_WCS), model_WCS, order=order, shape_out=(model_M, model_N)
