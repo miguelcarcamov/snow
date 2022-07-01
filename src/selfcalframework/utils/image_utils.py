@@ -96,8 +96,12 @@ def reproject(fits_file_to_resamp="", fits_file_model="", order="bilinear"):
             (model_dy - mask_dy) / model_dy
         ) < 1E-3 or mask_M != model_M or mask_N != model_N:
             print("The mask header is not the same as the model image, resampling...")
-            reprojected_array, footprint = reproject_interp(
-                (data_mask, mask_WCS), model_WCS, order=order, shape_out=(model_M, model_N)
+            reprojected_array = reproject_interp(
+                (data_mask, mask_WCS),
+                model_WCS,
+                return_footprint=False,
+                order=order,
+                shape_out=(model_M, model_N)
             )
             path_object = Path(fits_file_to_resamp)
             resampled_mask_name = "{0}_{2}{1}".format(

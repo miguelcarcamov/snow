@@ -122,7 +122,7 @@ class Selfcal(metaclass=ABCMeta):
 
     @input_caltable.setter
     def input_caltable(self, caltable):
-        if caltable is not None:
+        if caltable is not None or caltable != "":
             if not os.path.exists(caltable):
                 raise FileNotFoundError(
                     "The caltable " + self.input_caltable + " needs to be created"
