@@ -122,13 +122,19 @@ class Selfcal(metaclass=ABCMeta):
 
     @input_caltable.setter
     def input_caltable(self, caltable):
-        if caltable is not None or caltable != "":
-            if not os.path.exists(caltable):
-                raise FileNotFoundError(
-                    "The caltable " + self.input_caltable + " needs to be created"
-                )
+        if caltable is not None:
+            if isinstance(caltable, str):
+                if caltable != "":
+                    if not os.path.exists(caltable):
+                        raise FileNotFoundError(
+                            "The caltable " + self.input_caltable + " needs to be created"
+                        )
+                    else:
+                        self.__input_caltable = caltable
+                else:
+                    self.__input_caltable = caltable
             else:
-                self.__input_caltable = caltable
+                raise ValueError("The input_caltable should be a string")
         else:
             self.__input_caltable = ""
 
