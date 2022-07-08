@@ -6,7 +6,6 @@ of radio-interferometric datasets that will help radio astronomers to minimize t
 writing self-calibration scripts once again. The idea is to call just one main Python script that
 will run an imager (tclean, wsclean, gpuvmem, rascil, etc.) and one or multiple self-calibration
 objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset as a result.
-**It is important to recall that this repository is heavily under development!**
 
 ## Requirements
 
