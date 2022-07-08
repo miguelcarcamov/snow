@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - feature/refactoring
+    - development
     paths:
     - Dockerfile
   pull_request:
