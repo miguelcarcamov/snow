@@ -3,6 +3,9 @@ name: build-latest-container
 on:
   push:
     branches: [master]
+    paths:
+    - '**.py'
+    - Dockerfile.prod
   release:
     types: [published]
 
