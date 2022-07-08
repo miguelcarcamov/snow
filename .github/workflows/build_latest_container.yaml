@@ -1,6 +1,8 @@
 name: build-latest-container
 
 on:
+  push:
+    branches: [master]
   release:
     types: [published]
 

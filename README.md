@@ -22,22 +22,28 @@ objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset a
 
 ### From Github
 
-- `pip install -U git+https://github.com/miguelcarcamov/objectoriented_selfcal`
+- `pip install -U git+https://github.com/miguelcarcamov/selfcalframework`
 
 ### From source
 
 ```bash
-git clone https://github.com/miguelcarcamov/objectoriented_selfcal
-cd objectoriented_selfcal
+git clone https://github.com/miguelcarcamov/selfcalframework
+cd selfcalframework
 pip install .
 ```
 
 ### From source as developer
 
 ```bash
-git clone https://github.com/miguelcarcamov/objectoriented_selfcal
-cd objectoriented_selfcal
+git clone https://github.com/miguelcarcamov/selfcalframework
+cd selfcalframework
 pip install e .
+```
+
+## Using docker container
+
+```bash
+docker pull ghcr.io/miguelcarcamov/selfcalframework:latest
 ```
 
 ## Run selfcalframework
