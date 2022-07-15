@@ -6,8 +6,7 @@ import shutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 
-from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt,
-                       uvsub)
+from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, uvsub)
 from casatools import table
 
 from ..imaging.imager import Imager
