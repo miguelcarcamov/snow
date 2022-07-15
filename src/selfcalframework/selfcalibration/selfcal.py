@@ -379,7 +379,15 @@ class Selfcal(metaclass=ABCMeta):
         else:
             return False
 
-    def _set_attributes_from_dicts(self, iteration=0):
+    def _set_attributes_from_dicts(self, iteration: int = 0) -> None:
+        """
+        Protected method that assigns iteration attributes from dictionaries to imager and this self-calibration
+        instance.
+
+        Parameters
+        ----------
+        iteration : Current iteration
+        """
         if self.varchange_imager is not None:
             for key in self.varchange_imager.keys():
                 setattr(self.imager, key, self.varchange_imager[key][iteration])
