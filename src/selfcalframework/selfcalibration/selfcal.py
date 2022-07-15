@@ -6,7 +6,8 @@ import shutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 
-from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, uvsub)
+from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt,
+                       uvsub)
 from casatools import table
 
 from ..imaging.imager import Imager
@@ -68,7 +69,7 @@ class Selfcal(metaclass=ABCMeta):
         self._caltables = []
         self._caltables_versions = []
         self._psnr_history = []
-        self._psnr_file_backup = ""
+        self._psnr_visfile_backup = ""
         self._calmode = ""
         self._loops = 0
 
@@ -199,6 +200,8 @@ class Selfcal(metaclass=ABCMeta):
                     self._restore_selfcal(caltable_version=self._caltables_versions[-1])
                     self._psnr_history.pop()
                     self._caltables.pop()
+                    # Restoring to last MS
+                    self.visfile = self._psnr_visfile_backup
                     return True
                 else:
                     print(
@@ -216,6 +219,8 @@ class Selfcal(metaclass=ABCMeta):
                     if os.path.exists(current_visfile):
                         shutil.rmtree(current_visfile)
                     shutil.copytree(self.visfile, current_visfile)
+                    # Saving old visfile name
+                    self._psnr_visfile_backup = self.visfile
                     # Changing visfile attribute to new current_visfile for selfcal and imager
                     self.visfile = current_visfile
                     self.imager.inputvis = current_visfile
@@ -317,14 +322,11 @@ class Selfcal(metaclass=ABCMeta):
     def _uvsubtract(self):
         uvsub(vis=self.visfile, reverse=False)
 
-    def _uvsubtract(vis=""):
-        uvsub(vis=vis, reverse=False)
+    def _uvsubtract(self):
+        uvsub(vis=self.visfile, reverse=False)
 
     def _uvadd(self):
         uvsub(vis=self.visfile, reverse=True)
-
-    def _uvadd(vis=""):
-        uvsub(vis=vis, reverse=True)
 
     @abstractmethod
     def run(self):
