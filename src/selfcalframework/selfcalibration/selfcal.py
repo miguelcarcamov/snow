@@ -41,6 +41,34 @@ class Selfcal(metaclass=ABCMeta):
         restore_psnr: bool = False,
         subtract_source: bool = False
     ):
+        """
+        General self-calibration class
+
+        Parameters
+        ----------
+        visfile : Input visibility measurement set
+        imager : Imager instance to run
+        refant : Reference antenna
+        spwmap : Spectral window map
+        minblperant : Minimum baseline per antenna
+        want_plot : Whether to plot the calibration tables or not
+        interp : Temporal interpolation for each gaintable
+        gaintype : Type of gain solution ("G", "T", or "GSPLINE")
+        uvrange : Select data within uvrange (default units meters)
+        solint : Solution interval: e.g "inf", "60s", "int"
+        varchange_imager : Dictionary of imager variables that change on each iteration
+        varchange_selfcal : Dictionary of self-cal variables that change on each iteration
+        output_caltables : Output path to save calibration tables
+        previous_selfcal : Previous self-cal object if any
+        input_caltable : Input calibration table if any
+        minsnr : Reject solutions below this SNR
+        applymode : Calibration mode - ””=”calflag”, ”calflagstrict”, ”trial”, ”flagonly”, ”flagonlystrict”, or ”calonly”
+        flag_mode : Flag mode operation. e.g : "manual", "clip", "quack", "shadow", "elevation", "tfcrop", "rflag"
+        combine : Data axes to combine for solving
+        flag_dataset : Whether to flag Fourier residuals outliers
+        restore_psnr : Restores the dataset if the peak signal-to-noise ratio decreases
+        subtract_source : Subtract source model if needed
+        """
         # Public variables
         self.visfile = visfile
         self.imager = imager
