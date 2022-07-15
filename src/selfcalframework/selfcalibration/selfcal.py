@@ -271,10 +271,10 @@ class Selfcal(metaclass=ABCMeta):
 
     def _finish_selfcal_iteration(self, current_iteration: int = 0) -> bool:
         """
-        Protected method that finishes self-calibration iterations. If the PSNR of the current iteration improves then a new dataset is created
-        and the measurement set file name is changed. Otherwise the flags are restored to the last version and the
-        PSNR history and last calibration table are popped from the lists. The measurement set name is changed to the
-        last (the one that had better PSNR).
+        Protected method that finishes self-calibration iterations. If the PSNR of the current iteration improves then
+        a new dataset is created and the measurement set file name is changed. Otherwise the flags are restored to the
+        last version and the PSNR history and last calibration table are popped from the lists. The measurement set
+        name is changed to the last (the one that had better PSNR).
 
         Parameters
         ----------
