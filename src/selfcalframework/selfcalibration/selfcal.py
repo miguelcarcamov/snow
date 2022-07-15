@@ -169,6 +169,7 @@ class Selfcal(metaclass=ABCMeta):
     def _save_selfcal(self, caltable_version="", overwrite=True) -> None:
         """
         Protected function that saves the flags using CASA flag manager
+
         Parameters
         ----------
         caltable_version :  Calibration table version
@@ -185,6 +186,7 @@ class Selfcal(metaclass=ABCMeta):
     def _reset_selfcal(self, caltable_version="") -> None:
         """
         Protected function that resets the flags and deletes the model column if it is present in the measurement set
+
         Parameters
         ----------
         caltable_version : Calibration table version
@@ -200,6 +202,7 @@ class Selfcal(metaclass=ABCMeta):
     def _restore_selfcal(self, caltable_version="") -> None:
         """
         Protected function that restores the flags of dataset to a certain version
+
         Parameters
         ----------
         caltable_version : Calibration table version
@@ -211,7 +214,15 @@ class Selfcal(metaclass=ABCMeta):
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def _init_selfcal(self):
+    def _init_selfcal(self) -> None:
+        """
+        Protected function that initializes the input calibration tables and the PSNR history if any
+        previous self-calibration object is passed to the current object
+
+        Returns
+        -------
+        None
+        """
         if self.previous_selfcal is not None:
             if self.previous_selfcal._caltables:
                 self.input_caltable = self.previous_selfcal._caltables[-1]
@@ -219,7 +230,15 @@ class Selfcal(metaclass=ABCMeta):
                 self.input_caltable = ""
             self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
 
-    def _init_run(self, image_name_string: str = ""):
+    def _init_run(self, image_name_string: str = "") -> None:
+        """
+        Protected function that runs the imager at the beginning of the self-calibration run in order to initializes
+        the model column
+
+        Parameters
+        ----------
+        image_name_string : The string of the resulting CASA image name
+        """
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
@@ -228,19 +247,43 @@ class Selfcal(metaclass=ABCMeta):
             print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
             self._psnr_history.append(self.imager.psnr)
 
-    def _run_imager(self, iter: int = 0):
-        imagename = self._image_name + '_' + self._calmode + str(iter)
+    def _run_imager(self, current_iteration: int = 0) -> None:
+        """
+        Protected method that runs the imager at a certain self-calibration iteration
+
+        Parameters
+        ----------
+        iter : Iteration number during the loop
+        """
+        imagename = self._image_name + '_' + self._calmode + str(current_iteration)
 
         self.imager.run(imagename)
 
         self._psnr_history.append(self.imager.psnr)
 
-        print("Solint: {0} - PSNR: {1:0.3f}".format(self.solint[iter], self._psnr_history[-1]))
+        print(
+            "Solint: {0} - PSNR: {1:0.3f}".format(
+                self.solint[current_iteration], self._psnr_history[-1]
+            )
+        )
         print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
         print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
 
-    def _finish_selfcal_iteration(self, iter: int = 0):
+    def _finish_selfcal_iteration(self, current_iteration: int = 0) -> bool:
+        """
+        Protected method that finishes self-calibration iterations. If the PSNR of the current iteration improves then a new dataset is created
+        and the measurement set file name is changed. Otherwise the flags are restored to the last version and the
+        PSNR history and last calibration table are popped from the lists. The measurement set name is changed to the
+        last (the one that had better PSNR).
 
+        Parameters
+        ----------
+        current_iteration : Iteration number during the self-calibration loop
+
+        Returns
+        -------
+
+        """
         if self.restore_psnr:
             if len(self._psnr_history) > 1:
 
@@ -264,14 +307,14 @@ class Selfcal(metaclass=ABCMeta):
                 else:
                     print(
                         "PSNR improved on iteration {0} - Copying measurement set files...".
-                        format(iter)
+                        format(current_iteration)
                     )
 
                     path_object = Path(self.visfile)
 
                     current_visfile = "{0}_{2}{1}".format(
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                        self._calmode + str(iter)
+                        self._calmode + str(current_iteration)
                     )
                     # Copying dataset and overwriting if it has already been created
                     if os.path.exists(current_visfile):
@@ -320,7 +363,14 @@ class Selfcal(metaclass=ABCMeta):
             writeflags=True
         )
 
-    def _ismodel_in_dataset(self):
+    def _ismodel_in_dataset(self) -> bool:
+        """
+        Protected function that checks if the MODEL_DATA column exists in the current measurement set file
+
+        Returns
+        -------
+        None
+        """
         tb.open(tablename=self.visfile)
         columns = tb.colnames()
         tb.close()
@@ -385,4 +435,7 @@ class Selfcal(metaclass=ABCMeta):
 
     @abstractmethod
     def run(self):
-        return
+        """
+        Abstract method that runs the self-calibration
+        """
+        pass
