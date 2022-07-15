@@ -379,22 +379,22 @@ class Selfcal(metaclass=ABCMeta):
         else:
             return False
 
-    def _set_attributes_from_dicts(self, iteration: int = 0) -> None:
+    def _set_attributes_from_dicts(self, current_iteration: int = 0) -> None:
         """
         Protected method that assigns iteration attributes from dictionaries to imager and this self-calibration
         instance.
 
         Parameters
         ----------
-        iteration : Current iteration
+        current_iteration : Current iteration in the self-calibration loop
         """
         if self.varchange_imager is not None:
             for key in self.varchange_imager.keys():
-                setattr(self.imager, key, self.varchange_imager[key][iteration])
+                setattr(self.imager, key, self.varchange_imager[key][current_iteration])
 
         if self.varchange_selfcal is not None:
             for key in self.varchange_selfcal.keys():
-                setattr(self, key, self.varchange_selfcal[key][iteration])
+                setattr(self, key, self.varchange_selfcal[key][current_iteration])
 
     def _plot_selfcal(
         self,
