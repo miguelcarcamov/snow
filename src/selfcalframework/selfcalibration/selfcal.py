@@ -166,17 +166,48 @@ class Selfcal(metaclass=ABCMeta):
         else:
             self.__input_caltable = ""
 
-    def _save_selfcal(self, caltable_version="", overwrite=True):
+    def _save_selfcal(self, caltable_version="", overwrite=True) -> None:
+        """
+        Protected function that saves the flags using CASA flag manager
+        Parameters
+        ----------
+        caltable_version :  Calibration table version
+        overwrite : Whether to overwrite the .flags file or not
+
+        Returns
+        -------
+        None
+        """
         if overwrite:
             flagmanager(vis=self.visfile, mode='delete', versionname=caltable_version)
         flagmanager(vis=self.visfile, mode='save', versionname=caltable_version)
 
-    def _reset_selfcal(self, caltable_version=""):
+    def _reset_selfcal(self, caltable_version="") -> None:
+        """
+        Protected function that resets the flags and deletes the model column if it is present in the measurement set
+        Parameters
+        ----------
+        caltable_version : Calibration table version
+
+        Returns
+        -------
+        None
+        """
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         clearcal(self.visfile)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def _restore_selfcal(self, caltable_version=""):
+    def _restore_selfcal(self, caltable_version="") -> None:
+        """
+        Protected function that restores the flags of dataset to a certain version
+        Parameters
+        ----------
+        caltable_version : Calibration table version
+
+        Returns
+        -------
+        None
+        """
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
