@@ -333,12 +333,25 @@ class Selfcal(metaclass=ABCMeta):
 
     def _flag_dataset(
         self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
-    ):
-        # NOTE1: RESIDUAL = CORRECTED - MODEL
-        # RESIDUAL_DATA = DATA - MODEL
-        # NOTE2: When datacolumn is WEIGHT, the task will
-        # internally use WEIGHT_SPECTRUM.
-        # If WEIGHT_SPECTRUM does not exist, it will create one on-the-fly based on the values of WEIGHT.
+    ) -> None:
+        """
+        Protected method that flag the dataset on each iteration. This functions aims to flag residual outliers.
+
+        NOTE 1: RESIDUAL = CORRECTED - MODEL
+        RESIDUAL_DATA = DATA - MODEL
+
+        NOTE 2: When datacolumn is WEIGHT, the task will internally use WEIGHT_SPECTRUM.
+        If WEIGHT_SPECTRUM does not exist, it will create one on-the-fly based on the values of WEIGHT.
+
+        Parameters
+        ----------
+        datacolumn : The datacolumn to use in order to flag. (See description).
+        mode : Flagging mode
+        timedevscale : For time analysis, flag a point if local RMS around it is larger than timedevscale $x$ timedev.
+        freqdevscale : For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$
+        freqdev.
+        """
+
         flagdata(
             vis=self.visfile,
             mode=mode,
