@@ -380,9 +380,6 @@ class Selfcal(metaclass=ABCMeta):
     def _uvsubtract(self):
         uvsub(vis=self.visfile, reverse=False)
 
-    def _uvsubtract(self):
-        uvsub(vis=self.visfile, reverse=False)
-
     def _uvadd(self):
         uvsub(vis=self.visfile, reverse=True)
 
