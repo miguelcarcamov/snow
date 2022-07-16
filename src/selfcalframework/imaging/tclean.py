@@ -30,6 +30,42 @@ class Tclean(Imager):
         clean_savemodel: str = None,
         **kwargs
     ):
+        """
+        tclean imager object
+
+        Parameters
+        ----------
+        nterms : Number of Taylor coefficients in the spectral model
+        threshold : Stopping threshold (number in units of Jy, or string)
+        nsigma : Multiplicative factor for rms-based threshold stopping. N-sigma threshold is calculated as
+        nsigma * rms value per image plane determined from a robust statistics
+        interactive : Modify masks and parameters at runtime
+        mask : Mask (a list of image name(s) or region file(s) or region string(s) .The name of a CASA image
+        or region file or region string that specifies a 1/0 mask to be used for deconvolution.
+        use_mask : Type of mask(s) to be used for deconvolution
+        negative_threshold : Sub-parameter for “auto-multithresh”: mask threshold for negative
+        features: -1.0* negativethreshold * rms + location(=median)
+        low_noise_threshold : Sub-parameter for “auto-multithresh”: mask threshold to grow previously masked regions
+        via binary dilation: lownoisethreshold * rms in residual image + location (=median)
+        noise_threshold : Sub-parameter for “auto-multithresh”: mask threshold based on the noise
+        level: noisethreshold * rms + location (=median)
+        sidelobe_threshold : Sub-parameter for “auto-multithresh”: mask threshold based on sidelobe
+        levels: sidelobethreshold * max_sidelobe_level * peak residual
+        min_beam_frac : Sub-parameter for “auto-multithresh”: minimum beam fraction in size to prune masks smaller than
+        mimbeamfrac * beam<=0.0 : No pruning
+        specmode : Spectral definition mode (mfs, cube, cubedata)
+        gridder : Gridding options (standard, wproject, widefield, mosaic, awproject)
+        wproj_planes : Number of distinct w-values at which to compute and use different gridding convolution
+        functions for W-Projection
+        deconvolver : Name of minor cycle algorithm (hogbom, clark, multiscale, mtmfs, mem, clarkstokes)
+        uvtaper : uv-taper on outer baselines in uv-plane
+        scales : List of scale sizes (in pixels) for multi-scale and mtmfs algorithms.
+        uvrange : Select data within uvrange (default unit is meters)
+        pbcor : Apply PB correction on the output restored image
+        cycle_niter : Maximum number of minor-cycle iterations (per plane) before triggering a major cycle
+        clean_savemodel : Options to save model visibilities (none, virtual, modelcolumn)
+        kwargs : General imager arguments
+        """
         super().__init__(**kwargs)
         self.name = "TClean"
         self.nterms = nterms

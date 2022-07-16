@@ -32,6 +32,31 @@ class GPUvmem(Imager):
         print_images: bool = False,
         **kwargs
     ):
+        """
+        gpuvmem imager object
+
+        Parameters
+        ----------
+        executable : Absolute path to the gpuvmem executable binary
+        gpu_blocks : 2D and 1D GPU block sizes. e.g. [16,16,256]. For 2D kernels you would be using 16x16 blocks
+        and for 1D kernels you would be using block sizes of 256 threads.
+        initial_values : Initial values for the images. e.g. if optimizing I_nu_0 and alpha then [0.001, 3.0] would be
+        your initial values in units of code and unitless, respectively.
+        regfactors : Regularization factors for each one of the priors in your main.cu gpuvmem file
+        gpuids : List of GPU ids that will run gpuvmem
+        residual_output : Absolute path to the output residual measurement set
+        model_input : FITS image input with the desired astrometry of your output image
+        model_out : Absolute path to the output model image
+        user_mask : Absolute path to the FITS image file with the 0/1 mask
+        force_noise : Force noise to a desired value
+        gridding_threads : Number of threads to use during gridding
+        positivity : Whether to impose positivity in the optimization or not
+        ftol : Optimization tolerance
+        noise_cut : Mask threshold based one the inverse of the primary beam
+        gridding : Whether to grid visibilities or not to increase computation speed
+        print_images : Whether to output the intermediate images during the optimization
+        kwargs : General imager parameters
+        """
         super().__init__(**kwargs)
         self.name = "GPUvmem"
         self.executable = executable
@@ -94,7 +119,17 @@ class GPUvmem(Imager):
             self.__model_input = model_input
 
     def __check_mask(self, order: str = "bilinear") -> None:
+        """
+        Private method that checks if the mask has the same astrometry as the input header image.
 
+        Parameters
+        ----------
+        order : The order of the interpolation when reprojecting. This can be any of the following strings:
+            ‘nearest-neighbor’
+            ‘bilinear’
+            ‘biquadratic’
+            ‘bicubic’
+        """
         if self.__user_mask is not None and self.model_input is not None:
             new_mask_name = reproject(self.__user_mask, self.model_input, order=order)
 
@@ -105,6 +140,20 @@ class GPUvmem(Imager):
                   model_fits="",
                   residual_ms="",
                   restored_image="restored") -> Tuple[str, str]:
+        """
+        Private method that creates the restored image. This is done by convolving the gpuvmem model image with
+        the clean-beam and adding the residuals.
+
+        Parameters
+        ----------
+        model_fits : Absolute path to the FITS image to the model
+        residual_ms : Absolute path to the measurement set file of the residuals
+        restored_image : Absolute path for the output restored image
+
+        Returns
+        -------
+        Returns a tuple of strings with the absolute paths to the residual FITS image and the restored FITS image
+        """
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
         residual_casa_image = residual_image + ".image"
@@ -183,6 +232,17 @@ class GPUvmem(Imager):
         return residual_casa_image + ".fits", restored_image + ".fits"
 
     def __create_model_input(self, name="model_input") -> str:
+        """
+        Creates a FITS file with the dirty image from tclean which has a header that is then read by gpuvmem.
+
+        Parameters
+        ----------
+        name : Absolute path to the output file
+
+        Returns
+        -------
+        A string with absolute path to the output FITS image file
+        """
         fits_image = name + '.fits'
         tclean(
             vis=self.inputvis,
@@ -202,6 +262,13 @@ class GPUvmem(Imager):
         return fits_image
 
     def run(self, imagename=""):
+        """
+        Method that runs gpuvmem using subprocess
+
+        Parameters
+        ----------
+        imagename : Absolute path to the output image name file
+        """
         if self.model_input is None:
             self.model_input = self.__create_model_input(imagename + "_input")
         model_output = imagename + ".fits"
