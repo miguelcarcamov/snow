@@ -201,7 +201,25 @@ def calculate_psnr_ms(signal_ms_name: str = "",
     return psnr, peak, stdv
 
 
-def reproject(fits_file_to_resamp="", fits_file_model="", order="bilinear") -> Union[str, None]:
+def reproject(fits_file_to_resamp: str = "",
+              fits_file_model: str = "",
+              order: str = "bilinear") -> Union[str, None]:
+    """
+    Function that reprojects an image if two images does not have the same size or pixel-size
+
+    Parameters
+    ----------
+    fits_file_to_resamp : Absolute path to the FITS file image that you want to resample
+    fits_file_model : The model FITS file image
+    order : The order of the interpolation when reprojecting. This can be any of the following strings:
+            ‘nearest-neighbor’
+            ‘bilinear’
+            ‘biquadratic’
+            ‘bicubic’
+    Returns
+    -------
+    A string with the absolute path of the reproject image file
+    """
     if os.path.exists(fits_file_to_resamp) and os.path.exists(fits_file_model):
         header_mask = get_header(fits_file_to_resamp)
         data_mask = get_data(fits_file_to_resamp)
