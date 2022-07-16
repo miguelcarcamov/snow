@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +9,7 @@ from casatasks import exportfits, imstat
 from reproject import reproject_interp
 
 
-def nanrms(x, axis=None) -> List[np.ndarray, float]:
+def nanrms(x, axis=None) -> Union[np.ndarray, float]:
     """
     Function that calculates the root-mean-squared of a numpy array discarding nan values.
 
@@ -26,7 +26,7 @@ def nanrms(x, axis=None) -> List[np.ndarray, float]:
     return np.sqrt(np.nanmean(x**2, axis=axis))
 
 
-def rms(x, axis=None):
+def rms(x, axis=None) -> Union[np.ndarray, float]:
     """
     Function that calculates the root-mean-squared of a numpy array.
 
