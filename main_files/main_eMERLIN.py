@@ -1,6 +1,8 @@
-from casatasks import flagdata, mstransform
+import os
+import sys
+from casatasks import flagdata, mstransform, flagmanager
 
-from src.selfcalframework.imaging import Clean
+from src.selfcalframework.imaging import Tclean
 from src.selfcalframework.selfcalibration import AmpPhasecal
 
 if __name__ == '__main__':
@@ -16,7 +18,7 @@ if __name__ == '__main__':
     if not os.path.exists(selfcal_vis):
         mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected", field=field)
 
-    clean_imager = Clean(
+    clean_imager = Tclean(
         inputvis=selfcal_vis,
         output=output,
         niter=10000,
