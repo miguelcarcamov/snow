@@ -233,7 +233,8 @@ class GPUvmem(Imager):
 
     def __create_model_input(self, name="model_input") -> str:
         """
-        Creates a FITS file with the dirty image from tclean which has a header that is then read by gpuvmem.
+        Private method that reates a FITS file with the dirty image from tclean which has a header
+        that is then read by gpuvmem.
 
         Parameters
         ----------
