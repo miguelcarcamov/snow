@@ -11,11 +11,13 @@ def get_table_rows(ms_table: str = "") -> int:
 
     Parameters
     ----------
-    ms_table : Measurement set table name
+    ms_table :
+        Measurement set table name
 
     Returns
     -------
-    The number of rows of the measurement set table
+    rows :
+        The number of rows of the measurement set table
 
     """
     tb.open(tablename=ms_table)
@@ -30,11 +32,13 @@ def calculate_number_antennas(ms_name: str = "") -> int:
 
     Parameters
     ----------
-    ms_name : Absolute file name to the measurement set file
+    ms_name :
+        Absolute file name to the measurement set file
 
     Returns
     -------
-    Number of non-flagged antennas
+    nrows :
+        Number of non-flagged antennas
     """
     if ms_name != "":
         if os.path.exists(ms_name):

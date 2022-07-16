@@ -46,28 +46,50 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        visfile : Input visibility measurement set
-        imager : Imager instance to run
-        refant : Reference antenna
-        spwmap : Spectral window map
-        minblperant : Minimum baseline per antenna
-        want_plot : Whether to plot the calibration tables or not
-        interp : Temporal interpolation for each gaintable
-        gaintype : Type of gain solution ("G", "T", or "GSPLINE")
-        uvrange : Select data within uvrange (default units meters)
-        solint : Solution interval: e.g "inf", "60s", "int"
-        varchange_imager : Dictionary of imager variables that change on each iteration
-        varchange_selfcal : Dictionary of self-cal variables that change on each iteration
-        output_caltables : Output path to save calibration tables
-        previous_selfcal : Previous self-cal object if any
-        input_caltable : Input calibration table if any
-        minsnr : Reject solutions below this SNR
-        applymode : Calibration mode - ””=”calflag”, ”calflagstrict”, ”trial”, ”flagonly”, ”flagonlystrict”, or ”calonly”
-        flag_mode : Flag mode operation. e.g : "manual", "clip", "quack", "shadow", "elevation", "tfcrop", "rflag"
-        combine : Data axes to combine for solving
-        flag_dataset : Whether to flag Fourier residuals outliers
-        restore_psnr : Restores the dataset if the peak signal-to-noise ratio decreases
-        subtract_source : Subtract source model if needed
+        visfile :
+            Input visibility measurement set
+        imager :
+            Imager instance to run
+        refant :
+            Reference antenna
+        spwmap :
+            Spectral window map
+        minblperant :
+            Minimum baseline per antenna
+        want_plot :
+            Whether to plot the calibration tables or not
+        interp :
+            Temporal interpolation for each gaintable
+        gaintype :
+            Type of gain solution ("G", "T", or "GSPLINE")
+        uvrange :
+            Select data within uvrange (default units meters)
+        solint :
+            Solution interval: e.g "inf", "60s", "int"
+        varchange_imager :
+            Dictionary of imager variables that change on each iteration
+        varchange_selfcal :
+            Dictionary of self-cal variables that change on each iteration
+        output_caltables :
+            Output path to save calibration tables
+        previous_selfcal :
+            Previous self-cal object if any
+        input_caltable :
+            Input calibration table if any
+        minsnr :
+            Reject solutions below this SNR
+        applymode :
+            Calibration mode - ””=”calflag”, ”calflagstrict”, ”trial”, ”flagonly”, ”flagonlystrict”, or ”calonly”
+        flag_mode :
+            Flag mode operation. e.g : "manual", "clip", "quack", "shadow", "elevation", "tfcrop", "rflag"
+        combine :
+            Data axes to combine for solving
+        flag_dataset :
+            Whether to flag Fourier residuals outliers
+        restore_psnr :
+            Restores the dataset if the peak signal-to-noise ratio decreases
+        subtract_source :
+            Subtract source model if needed
         """
         # Public variables
         self.visfile = visfile
@@ -172,8 +194,10 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        caltable_version :  Calibration table version
-        overwrite : Whether to overwrite the .flags file or not
+        caltable_version :
+            Calibration table version
+        overwrite :
+            Whether to overwrite the .flags file or not
 
         Returns
         -------
@@ -189,7 +213,8 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        caltable_version : Calibration table version
+        caltable_version :
+            Calibration table version
 
         Returns
         -------
@@ -205,7 +230,8 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        caltable_version : Calibration table version
+        caltable_version :
+            Calibration table version
 
         Returns
         -------
@@ -237,7 +263,8 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        image_name_string : The string of the resulting CASA image name
+        image_name_string :
+            The string of the resulting CASA image name
         """
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             imagename = self._image_name + image_name_string
@@ -253,7 +280,8 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        iter : Iteration number during the loop
+        iter :
+            Iteration number during the loop
         """
         imagename = self._image_name + '_' + self._calmode + str(current_iteration)
 
@@ -278,7 +306,8 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        current_iteration : Iteration number during the self-calibration loop
+        current_iteration :
+            Iteration number during the self-calibration loop
 
         Returns
         -------
@@ -345,11 +374,14 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        datacolumn : The datacolumn to use in order to flag. (See description).
-        mode : Flagging mode
-        timedevscale : For time analysis, flag a point if local RMS around it is larger than timedevscale $x$ timedev.
-        freqdevscale : For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$
-        freqdev.
+        datacolumn :
+            The datacolumn to use in order to flag. (See description).
+        mode :
+            Flagging mode
+        timedevscale :
+            For time analysis, flag a point if local RMS around it is larger than timedevscale $x$ timedev.
+        freqdevscale :
+            For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$ freqdev.
         """
 
         flagdata(
@@ -399,7 +431,8 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        current_iteration : Current iteration in the self-calibration loop
+        current_iteration :
+            Current iteration in the self-calibration loop
         """
         if self.varchange_imager is not None:
             for key in self.varchange_imager.keys():
@@ -441,8 +474,10 @@ class Selfcal(metaclass=ABCMeta):
 
         Parameters
         ----------
-        overwrite : Whether to overwrite the measurement set files
-        _statwt : Whether to create a new measurement applying the statwt function
+        overwrite :
+            Whether to overwrite the measurement set files
+        _statwt :
+            Whether to create a new measurement applying the statwt function
 
         Returns
         -------

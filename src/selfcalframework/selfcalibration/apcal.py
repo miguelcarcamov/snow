@@ -11,9 +11,12 @@ class AmpPhasecal(Selfcal):
 
         Parameters
         ----------
-        incremental : Whether to self-calibrate incrementally or not
-        solnorm : Normalize average solution amplitudes to 1.0 (G, T only)
-        kwargs : General self-calibration arguments
+        incremental :
+            Whether to self-calibrate incrementally or not
+        solnorm :
+            Normalize average solution amplitudes to 1.0 (G, T only)
+        kwargs :
+            General self-calibration arguments
         """
         super().__init__(**kwargs)
 

@@ -146,9 +146,12 @@ class GPUvmem(Imager):
 
         Parameters
         ----------
-        model_fits : Absolute path to the FITS image to the model
-        residual_ms : Absolute path to the measurement set file of the residuals
-        restored_image : Absolute path for the output restored image
+        model_fits :
+            Absolute path to the FITS image to the model
+        residual_ms :
+            Absolute path to the measurement set file of the residuals
+        restored_image :
+            Absolute path for the output restored image
 
         Returns
         -------
@@ -238,11 +241,13 @@ class GPUvmem(Imager):
 
         Parameters
         ----------
-        name : Absolute path to the output file
+        name :
+            Absolute path to the output file
 
         Returns
         -------
-        A string with absolute path to the output FITS image file
+        fits_image:
+            A string with absolute path to the output FITS image file
         """
         fits_image = name + '.fits'
         tclean(
@@ -268,7 +273,8 @@ class GPUvmem(Imager):
 
         Parameters
         ----------
-        imagename : Absolute path to the output image name file
+        imagename :
+            Absolute path to the output image name file
         """
         if self.model_input is None:
             self.model_input = self.__create_model_input(imagename + "_input")
