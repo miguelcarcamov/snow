@@ -2,8 +2,7 @@ name: build
 
 on:
   push:
-    branches:
-    - feature/refactoring
+    branches: [development, feature/refactoring]
   pull_request:
     branches:
     - master

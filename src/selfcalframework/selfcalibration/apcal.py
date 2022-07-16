@@ -6,6 +6,15 @@ from .selfcal import Selfcal
 class AmpPhasecal(Selfcal):
 
     def __init__(self, incremental: bool = False, solnorm: bool = True, **kwargs):
+        """
+        Amplitude-phase self-calibration object
+
+        Parameters
+        ----------
+        incremental : Whether to self-calibrate incrementally or not
+        solnorm : Normalize average solution amplitudes to 1.0 (G, T only)
+        kwargs : General self-calibration arguments
+        """
         super().__init__(**kwargs)
 
         self._calmode = 'ap'

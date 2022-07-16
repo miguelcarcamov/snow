@@ -6,6 +6,14 @@ from .selfcal import Selfcal
 class Ampcal(Selfcal):
 
     def __init__(self, solnorm: bool = True, **kwargs):
+        """
+        Amplitude only self-calibration object
+
+        Parameters
+        ----------
+        solnorm : Normalize average solution amplitudes to 1.0 (G, T only)
+        kwargs : General self-calibration arguments
+        """
         super().__init__(**kwargs)
 
         self._calmode = 'a'
@@ -15,6 +23,9 @@ class Ampcal(Selfcal):
         self._init_selfcal()
 
     def run(self):
+        """
+        Function that runs amplitude self-calibration
+        """
         self._init_run("before_ampcal")
 
         for i in range(0, self._loops):
@@ -75,4 +86,5 @@ class Ampcal(Selfcal):
 
             self._run_imager(i)
 
-            if self._finish_selfcal_iteration(i): break
+            if self._finish_selfcal_iteration(i):
+                break

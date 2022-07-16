@@ -6,6 +6,13 @@ from .selfcal import Selfcal
 class Phasecal(Selfcal):
 
     def __init__(self, **kwargs):
+        """
+        Phase only self-calibration object
+
+        Parameters
+        ----------
+        kwargs : General self-calibration arguments
+        """
         super().__init__(**kwargs)
 
         self._calmode = 'p'
@@ -74,4 +81,5 @@ class Phasecal(Selfcal):
 
             self._run_imager(i)
 
-            if self._finish_selfcal_iteration(i): break
+            if self._finish_selfcal_iteration(i):
+                break

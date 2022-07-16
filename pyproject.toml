@@ -10,7 +10,7 @@ authors = [
 maintainers = [
     {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"},
 ]
-description = "A Python object oriented framework to do self-calibration"
+description = "A Python object oriented framework to do radio-interferometric self-calibration"
 readme = "README.md"
 license = {text = "GNU GPL"}
 requires-python = ">=3.8, <=3.8.10"

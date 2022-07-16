@@ -41,6 +41,34 @@ class Selfcal(metaclass=ABCMeta):
         restore_psnr: bool = False,
         subtract_source: bool = False
     ):
+        """
+        General self-calibration class
+
+        Parameters
+        ----------
+        visfile : Input visibility measurement set
+        imager : Imager instance to run
+        refant : Reference antenna
+        spwmap : Spectral window map
+        minblperant : Minimum baseline per antenna
+        want_plot : Whether to plot the calibration tables or not
+        interp : Temporal interpolation for each gaintable
+        gaintype : Type of gain solution ("G", "T", or "GSPLINE")
+        uvrange : Select data within uvrange (default units meters)
+        solint : Solution interval: e.g "inf", "60s", "int"
+        varchange_imager : Dictionary of imager variables that change on each iteration
+        varchange_selfcal : Dictionary of self-cal variables that change on each iteration
+        output_caltables : Output path to save calibration tables
+        previous_selfcal : Previous self-cal object if any
+        input_caltable : Input calibration table if any
+        minsnr : Reject solutions below this SNR
+        applymode : Calibration mode - ””=”calflag”, ”calflagstrict”, ”trial”, ”flagonly”, ”flagonlystrict”, or ”calonly”
+        flag_mode : Flag mode operation. e.g : "manual", "clip", "quack", "shadow", "elevation", "tfcrop", "rflag"
+        combine : Data axes to combine for solving
+        flag_dataset : Whether to flag Fourier residuals outliers
+        restore_psnr : Restores the dataset if the peak signal-to-noise ratio decreases
+        subtract_source : Subtract source model if needed
+        """
         # Public variables
         self.visfile = visfile
         self.imager = imager
@@ -138,21 +166,63 @@ class Selfcal(metaclass=ABCMeta):
         else:
             self.__input_caltable = ""
 
-    def _save_selfcal(self, caltable_version="", overwrite=True):
+    def _save_selfcal(self, caltable_version="", overwrite=True) -> None:
+        """
+        Protected function that saves the flags using CASA flag manager
+
+        Parameters
+        ----------
+        caltable_version :  Calibration table version
+        overwrite : Whether to overwrite the .flags file or not
+
+        Returns
+        -------
+        None
+        """
         if overwrite:
             flagmanager(vis=self.visfile, mode='delete', versionname=caltable_version)
         flagmanager(vis=self.visfile, mode='save', versionname=caltable_version)
 
-    def _reset_selfcal(self, caltable_version=""):
+    def _reset_selfcal(self, caltable_version="") -> None:
+        """
+        Protected function that resets the flags and deletes the model column if it is present in the measurement set
+
+        Parameters
+        ----------
+        caltable_version : Calibration table version
+
+        Returns
+        -------
+        None
+        """
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         clearcal(self.visfile)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def _restore_selfcal(self, caltable_version=""):
+    def _restore_selfcal(self, caltable_version="") -> None:
+        """
+        Protected function that restores the flags of dataset to a certain version
+
+        Parameters
+        ----------
+        caltable_version : Calibration table version
+
+        Returns
+        -------
+        None
+        """
         flagmanager(vis=self.visfile, mode='restore', versionname=caltable_version)
         delmod(vis=self.visfile, otf=True, scr=True)
 
-    def _init_selfcal(self):
+    def _init_selfcal(self) -> None:
+        """
+        Protected function that initializes the input calibration tables and the PSNR history if any
+        previous self-calibration object is passed to the current object
+
+        Returns
+        -------
+        None
+        """
         if self.previous_selfcal is not None:
             if self.previous_selfcal._caltables:
                 self.input_caltable = self.previous_selfcal._caltables[-1]
@@ -160,7 +230,15 @@ class Selfcal(metaclass=ABCMeta):
                 self.input_caltable = ""
             self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
 
-    def _init_run(self, image_name_string: str = ""):
+    def _init_run(self, image_name_string: str = "") -> None:
+        """
+        Protected function that runs the imager at the beginning of the self-calibration run in order to initializes
+        the model column
+
+        Parameters
+        ----------
+        image_name_string : The string of the resulting CASA image name
+        """
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
@@ -169,19 +247,43 @@ class Selfcal(metaclass=ABCMeta):
             print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
             self._psnr_history.append(self.imager.psnr)
 
-    def _run_imager(self, iter: int = 0):
-        imagename = self._image_name + '_' + self._calmode + str(iter)
+    def _run_imager(self, current_iteration: int = 0) -> None:
+        """
+        Protected method that runs the imager at a certain self-calibration iteration
+
+        Parameters
+        ----------
+        iter : Iteration number during the loop
+        """
+        imagename = self._image_name + '_' + self._calmode + str(current_iteration)
 
         self.imager.run(imagename)
 
         self._psnr_history.append(self.imager.psnr)
 
-        print("Solint: {0} - PSNR: {1:0.3f}".format(self.solint[iter], self._psnr_history[-1]))
+        print(
+            "Solint: {0} - PSNR: {1:0.3f}".format(
+                self.solint[current_iteration], self._psnr_history[-1]
+            )
+        )
         print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
         print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
 
-    def _finish_selfcal_iteration(self, iter: int = 0):
+    def _finish_selfcal_iteration(self, current_iteration: int = 0) -> bool:
+        """
+        Protected method that finishes self-calibration iterations. If the PSNR of the current iteration improves then
+        a new dataset is created and the measurement set file name is changed. Otherwise the flags are restored to the
+        last version and the PSNR history and last calibration table are popped from the lists. The measurement set
+        name is changed to the last (the one that had better PSNR).
 
+        Parameters
+        ----------
+        current_iteration : Iteration number during the self-calibration loop
+
+        Returns
+        -------
+
+        """
         if self.restore_psnr:
             if len(self._psnr_history) > 1:
 
@@ -205,14 +307,14 @@ class Selfcal(metaclass=ABCMeta):
                 else:
                     print(
                         "PSNR improved on iteration {0} - Copying measurement set files...".
-                        format(iter)
+                        format(current_iteration)
                     )
 
                     path_object = Path(self.visfile)
 
                     current_visfile = "{0}_{2}{1}".format(
                         Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                        self._calmode + str(iter)
+                        self._calmode + str(current_iteration)
                     )
                     # Copying dataset and overwriting if it has already been created
                     if os.path.exists(current_visfile):
@@ -231,12 +333,25 @@ class Selfcal(metaclass=ABCMeta):
 
     def _flag_dataset(
         self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
-    ):
-        # NOTE1: RESIDUAL = CORRECTED - MODEL
-        # RESIDUAL_DATA = DATA - MODEL
-        # NOTE2: When datacolumn is WEIGHT, the task will
-        # internally use WEIGHT_SPECTRUM.
-        # If WEIGHT_SPECTRUM does not exist, it will create one on-the-fly based on the values of WEIGHT.
+    ) -> None:
+        """
+        Protected method that flag the dataset on each iteration. This functions aims to flag residual outliers.
+
+        NOTE 1: RESIDUAL = CORRECTED - MODEL
+        RESIDUAL_DATA = DATA - MODEL
+
+        NOTE 2: When datacolumn is WEIGHT, the task will internally use WEIGHT_SPECTRUM.
+        If WEIGHT_SPECTRUM does not exist, it will create one on-the-fly based on the values of WEIGHT.
+
+        Parameters
+        ----------
+        datacolumn : The datacolumn to use in order to flag. (See description).
+        mode : Flagging mode
+        timedevscale : For time analysis, flag a point if local RMS around it is larger than timedevscale $x$ timedev.
+        freqdevscale : For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$
+        freqdev.
+        """
+
         flagdata(
             vis=self.visfile,
             mode=mode,
@@ -261,7 +376,14 @@ class Selfcal(metaclass=ABCMeta):
             writeflags=True
         )
 
-    def _ismodel_in_dataset(self):
+    def _ismodel_in_dataset(self) -> bool:
+        """
+        Protected function that checks if the MODEL_DATA column exists in the current measurement set file
+
+        Returns
+        -------
+        None
+        """
         tb.open(tablename=self.visfile)
         columns = tb.colnames()
         tb.close()
@@ -270,14 +392,22 @@ class Selfcal(metaclass=ABCMeta):
         else:
             return False
 
-    def _set_attributes_from_dicts(self, iteration=0):
+    def _set_attributes_from_dicts(self, current_iteration: int = 0) -> None:
+        """
+        Protected method that assigns iteration attributes from dictionaries to imager and this self-calibration
+        instance.
+
+        Parameters
+        ----------
+        current_iteration : Current iteration in the self-calibration loop
+        """
         if self.varchange_imager is not None:
             for key in self.varchange_imager.keys():
-                setattr(self.imager, key, self.varchange_imager[key][iteration])
+                setattr(self.imager, key, self.varchange_imager[key][current_iteration])
 
         if self.varchange_selfcal is not None:
             for key in self.varchange_selfcal.keys():
-                setattr(self, key, self.varchange_selfcal[key][iteration])
+                setattr(self, key, self.varchange_selfcal[key][current_iteration])
 
     def _plot_selfcal(
         self,
@@ -304,7 +434,20 @@ class Selfcal(metaclass=ABCMeta):
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)
 
-    def selfcal_output(self, overwrite=False, _statwt=False):
+    def selfcal_output(self, overwrite=False, _statwt=False) -> str:
+        """
+        Public function that creates a new measurement set only taking the corrected column.
+        If _statwt is True then applies the statwt function and creates a .statwt measurement
+
+        Parameters
+        ----------
+        overwrite : Whether to overwrite the measurement set files
+        _statwt : Whether to create a new measurement applying the statwt function
+
+        Returns
+        -------
+        Name of the self-calibrated measurement set file
+        """
         output_vis = self.visfile + '.selfcal'
 
         if overwrite:
@@ -321,12 +464,12 @@ class Selfcal(metaclass=ABCMeta):
     def _uvsubtract(self):
         uvsub(vis=self.visfile, reverse=False)
 
-    def _uvsubtract(self):
-        uvsub(vis=self.visfile, reverse=False)
-
     def _uvadd(self):
         uvsub(vis=self.visfile, reverse=True)
 
     @abstractmethod
     def run(self):
-        return
+        """
+        Abstract method that runs the self-calibration
+        """
+        pass
