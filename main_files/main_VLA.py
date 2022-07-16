@@ -1,4 +1,5 @@
-from src.selfcalframework.imaging import Clean
+import sys
+from src.selfcalframework.imaging import Tclean
 from src.selfcalframework.selfcalibration import AmpPhasecal, Phasecal
 
 if __name__ == '__main__':
@@ -10,7 +11,7 @@ if __name__ == '__main__':
     # The default clean object will use automasking values for short baselines
     # In this case we will use automasking values for long baselines
 
-    clean_imager = Clean(
+    clean_imager = Tclean(
         inputvis=visfile,
         output=output,
         niter=100,
