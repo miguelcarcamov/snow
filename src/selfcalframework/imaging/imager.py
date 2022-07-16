@@ -51,7 +51,7 @@ class Imager(metaclass=ABCMeta):
 
     def _calculate_statistics_fits(
         self, signal_fits_name="", residual_fits_name="", stdv_pixels=None
-    ):
+    ) -> None:
         if stdv_pixels is None:
             psnr, peak, stdv = calculate_psnr_fits(
                 signal_fits_name, residual_fits_name, self.noise_pixels
@@ -67,7 +67,7 @@ class Imager(metaclass=ABCMeta):
 
     def _calculate_statistics_msimage(
         self, signal_ms_name="", residual_ms_name="", stdv_pixels=None
-    ):
+    ) -> None:
         if stdv_pixels is None:
             psnr, peak, stdv = calculate_psnr_ms(
                 signal_ms_name, residual_ms_name, self.noise_pixels

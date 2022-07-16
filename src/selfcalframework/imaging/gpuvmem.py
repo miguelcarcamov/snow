@@ -1,6 +1,7 @@
 import os
 import shlex
 import subprocess
+from typing import Tuple
 
 from casatasks import exportfits, fixvis, immath, importfits, tclean
 from casatools import image
@@ -92,7 +93,7 @@ class GPUvmem(Imager):
         else:
             self.__model_input = model_input
 
-    def __check_mask(self, order="bilinear"):
+    def __check_mask(self, order: str = "bilinear") -> None:
 
         if self.__user_mask is not None and self.model_input is not None:
             new_mask_name = reproject(self.__user_mask, self.model_input, order=order)
@@ -100,7 +101,10 @@ class GPUvmem(Imager):
             if new_mask_name is not None:
                 self.__user_mask = new_mask_name
 
-    def __restore(self, model_fits="", residual_ms="", restored_image="restored"):
+    def __restore(self,
+                  model_fits="",
+                  residual_ms="",
+                  restored_image="restored") -> Tuple[str, str]:
         ia = image()
         residual_image = residual_ms.partition(".ms")[0] + ".residual"
         residual_casa_image = residual_image + ".image"
@@ -178,7 +182,7 @@ class GPUvmem(Imager):
 
         return residual_casa_image + ".fits", restored_image + ".fits"
 
-    def __create_model_input(self, name="model_input"):
+    def __create_model_input(self, name="model_input") -> str:
         fits_image = name + '.fits'
         tclean(
             vis=self.inputvis,
