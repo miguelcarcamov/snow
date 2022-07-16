@@ -148,6 +148,20 @@ def calculate_psnr_fits(
     residual_fits_name: str = "",
     pixels: int = None
 ) -> Tuple[float, float, float]:
+    """
+    Function that calculates the peak signal-to-noise ratio of a reconstruction with images resulting in FITS files.
+    The peak is calculated from the restored image, the RMS is calculated in area of the residual image.
+
+    Parameters
+    ----------
+    signal_fits_name : The absolute path to the restored image
+    residual_fits_name : The absolute path to the residual image
+    pixels : Number of pixels on where to calculate the RMS
+
+    Returns
+    -------
+    A tuple with the peak signal-to-noise, the peak and the RMS
+    """
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
 
@@ -161,6 +175,20 @@ def calculate_psnr_fits(
 def calculate_psnr_ms(signal_ms_name: str = "",
                       residual_ms_name: str = "",
                       pixels: int = None) -> Tuple[float, float, float]:
+    """
+    Function that calculates the peak signal-to-noise ratio of a reconstruction with images resulting in CASA files.
+    The peak is calculated from the restored image, the RMS is calculated in area of the residual image.
+
+    Parameters
+    ----------
+    signal_fits_name : The absolute path to the restored image
+    residual_fits_name : The absolute path to the residual image
+    pixels : Number of pixels on where to calculate the RMS
+
+    Returns
+    -------
+    A tuple with the peak signal-to-noise, the peak and the RMS
+    """
     box = ""
     if pixels is not None:
         box = "0,0," + str(pixels - 1) + "," + str(pixels - 1)
