@@ -434,7 +434,20 @@ class Selfcal(metaclass=ABCMeta):
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)
 
-    def selfcal_output(self, overwrite=False, _statwt=False):
+    def selfcal_output(self, overwrite=False, _statwt=False) -> str:
+        """
+        Public function that creates a new measurement set only taking the corrected column.
+        If _statwt is True then applies the statwt function and creates a .statwt measurement
+
+        Parameters
+        ----------
+        overwrite : Whether to overwrite the measurement set files
+        _statwt : Whether to create a new measurement applying the statwt function
+
+        Returns
+        -------
+        Name of the self-calibrated measurement set file
+        """
         output_vis = self.visfile + '.selfcal'
 
         if overwrite:
