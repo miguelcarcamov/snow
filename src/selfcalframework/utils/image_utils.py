@@ -128,7 +128,7 @@ def get_header_and_data(fits_name: str = "") -> Tuple[dict, np.ndarray]:
 
 def export_ms_to_fits(msname: str = "") -> str:
     """
-    Function that export a CASA image file to FITSIMAGE
+    Function that export a CASA image file to a FITS image
 
     Parameters
     ----------
