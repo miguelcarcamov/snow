@@ -91,6 +91,8 @@ class Selfcal(metaclass=ABCMeta):
         subtract_source :
             Subtract source model if needed
         """
+        # Initialize protected variable to back up visfile names
+        self._psnr_visfile_backup = ""
         # Public variables
         self.visfile = visfile
         self.imager = imager
@@ -118,7 +120,6 @@ class Selfcal(metaclass=ABCMeta):
         self._caltables = []
         self._caltables_versions = []
         self._psnr_history = []
-        self._psnr_visfile_backup = ""
         self._calmode = ""
         self._loops = 0
 
@@ -149,6 +150,15 @@ class Selfcal(metaclass=ABCMeta):
                 raise ValueError(
                     "Error, phase center needs to be set if a source is going to be subtracted"
                 )
+
+    @property
+    def visfile(self):
+        return self.__visfile
+
+    @visfile.setter
+    def visfile(self, input_vis_name):
+        self._psnr_visfile_backup = self.__visfile
+        self.__visfile = input_vis_name
 
     @property
     def imager(self):
