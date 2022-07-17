@@ -91,8 +91,6 @@ class Selfcal(metaclass=ABCMeta):
         subtract_source :
             Subtract source model if needed
         """
-        # Initialize protected variable to back up visfile names
-        self._psnr_visfile_backup = ""
         # Public variables
         self.visfile = visfile
         self.imager = imager
@@ -122,6 +120,7 @@ class Selfcal(metaclass=ABCMeta):
         self._psnr_history = []
         self._calmode = ""
         self._loops = 0
+        self._psnr_visfile_backup = visfile
 
         if self.imager is None:
             self._image_name = ""
