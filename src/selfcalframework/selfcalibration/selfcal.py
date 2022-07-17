@@ -151,15 +151,6 @@ class Selfcal(metaclass=ABCMeta):
                 )
 
     @property
-    def visfile(self):
-        return self.__visfile
-
-    @visfile.setter
-    def visfile(self, input_vis_name):
-        self._psnr_visfile_backup = self.__visfile
-        self.__visfile = input_vis_name
-
-    @property
     def imager(self):
         return self.__imager
 
