@@ -11,8 +11,10 @@ class Ampcal(Selfcal):
 
         Parameters
         ----------
-        solnorm : Normalize average solution amplitudes to 1.0 (G, T only)
-        kwargs : General self-calibration arguments
+        solnorm :
+            Normalize average solution amplitudes to 1.0 (G, T only)
+        kwargs :
+            General self-calibration arguments
         """
         super().__init__(**kwargs)
 

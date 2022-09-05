@@ -10,5 +10,5 @@ casatestutils==6.5.0.15
 casatools==6.5.0.15
 casaviewer==1.5.2
 numpy==1.22.4
-reproject==0.8
+reproject==0.9
 scipy==1.8.1

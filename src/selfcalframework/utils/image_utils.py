@@ -15,8 +15,10 @@ def nanrms(x, axis=None) -> Union[np.ndarray, float]:
 
     Parameters
     ----------
-    x : Input numpy array
-    axis : Axis or axes along which the calculation is performed. The default, axis=None, will calculate the RMS using
+    x :
+        Input numpy array
+    axis :
+        Axis or axes along which the calculation is performed. The default, axis=None, will calculate the RMS using
     all the elements of the input array. If axis is negative it counts from the last to the first axis.
 
     Returns
@@ -26,15 +28,17 @@ def nanrms(x, axis=None) -> Union[np.ndarray, float]:
     return np.sqrt(np.nanmean(x**2, axis=axis))
 
 
-def rms(x, axis=None) -> Union[np.ndarray, float]:
+def rms(x: np.ndarray, axis=None) -> Union[np.ndarray, float]:
     """
     Function that calculates the root-mean-squared of a numpy array.
 
     Parameters
     ----------
-    x : Input numpy array
-    axis : Axis or axes along which the calculation is performed. The default, axis=None, will calculate the RMS using
-    all the elements of the input array. If axis is negative it counts from the last to the first axis.
+    x : np.ndarray
+        Input numpy array
+    axis :
+        Axis or axes along which the calculation is performed. The default, axis=None, will calculate the RMS using
+        all the elements of the input array. If axis is negative it counts from the last to the first axis.
 
     Returns
     -------
@@ -49,7 +53,8 @@ def get_header(fits_name: str = "") -> dict:
 
     Parameters
     ----------
-    fits_name : Absolute path to the FITS file
+    fits_name : str
+        Absolute path to the FITS file
 
     Returns
     -------
@@ -65,7 +70,8 @@ def get_hdu(fits_name: str = "") -> fits.PrimaryHDU:
 
     Parameters
     ----------
-    fits_name : Absolute path to the FITS file
+    fits_name : str
+        Absolute path to the FITS file
 
     Returns
     -------
@@ -82,7 +88,8 @@ def get_hdul(fits_name: str = "") -> fits.HDUList:
 
     Parameters
     ----------
-    fits_name : Absolute path to the FITS file
+    fits_name :
+        Absolute path to the FITS file
 
     Returns
     -------
@@ -98,7 +105,8 @@ def get_data(fits_name: str = "") -> np.ndarray:
 
     Parameters
     ----------
-    fits_name : Absolute path to the FITS file
+    fits_name :
+        Absolute path to the FITS file
 
     Returns
     -------
@@ -114,7 +122,8 @@ def get_header_and_data(fits_name: str = "") -> Tuple[dict, np.ndarray]:
 
     Parameters
     ----------
-    fits_name : Absolute path to the FITS file
+    fits_name :
+        Absolute path to the FITS file
 
     Returns
     -------
@@ -132,7 +141,8 @@ def export_ms_to_fits(msname: str = "") -> str:
 
     Parameters
     ----------
-    msname : Absolute path to the CASA image file
+    msname :
+        Absolute path to the CASA image file
 
     Returns
     -------
@@ -154,13 +164,17 @@ def calculate_psnr_fits(
 
     Parameters
     ----------
-    signal_fits_name : The absolute path to the restored image
-    residual_fits_name : The absolute path to the residual image
-    pixels : Number of pixels on where to calculate the RMS
+    signal_fits_name :
+        The absolute path to the restored image
+    residual_fits_name :
+        The absolute path to the residual image
+    pixels :
+        Number of pixels on where to calculate the RMS
 
     Returns
     -------
-    A tuple with the peak signal-to-noise, the peak and the RMS
+    tuple:
+        A tuple with the peak signal-to-noise, the peak and the RMS
     """
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
@@ -181,13 +195,17 @@ def calculate_psnr_ms(signal_ms_name: str = "",
 
     Parameters
     ----------
-    signal_fits_name : The absolute path to the restored image
-    residual_fits_name : The absolute path to the residual image
-    pixels : Number of pixels on where to calculate the RMS
+    signal_ms_name :
+        The absolute path to the restored image
+    residual_ms_name :
+        The absolute path to the residual image
+    pixels :
+        Number of pixels on where to calculate the RMS
 
     Returns
     -------
-    A tuple with the peak signal-to-noise, the peak and the RMS
+    tuple:
+        A tuple with the peak signal-to-noise, the peak and the RMS
     """
     box = ""
     if pixels is not None:
@@ -209,16 +227,20 @@ def reproject(fits_file_to_resamp: str = "",
 
     Parameters
     ----------
-    fits_file_to_resamp : Absolute path to the FITS file image that you want to resample
-    fits_file_model : The model FITS file image
-    order : The order of the interpolation when reprojecting. This can be any of the following strings:
+    fits_file_to_resamp :
+        Absolute path to the FITS file image that you want to resample
+    fits_file_model :
+        The model FITS file image
+    order :
+        The order of the interpolation when reprojecting. This can be any of the following strings:
             ‘nearest-neighbor’
             ‘bilinear’
             ‘biquadratic’
             ‘bicubic’
     Returns
     -------
-    A string with the absolute path of the reproject image file
+    str:
+        A string with the absolute path of the reproject image file
     """
     if os.path.exists(fits_file_to_resamp) and os.path.exists(fits_file_model):
         header_mask = get_header(fits_file_to_resamp)

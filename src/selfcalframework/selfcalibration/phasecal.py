@@ -11,7 +11,8 @@ class Phasecal(Selfcal):
 
         Parameters
         ----------
-        kwargs : General self-calibration arguments
+        kwargs :
+            General self-calibration arguments
         """
         super().__init__(**kwargs)
 

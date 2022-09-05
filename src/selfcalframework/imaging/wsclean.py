@@ -9,7 +9,8 @@ class WSClean(Imager):
 
         Parameters
         ----------
-        kwargs : General imager arguments
+        kwargs :
+            General imager arguments
         """
         super().__init__(**kwargs)
 
@@ -19,6 +20,7 @@ class WSClean(Imager):
 
         Parameters
         ----------
-        imagename : The absolute path to the output image name
+        imagename :
+            The absolute path to the output image name
         """
         raise NotImplementedError("This function has not been implemented yet")
