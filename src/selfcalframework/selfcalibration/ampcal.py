@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+
 from casatasks import applycal, gaincal, rmtables
 
 from .selfcal import Selfcal
 
 
+@dataclass(init=False, repr=True)
 class Ampcal(Selfcal):
 
     def __init__(self, solnorm: bool = True, **kwargs):

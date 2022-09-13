@@ -5,6 +5,7 @@ import os
 import shutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
+from dataclasses import dataclass
 
 from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, uvsub)
 from casatools import table
@@ -14,6 +15,7 @@ from ..imaging.imager import Imager
 tb = table()
 
 
+@dataclass(init=False, repr=True)
 class Selfcal(metaclass=ABCMeta):
 
     def __init__(

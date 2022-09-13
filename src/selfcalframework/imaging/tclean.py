@@ -1,36 +1,12 @@
 from casatasks import tclean
 
+from dataclasses import dataclass, field
 from .imager import Imager
 
 
+@dataclass(init=True, repr=True)
 class Tclean(Imager):
-
-    def __init__(
-        self,
-        nterms: int = 1,
-        threshold: int = 0.0,
-        nsigma: int = 0.0,
-        interactive: bool = False,
-        mask: str = "",
-        use_mask: str = "auto-multithresh",
-        negative_threshold: float = 0.0,
-        low_noise_threshold: float = 1.5,
-        noise_threshold: float = 4.25,
-        sidelobe_threshold: float = 2.0,
-        min_beam_frac: float = 0.3,
-        specmode: str = "",
-        gridder: str = "standard",
-        wproj_planes: int = -1,
-        deconvolver: str = "hogbom",
-        uvtaper: list = [],
-        scales: list = [],
-        uvrange: str = "",
-        pbcor: bool = False,
-        cycle_niter: int = 0,
-        clean_savemodel: str = None,
-        **kwargs
-    ):
-        """
+    """
         tclean imager object
 
         Parameters
@@ -87,30 +63,32 @@ class Tclean(Imager):
             Options to save model visibilities (none, virtual, modelcolumn)
         kwargs :
             General imager arguments
-        """
-        super().__init__(**kwargs)
-        self.name = "TClean"
-        self.nterms = nterms
-        self.threshold = threshold
-        self.nsigma = nsigma
-        self.interactive = interactive
-        self.mask = mask
-        self.use_mask = use_mask
-        self.negative_threshold = negative_threshold
-        self.low_noise_threshold = low_noise_threshold
-        self.noise_threshold = noise_threshold
-        self.sidelobe_threshold = sidelobe_threshold
-        self.min_beam_frac = min_beam_frac
-        self.specmode = specmode
-        self.gridder = gridder
-        self.wproj_planes = wproj_planes
-        self.deconvolver = deconvolver
-        self.uvtaper = uvtaper
-        self.scales = scales
-        self.uvrange = uvrange
-        self.pbcor = pbcor
-        self.cycle_niter = cycle_niter
-        self.clean_savemodel = clean_savemodel
+    """
+    nterms: int = 1
+    threshold: int = 0.0
+    nsigma: int = 0.0
+    interactive: bool = False
+    mask: str = ""
+    use_mask: str = "auto-multithresh"
+    negative_threshold: float = 0.0
+    low_noise_threshold: float = 1.5
+    noise_threshold: float = 4.25
+    sidelobe_threshold: float = 2.0
+    min_beam_frac: float = 0.3
+    specmode: str = ""
+    gridder: str = "standard"
+    wproj_planes: int = -1
+    deconvolver: str = "hogbom"
+    uvtaper: list = field(init=True, repr=True, default_factory=list)
+    scales: list = field(init=True, repr=True, default_factory=list)
+    uvrange: str = ""
+    pbcor: bool = False
+    cycle_niter: int = 0
+    clean_savemodel: str = field(init=False, repr=True, default=None)
+
+    def __post_init__(self):
+
+        super().__post_init__()
 
         if self.save_model:
             self.clean_savemodel = "modelcolumn"
