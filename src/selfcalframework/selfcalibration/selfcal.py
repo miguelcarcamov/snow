@@ -116,13 +116,26 @@ class Selfcal(metaclass=ABCMeta):
         self.flag_dataset = flag_dataset
         self.restore_psnr = restore_psnr
         self.subtract_source = subtract_source
+
+        if self.visfile is not None:
+            path_object = Path(self.visfile)
+
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                self._calmode
+            )
+            # Copying dataset and overwriting if it has already been created
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
+            shutil.copytree(self.visfile, current_visfile)
+
         # Protected variables
         self._caltables = []
         self._caltables_versions = []
         self._psnr_history = []
         self._calmode = ""
         self._loops = 0
-        self._psnr_visfile_backup = visfile
+        self._psnr_visfile_backup = self.visfile
 
         if self.imager is None:
             self._image_name = ""
@@ -189,6 +202,19 @@ class Selfcal(metaclass=ABCMeta):
                 raise ValueError("The input_caltable should be a string")
         else:
             self.__input_caltable = ""
+
+    def copy_directory_during_iterations(self, iteration):
+        path_object = Path(self.visfile)
+
+        current_visfile = "{0}_{2}{1}".format(
+            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, str(iteration)
+        )
+        # Copying dataset and overwriting if it has already been created
+        if os.path.exists(current_visfile):
+            shutil.rmtree(current_visfile)
+        shutil.copytree(self.visfile, current_visfile)
+
+        return current_visfile
 
     def _save_selfcal(self, caltable_version="", overwrite=True) -> None:
         """
@@ -341,16 +367,8 @@ class Selfcal(metaclass=ABCMeta):
                         format(current_iteration)
                     )
 
-                    path_object = Path(self.visfile)
+                    current_visfile = self.copy_directory_during_iterations(current_iteration)
 
-                    current_visfile = "{0}_{2}{1}".format(
-                        Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                        self._calmode + str(current_iteration)
-                    )
-                    # Copying dataset and overwriting if it has already been created
-                    if os.path.exists(current_visfile):
-                        shutil.rmtree(current_visfile)
-                    shutil.copytree(self.visfile, current_visfile)
                     # Saving old visfile name
                     self._psnr_visfile_backup = self.visfile
                     # Changing visfile attribute to new current_visfile for selfcal and imager
