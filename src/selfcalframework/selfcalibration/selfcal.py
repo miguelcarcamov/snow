@@ -117,19 +117,6 @@ class Selfcal(metaclass=ABCMeta):
         self.restore_psnr = restore_psnr
         self.subtract_source = subtract_source
 
-        if self.visfile is not None:
-            path_object = Path(self.visfile)
-
-            current_visfile = "{0}_{2}{1}".format(
-                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                self._calmode
-            )
-            # Copying dataset and overwriting if it has already been created
-            if os.path.exists(current_visfile):
-                shutil.rmtree(current_visfile)
-            shutil.copytree(self.visfile, current_visfile)
-            self.visfile = current_visfile
-
         # Protected variables
         self._caltables = []
         self._caltables_versions = []
@@ -204,7 +191,21 @@ class Selfcal(metaclass=ABCMeta):
         else:
             self.__input_caltable = ""
 
-    def copy_directory_during_iterations(self, iteration):
+    def _copy_directory_at_start(self):
+        if self.visfile is not None:
+            path_object = Path(self.visfile)
+
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                self._calmode
+            )
+            # Copying dataset and overwriting if it has already been created
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
+            shutil.copytree(self.visfile, current_visfile)
+            self.visfile = current_visfile
+
+    def _copy_directory_during_iterations(self, iteration):
         path_object = Path(self.visfile)
 
         current_visfile = "{0}_{2}{1}".format(
@@ -368,7 +369,7 @@ class Selfcal(metaclass=ABCMeta):
                         format(current_iteration)
                     )
 
-                    current_visfile = self.copy_directory_during_iterations(current_iteration)
+                    current_visfile = self._copy_directory_during_iterations(current_iteration)
 
                     # Saving old visfile name
                     self._psnr_visfile_backup = self.visfile

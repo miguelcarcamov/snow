@@ -25,6 +25,7 @@ class Ampcal(Selfcal):
         self._loops = len(self.solint)
         self.__solnorm = solnorm
 
+        self._copy_directory_at_start()
         self._init_selfcal()
 
     def run(self):
