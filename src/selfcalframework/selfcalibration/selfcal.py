@@ -128,6 +128,7 @@ class Selfcal(metaclass=ABCMeta):
             if os.path.exists(current_visfile):
                 shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
+            self.visfile = current_visfile
 
         # Protected variables
         self._caltables = []
