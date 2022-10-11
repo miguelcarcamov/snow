@@ -91,6 +91,7 @@ class AmpPhasecal(Selfcal):
             self._save_selfcal(caltable_version=version_name, overwrite=True)
             self._caltables_versions.append(version_name)
 
+            print("Applying calibration tables to {0} file".format(self.visfile))
             if self.__incremental:
                 applycal(
                     vis=self.visfile,

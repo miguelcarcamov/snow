@@ -68,6 +68,7 @@ class Phasecal(Selfcal):
             self._save_selfcal(caltable_version=version_name, overwrite=True)
             self._caltables_versions.append(version_name)
 
+            print("Applying calibration tables to {0} file".format(self.visfile))
             applycal(
                 vis=self.visfile,
                 field=self.imager.field,
