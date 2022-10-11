@@ -204,6 +204,7 @@ class Selfcal(metaclass=ABCMeta):
                 shutil.rmtree(current_visfile)
             shutil.copytree(self.visfile, current_visfile)
             self.visfile = current_visfile
+            self.imager.inputvis = current_visfile
 
     def _copy_directory_during_iterations(self, iteration):
         path_object = Path(self.visfile)
@@ -362,6 +363,7 @@ class Selfcal(metaclass=ABCMeta):
                     self._caltables.pop()
                     # Restoring to last MS
                     self.visfile = self._psnr_visfile_backup
+                    self.imager.inputvis = self._psnr_visfile_backup
                     return True
                 else:
                     print(
