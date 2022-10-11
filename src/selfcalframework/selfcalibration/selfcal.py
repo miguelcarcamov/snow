@@ -197,7 +197,7 @@ class Selfcal(metaclass=ABCMeta):
 
             current_visfile = "{0}_{2}{1}".format(
                 Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                self._calmode
+                self._calmode + "0"
             )
             # Copying dataset and overwriting if it has already been created
             if os.path.exists(current_visfile):
@@ -210,7 +210,8 @@ class Selfcal(metaclass=ABCMeta):
         path_object = Path(self.visfile)
 
         current_visfile = "{0}_{2}{1}".format(
-            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, str(iteration)
+            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+            self._calmode + str(iteration + 1)
         )
         # Copying dataset and overwriting if it has already been created
         if os.path.exists(current_visfile):
