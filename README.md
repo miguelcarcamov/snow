@@ -1,6 +1,8 @@
-# Object Oriented Framework for Self-calibration of radio-interferometric datasets
+# **SNOW**
 
-Many radioastronomers repeat the process of writing different scripts for self-calibration
+## ca**S**a pytho**N** self-calibrati**O**n frame**W**ork
+
+Many radio-astronomers repeat the process of writing different scripts for self-calibration
 depending on their datasets. This repository holds an object-oriented Framework for self-calibration
 of radio-interferometric datasets that will help radio astronomers to minimize the tedious work of
 writing self-calibration scripts once again. The idea is to call just one main Python script that
@@ -17,42 +19,41 @@ objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset a
 
 ### From PYPI repository
 
-- `pip install selfcalframework`
+- `pip install snow`
 
 ### From Github
 
-- `pip install -U git+https://github.com/miguelcarcamov/selfcalframework`
+- `pip install -U git+https://github.com/miguelcarcamov/snow`
 
 ### From source
 
 ```bash
-git clone https://github.com/miguelcarcamov/selfcalframework
-cd selfcalframework
+git clone https://github.com/miguelcarcamov/snow
+cd snow
 pip install .
 ```
 
 ### From source as developer
 
 ```bash
-git clone https://github.com/miguelcarcamov/selfcalframework
-cd selfcalframework
+git clone https://github.com/miguelcarcamov/snow
+cd snow
 pip install e .
 ```
 
 ## Using docker container
 
 ```bash
-docker pull ghcr.io/miguelcarcamov/selfcalframework:latest
+docker pull ghcr.io/miguelcarcamov/snow:latest
 ```
 
-## Run selfcalframework
+## Run snow
 
 ```Python
 # Import the modules that you want to use
 import sys
-import numpy as np
-from src.selfcalframework.selfcalibration import Phasecal, AmpPhasecal
-from src.selfcalframework.imaging import Tclean
+from snow.selfcalibration import Phasecal, AmpPhasecal
+from snow.imaging import Tclean
 
 if __name__ == '__main__':
  # This step is up to you, and option to capture your arguments from terminal is using sys.argv

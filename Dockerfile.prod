@@ -1,8 +1,8 @@
-FROM ghcr.io/miguelcarcamov/selfcalframework:base
+FROM ghcr.io/miguelcarcamov/snow:base
 
 RUN python3 --version
 RUN pip3 --version
-RUN echo "Installing selfcalframework"
-RUN pip3 install git+https://github.com/miguelcarcamov/selfcalframework.git
-RUN echo "Hello from selfcalframework production image"
-LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/selfcalframework"
+RUN echo "Installing snow"
+RUN pip3 install git+https://github.com/miguelcarcamov/snow.git
+RUN echo "Hello from snow production image"
+LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"

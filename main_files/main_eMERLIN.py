@@ -2,8 +2,8 @@ import os
 import sys
 from casatasks import flagdata, mstransform, flagmanager
 
-from src.selfcalframework.imaging import Tclean
-from src.selfcalframework.selfcalibration import AmpPhasecal
+from snow.imaging import Tclean
+from snow.selfcalibration import AmpPhasecal
 
 if __name__ == '__main__':
 

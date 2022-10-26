@@ -38,5 +38,5 @@ RUN python3 --version
 RUN pip3 --version
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install mpi4py --no-cache-dir
-RUN echo "Hello from selfcalframework base image"
-LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/selfcalframework"
+RUN echo "Hello from snow base image"
+LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"

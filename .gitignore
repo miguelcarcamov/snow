@@ -128,4 +128,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-!/src/selfcalframework/_version.py
+!/src/snow/_version.py

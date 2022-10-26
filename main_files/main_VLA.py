@@ -1,6 +1,6 @@
 import sys
-from src.selfcalframework.imaging import Tclean
-from src.selfcalframework.selfcalibration import AmpPhasecal, Phasecal
+from snow.imaging import Tclean
+from snow.selfcalibration import AmpPhasecal, Phasecal
 
 if __name__ == '__main__':
     visfile = sys.argv[3]
