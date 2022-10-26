@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import os
 import shutil
+import warnings
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from dataclasses import dataclass
@@ -11,6 +12,7 @@ from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, u
 from casatools import table
 
 from ..imaging.imager import Imager
+from ..utils.selfcal_utils import is_column_in_ms
 
 tb = table()
 
@@ -509,10 +511,19 @@ class Selfcal(metaclass=ABCMeta):
         Name of the self-calibrated measurement set file
         """
         output_vis = self.visfile + '.selfcal'
-
+        data_column = ""
         if overwrite:
-            os.system('rm -rf ' + output_vis)
-        split(vis=self.visfile, outputvis=output_vis, datacolumn='corrected')
+            if os.path.exists(output_vis):
+                shutil.rmtree(output_vis)
+        if is_column_in_ms(self.visfile, "CORRECTED_DATA"):
+            data_column = "corrected"
+        else:
+            # Raise warning
+            warnings.warn(
+                "Corrected data column is not present, data column will be extracted instead."
+            )
+            data_column = "data"
+        split(vis=self.visfile, outputvis=output_vis, datacolumn=data_column)
         if _statwt:
             statwt_path = output_vis + '.statwt'
             if os.path.exists(statwt_path):
