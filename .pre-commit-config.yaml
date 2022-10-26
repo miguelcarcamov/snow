@@ -29,5 +29,5 @@ repos:
   rev: v0.31.1
   hooks:
   - id: markdownlint-fix
-    entry: markdownlint -f '**/*.md' --disable MD013 MD036 MD046 MD033 MD041
+    entry: markdownlint -f '**/*.md' --disable MD013 MD036 MD046 MD033 MD041 MD040
         # args: [--disable MD013 MD036]

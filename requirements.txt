@@ -7,7 +7,7 @@ casaplotserver==1.4.6
 casashell==6.5.2.26
 casatasks==6.5.2.26
 casatestutils==6.5.2.26
- casatools==6.5.2.26
+casatools==6.5.2.26
 casaviewer==1.6.6
 numpy==1.22.4
 reproject==0.9

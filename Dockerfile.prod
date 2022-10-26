@@ -8,4 +8,3 @@ RUN echo "Hello from snow production image"
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
 LABEL org.opencontainers.image.description="Container image for SNOW"
 LABEL org.opencontainers.image.licenses=GPL3
-

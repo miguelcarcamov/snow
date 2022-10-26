@@ -49,7 +49,7 @@ docker pull ghcr.io/miguelcarcamov/snow:latest
 
 ## Run snow
 
-```Python
+```python
 # Import the modules that you want to use
 import sys
 from snow.selfcalibration import Phasecal, AmpPhasecal
