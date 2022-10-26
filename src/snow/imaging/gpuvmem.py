@@ -5,34 +5,15 @@ from typing import Tuple
 
 from casatasks import exportfits, fixvis, immath, importfits, tclean
 from casatools import image
+from dataclasses import dataclass, field
 
 from ..utils.image_utils import reproject
 from .imager import Imager
 
 
+@dataclass(init=False, repr=True)
 class GPUvmem(Imager):
-
-    def __init__(
-        self,
-        executable: str = "gpuvmem",
-        gpu_blocks: list = [16, 16, 256],
-        initial_values: list = [],
-        regfactors: list = [],
-        gpuids: list = [0],
-        residual_output: str = "residuals.ms",
-        model_input: str = None,
-        model_out: str = "mod_out.fits",
-        user_mask: str = None,
-        force_noise: float = None,
-        gridding_threads: int = 4,
-        positivity: bool = True,
-        ftol: float = 1e-12,
-        noise_cut: float = 10.0,
-        gridding: bool = False,
-        print_images: bool = False,
-        **kwargs
-    ):
-        """
+    """
         gpuvmem imager object
 
         Parameters
@@ -55,9 +36,54 @@ class GPUvmem(Imager):
         noise_cut : Mask threshold based one the inverse of the primary beam
         gridding : Whether to grid visibilities or not to increase computation speed
         print_images : Whether to output the intermediate images during the optimization
-        kwargs : General imager parameters
-        """
+    """
+    executable: str = "gpuvmem"
+    gpu_blocks: list = None
+    initial_values: list = field(init=True, repr=True, default_factory=list)
+    regfactors: list = field(init=True, repr=True, default_factory=list)
+    gpuids: list = None
+    residual_output: str = "residuals.ms"
+    model_input: str = None
+    model_out: str = "mod_out.fits"
+    user_mask: str = None
+    force_noise: float = None
+    gridding_threads: int = 4
+    positivity: bool = True
+    ftol: float = 1e-12
+    noise_cut: float = 10.0
+    gridding: bool = False
+    print_images: bool = False
+
+    def __init__(
+        self,
+        executable: str = "gpuvmem",
+        gpu_blocks: list = [16, 16, 256],
+        initial_values: list = [],
+        regfactors: list = [],
+        gpuids: list = [0],
+        residual_output: str = "residuals.ms",
+        model_input: str = None,
+        model_out: str = "mod_out.fits",
+        user_mask: str = None,
+        force_noise: float = None,
+        gridding_threads: int = 4,
+        positivity: bool = True,
+        ftol: float = 1e-12,
+        noise_cut: float = 10.0,
+        gridding: bool = False,
+        print_images: bool = False,
+        **kwargs
+    ):
+
         super().__init__(**kwargs)
+        super().__post_init__()
+
+        if self.gpu_blocks is None:
+            self.gpu_blocks = [16, 16, 256]
+
+        if self.gpuids is None:
+            self.gpuids = [0]
+
         self.name = "GPUvmem"
         self.executable = executable
         self.gpu_blocks = gpu_blocks

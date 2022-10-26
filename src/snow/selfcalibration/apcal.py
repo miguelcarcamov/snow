@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+
 from casatasks import applycal, gaincal, rmtables
 
 from .selfcal import Selfcal
 
 
+@dataclass(init=False, repr=True)
 class AmpPhasecal(Selfcal):
 
     def __init__(self, incremental: bool = False, solnorm: bool = True, **kwargs):
@@ -25,6 +28,7 @@ class AmpPhasecal(Selfcal):
         self.__incremental = incremental
         self.__solnorm = solnorm
 
+        self._copy_directory_at_start()
         self._init_selfcal()
 
     def run(self):
@@ -87,6 +91,7 @@ class AmpPhasecal(Selfcal):
             self._save_selfcal(caltable_version=version_name, overwrite=True)
             self._caltables_versions.append(version_name)
 
+            print("Applying calibration tables to {0} file".format(self.visfile))
             if self.__incremental:
                 applycal(
                     vis=self.visfile,

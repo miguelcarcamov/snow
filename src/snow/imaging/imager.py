@@ -1,30 +1,13 @@
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
+from dataclasses import field as _field
 
 from ..utils import (calculate_number_antennas, calculate_psnr_fits, calculate_psnr_ms)
 
 
+@dataclass(init=True, repr=True)
 class Imager(metaclass=ABCMeta):
-
-    def __init__(
-        self,
-        inputvis: str = "",
-        output: str = "",
-        cell: str = "",
-        robust: float = 2.0,
-        weighting: str = "briggs",
-        field: str = "",
-        spw: str = "",
-        stokes: str = "I",
-        phase_center: str = "",
-        data_column: str = "corrected",
-        M: int = 512,
-        N: int = 512,
-        niter: int = 100,
-        noise_pixels: int = None,
-        save_model: bool = True,
-        verbose: bool = True
-    ):
-        """
+    """
         General Imager object
 
         Parameters
@@ -66,31 +49,32 @@ class Imager(metaclass=ABCMeta):
             Whether to save the model column or not
         verbose :
             Whether to use verbose option for imagers
-        """
-        self.inputvis = inputvis
-        self.output = output
-        self.cell = cell
-        self.robust = robust
-        self.weighting = weighting
-        self.field = field
-        self.spw = spw
-        self.stokes = stokes
-        self.phase_center = phase_center
-        self.data_column = data_column
-        self.M = M
-        self.N = N
-        self.niter = niter
-        self.noise_pixels = noise_pixels
-        self.save_model = save_model
-        self.verbose = verbose
-        self.psnr = 0.0
-        self.peak = 0.0
-        self.stdv = 0.0
-        self.name = ""
+    """
+    inputvis: str = ""
+    output: str = ""
+    cell: str = ""
+    robust: float = 2.0
+    weighting: str = "briggs"
+    field: str = ""
+    spw: str = ""
+    stokes: str = "I"
+    phase_center: str = ""
+    data_column: str = "corrected"
+    M: int = 512
+    N: int = 512
+    niter: int = 100
+    noise_pixels: int = None
+    save_model: bool = True
+    verbose: bool = True
+    psnr: float = _field(init=False, default=0.0)
+    peak: float = _field(init=False, default=0.0)
+    stdv: float = _field(init=False, default=0.0)
+    name: float = _field(init=False, default="")
+    nantennas: int = _field(init=False, default=0)
 
+    def __post_init__(self):
         if self.inputvis is not None and self.inputvis != "":
             self.nantennas = calculate_number_antennas(self.inputvis)
-        # self.__dict__.update(kwargs)
 
     def _calculate_statistics_fits(
         self, signal_fits_name="", residual_fits_name="", stdv_pixels=None

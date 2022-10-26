@@ -51,7 +51,7 @@ jobs:
       run: python3 -m build
     - name: Build bdist package
       run: python3 setup.py bdist_wheel
-    - name: Install selfcalframework
+    - name: Install snow
       run: pip install dist/*.tar.gz
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
@@ -59,8 +59,8 @@ jobs:
         path: dist/*
     - name: Run commands to test that everything is finished
       run: |
-        pip3 freeze | grep "selfcalframework"
-        python3 -c "import selfcalframework"
+        pip3 freeze | grep "snow"
+        python3 -c "import snow"
   build-latest-container:
     runs-on: ubuntu-latest
     needs: build

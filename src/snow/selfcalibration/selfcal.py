@@ -3,17 +3,21 @@ from __future__ import annotations
 import copy
 import os
 import shutil
+import warnings
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
+from dataclasses import dataclass
 
 from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, uvsub)
 from casatools import table
 
 from ..imaging.imager import Imager
+from ..utils.selfcal_utils import is_column_in_ms
 
 tb = table()
 
 
+@dataclass(init=False, repr=True)
 class Selfcal(metaclass=ABCMeta):
 
     def __init__(
@@ -114,13 +118,14 @@ class Selfcal(metaclass=ABCMeta):
         self.flag_dataset = flag_dataset
         self.restore_psnr = restore_psnr
         self.subtract_source = subtract_source
+
         # Protected variables
         self._caltables = []
         self._caltables_versions = []
         self._psnr_history = []
         self._calmode = ""
         self._loops = 0
-        self._psnr_visfile_backup = visfile
+        self._psnr_visfile_backup = self.visfile
 
         if self.imager is None:
             self._image_name = ""
@@ -187,6 +192,35 @@ class Selfcal(metaclass=ABCMeta):
                 raise ValueError("The input_caltable should be a string")
         else:
             self.__input_caltable = ""
+
+    def _copy_directory_at_start(self):
+        if self.visfile is not None:
+            path_object = Path(self.visfile)
+
+            current_visfile = "{0}_{2}{1}".format(
+                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+                self._calmode + "0"
+            )
+            # Copying dataset and overwriting if it has already been created
+            if os.path.exists(current_visfile):
+                shutil.rmtree(current_visfile)
+            shutil.copytree(self.visfile, current_visfile)
+            self.visfile = current_visfile
+            self.imager.inputvis = current_visfile
+
+    def _copy_directory_during_iterations(self, iteration):
+        path_object = Path(self.visfile)
+
+        current_visfile = "{0}_{2}{1}".format(
+            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
+            self._calmode + str(iteration + 1)
+        )
+        # Copying dataset and overwriting if it has already been created
+        if os.path.exists(current_visfile):
+            shutil.rmtree(current_visfile)
+        shutil.copytree(self.visfile, current_visfile)
+
+        return current_visfile
 
     def _save_selfcal(self, caltable_version="", overwrite=True) -> None:
         """
@@ -332,6 +366,7 @@ class Selfcal(metaclass=ABCMeta):
                     self._caltables.pop()
                     # Restoring to last MS
                     self.visfile = self._psnr_visfile_backup
+                    self.imager.inputvis = self._psnr_visfile_backup
                     return True
                 else:
                     print(
@@ -339,16 +374,8 @@ class Selfcal(metaclass=ABCMeta):
                         format(current_iteration)
                     )
 
-                    path_object = Path(self.visfile)
+                    current_visfile = self._copy_directory_during_iterations(current_iteration)
 
-                    current_visfile = "{0}_{2}{1}".format(
-                        Path.joinpath(path_object.parent, path_object.stem), path_object.suffix,
-                        self._calmode + str(current_iteration)
-                    )
-                    # Copying dataset and overwriting if it has already been created
-                    if os.path.exists(current_visfile):
-                        shutil.rmtree(current_visfile)
-                    shutil.copytree(self.visfile, current_visfile)
                     # Saving old visfile name
                     self._psnr_visfile_backup = self.visfile
                     # Changing visfile attribute to new current_visfile for selfcal and imager
@@ -484,10 +511,19 @@ class Selfcal(metaclass=ABCMeta):
         Name of the self-calibrated measurement set file
         """
         output_vis = self.visfile + '.selfcal'
-
+        data_column = ""
         if overwrite:
-            os.system('rm -rf ' + output_vis)
-        split(vis=self.visfile, outputvis=output_vis, datacolumn='corrected')
+            if os.path.exists(output_vis):
+                shutil.rmtree(output_vis)
+        if is_column_in_ms(self.visfile, "CORRECTED_DATA"):
+            data_column = "corrected"
+        else:
+            # Raise warning
+            warnings.warn(
+                "Corrected data column is not present, data column will be extracted instead."
+            )
+            data_column = "data"
+        split(vis=self.visfile, outputvis=output_vis, datacolumn=data_column)
         if _statwt:
             statwt_path = output_vis + '.statwt'
             if os.path.exists(statwt_path):

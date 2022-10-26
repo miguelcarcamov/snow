@@ -1,18 +1,9 @@
+from dataclasses import dataclass
 from .imager import Imager
 
 
+@dataclass(init=True, repr=True)
 class WSClean(Imager):
-
-    def __init__(self, **kwargs):
-        """
-        WSClean object
-
-        Parameters
-        ----------
-        kwargs :
-            General imager arguments
-        """
-        super().__init__(**kwargs)
 
     def run(self, imagename=""):
         """
