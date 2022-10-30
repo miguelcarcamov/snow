@@ -478,9 +478,9 @@ class GPUvmem(Imager):
             # Restore the image
             if self.restore_pyra:
                 residual_fits, restored_fits = self.__restore_pyra(
-                        model_fits=model_output,
-                        residual_ms=_residual_output,
-                        restored_image=restored_image
+                    model_fits=model_output,
+                    residual_ms=_residual_output,
+                    restored_image=restored_image
                 )
             else:
                 residual_fits, restored_fits = self.__restore(
