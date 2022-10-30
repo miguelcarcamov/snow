@@ -271,7 +271,7 @@ class GPUvmem(Imager):
         )
         image = dirty_mapper.transform()[0].data[0].compute()
 
-        fits_io.write(image, output_name=residual_casa_image + ".fits", header=header_model)
+        fits_io.write(image, output_name=residual_casa_image + ".fits")
 
         psf = dataset.psf[0]
 
@@ -287,7 +287,7 @@ class GPUvmem(Imager):
 
         im_restored = im_model_convolved + image
 
-        fits_io.write(im_restored, output_name=restored_image + ".fits", header=header_model)
+        fits_io.write(im_restored, output_name=restored_image + ".fits")
 
         return residual_casa_image + ".fits", restored_image + ".fits"
 
