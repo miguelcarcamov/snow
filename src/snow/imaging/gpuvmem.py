@@ -10,32 +10,45 @@ from dataclasses import dataclass, field
 from ..utils.image_utils import reproject
 from .imager import Imager
 
+from astropy.io import fits
+from pyralysis.io import DaskMS
+import astropy.units as u
+from astropy.units import Quantity
+from astropy.convolution import convolve_fft
+
+import numpy as np
+
+from pyralysis.convolution import CKernel, PSWF1
+from pyralysis.transformers.weighting_schemes import Natural, Uniform, Robust
+from pyralysis.transformers import Gridder, HermitianSymmetry, DirtyMapper
+from pyralysis.io import FITS
+
 
 @dataclass(init=False, repr=True)
 class GPUvmem(Imager):
     """
-        gpuvmem imager object
+    gpuvmem imager object
 
-        Parameters
-        ----------
-        executable : Absolute path to the gpuvmem executable binary
-        gpu_blocks : 2D and 1D GPU block sizes. e.g. [16,16,256]. For 2D kernels you would be using 16x16 blocks
-        and for 1D kernels you would be using block sizes of 256 threads.
-        initial_values : Initial values for the images. e.g. if optimizing I_nu_0 and alpha then [0.001, 3.0] would be
-        your initial values in units of code and unitless, respectively.
-        regfactors : Regularization factors for each one of the priors in your main.cu gpuvmem file
-        gpuids : List of GPU ids that will run gpuvmem
-        residual_output : Absolute path to the output residual measurement set
-        model_input : FITS image input with the desired astrometry of your output image
-        model_out : Absolute path to the output model image
-        user_mask : Absolute path to the FITS image file with the 0/1 mask
-        force_noise : Force noise to a desired value
-        gridding_threads : Number of threads to use during gridding
-        positivity : Whether to impose positivity in the optimization or not
-        ftol : Optimization tolerance
-        noise_cut : Mask threshold based one the inverse of the primary beam
-        gridding : Whether to grid visibilities or not to increase computation speed
-        print_images : Whether to output the intermediate images during the optimization
+    Parameters
+    ----------
+    executable : Absolute path to the gpuvmem executable binary
+    gpu_blocks : 2D and 1D GPU block sizes. e.g. [16,16,256]. For 2D kernels you would be using 16x16 blocks
+    and for 1D kernels you would be using block sizes of 256 threads.
+    initial_values : Initial values for the images. e.g. if optimizing I_nu_0 and alpha then [0.001, 3.0] would be
+    your initial values in units of code and unitless, respectively.
+    regfactors : Regularization factors for each one of the priors in your main.cu gpuvmem file
+    gpuids : List of GPU ids that will run gpuvmem
+    residual_output : Absolute path to the output residual measurement set
+    model_input : FITS image input with the desired astrometry of your output image
+    model_out : Absolute path to the output model image
+    user_mask : Absolute path to the FITS image file with the 0/1 mask
+    force_noise : Force noise to a desired value
+    gridding_threads : Number of threads to use during gridding
+    positivity : Whether to impose positivity in the optimization or not
+    ftol : Optimization tolerance
+    noise_cut : Mask threshold based one the inverse of the primary beam
+    gridding : Whether to grid visibilities or not to increase computation speed
+    print_images : Whether to output the intermediate images during the optimization
     """
     executable: str = "gpuvmem"
     gpu_blocks: list = None
@@ -53,6 +66,7 @@ class GPUvmem(Imager):
     noise_cut: float = 10.0
     gridding: bool = False
     print_images: bool = False
+    restore_pyra: bool = False
 
     def __init__(
         self,
@@ -72,6 +86,7 @@ class GPUvmem(Imager):
         noise_cut: float = 10.0,
         gridding: bool = False,
         print_images: bool = False,
+        restore_pyra: bool = False,
         **kwargs
     ):
 
@@ -99,6 +114,7 @@ class GPUvmem(Imager):
         self.noise_cut = noise_cut
         self.gridding = gridding
         self.print_images = print_images
+        self.restore_pyra = restore_pyra
 
         if self.phase_center != "":
             fixvis(
@@ -162,12 +178,124 @@ class GPUvmem(Imager):
             if new_mask_name is not None:
                 self.__user_mask = new_mask_name
 
+    def __restore_pyra(
+        self,
+        model_fits="",
+        residual_ms="",
+        restored_image="restored",
+        padding_factor: float = 1.0,
+        use_ckernel: bool = False,
+        hermitian_symmetry: bool = True
+    ) -> Tuple[str, str]:
+        """
+        Private method that creates the restored image using Pyralysis. This is done by convolving the gpuvmem model image with
+        the clean-beam and adding the residuals.
+
+        Parameters
+        ----------
+        model_fits :
+            Absolute path to the FITS image to the model
+        residual_ms :
+            Absolute path to the measurement set file of the residuals
+        restored_image :
+            Absolute path for the output restored image
+
+        Returns
+        -------
+        Returns a tuple of strings with the absolute paths to the residual FITS image and the restored FITS image
+        """
+        residual_image = residual_ms.partition(".ms")[0] + ".residual.fits"
+        residual_casa_image = residual_image + ".image"
+
+        os.system(
+            "rm -rf *.log *.last " + residual_image +
+            ".* mod_out convolved_mod_out convolved_mod_out.fits " + restored_image + " " +
+            restored_image + ".fits"
+        )
+        with fits.open(model_fits) as hdu_model:
+            im_model = hdu_model[0].data
+        pix_scale = Quantity(self.cell)
+
+        imsize = [self.M, self.N]
+
+        if use_ckernel:
+            c_kernel = PSWF1(size=3, cellsize=pix_scale[1])
+        else:
+            c_kernel = None
+
+        print("Loading residual ms using pyralysis...")
+        x = DaskMS(input_name=residual_ms)
+        dataset = x.read()
+
+        if hermitian_symmetry:
+            print("Applying hermitian symmetry")
+            h_symmetry = HermitianSymmetry(input_data=dataset)
+            h_symmetry.apply()
+
+        print("Instantiating gridder...")
+        gridder = Gridder(
+            imsize=imsize,
+            cellsize=pix_scale,
+            hermitian_symmetry=hermitian_symmetry,
+            padding_factor=padding_factor
+        )
+
+        print("Instantiating IO FITS...")
+        fits_io = FITS()
+
+        weighting_scheme = self.weighting
+        if weighting_scheme.lower() == "briggs" or weighting_scheme.lower() == "robust":
+            weighting_object = Robust(
+                input_data=dataset, robust_parameter=self.robust, gridder=gridder
+            )
+        elif weighting_scheme.lower() == "uniform":
+            weighting_object = Uniform(input_data=dataset, gridder=gridder)
+        elif weighting_scheme.lower() == "natural":
+            weighting_object = Natural(input_data=dataset, gridder=gridder)
+        else:
+            raise ValueError("Unrecognized weighting scheme!")
+        weighting_object.apply()
+
+        dataset.calculate_psf()
+
+        dirty_mapper = DirtyMapper(
+            input_data=dataset,
+            imsize=imsize,
+            cellsize=pix_scale,
+            stokes=self.stokes,
+            data_column="DATA",
+            ckernel_object=c_kernel,
+            hermitian_symmetry=hermitian_symmetry,
+            padding_factor=padding_factor
+        )
+        image = dirty_mapper.transform()[0].data[0].compute()
+
+        fits_io.write(image, output_name=residual_casa_image + ".fits")
+
+        psf = dataset.psf[0]
+
+        clean_beam_kernel = psf.as_kernel(pix_scale)
+
+        im_model_convolved = convolve_fft(im_model.squeeze(), clean_beam_kernel)
+
+        pixel_area = np.abs(pix_scale * pix_scale)
+        pix_area_scale = u.pixel_scale(pixel_area / u.pixel)
+        beam_area_pixels = psf.sr.to(u.pixel, pix_area_scale)
+
+        im_model_convolved *= beam_area_pixels.value
+
+        im_restored = im_model_convolved + image
+
+        fits_io.write(im_restored, output_name=restored_image + ".fits")
+
+        return residual_casa_image + ".fits", restored_image + ".fits"
+
     def __restore(self,
                   model_fits="",
                   residual_ms="",
                   restored_image="restored") -> Tuple[str, str]:
         """
-        Private method that creates the restored image. This is done by convolving the gpuvmem model image with
+        Private method that creates the restored image using CASA. This is done by convolving the gpuvmem model image with
         the clean-beam and adding the residuals.
 
         Parameters
@@ -348,11 +476,18 @@ class GPUvmem(Imager):
             raise FileNotFoundError("The model image has not been created")
         else:
             # Restore the image
-            residual_fits, restored_fits = self.__restore(
-                model_fits=model_output,
-                residual_ms=_residual_output,
-                restored_image=restored_image
-            )
+            if self.restore_pyra:
+                residual_fits, restored_fits = self.__restore_pyra(
+                        model_fits=model_output,
+                        residual_ms=_residual_output,
+                        restored_image=restored_image
+                )
+            else:
+                residual_fits, restored_fits = self.__restore(
+                    model_fits=model_output,
+                    residual_ms=_residual_output,
+                    restored_image=restored_image
+                )
 
         # Calculate PSNR and RMS using astropy and numpy
         self._calculate_statistics_fits(
