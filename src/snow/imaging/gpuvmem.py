@@ -214,6 +214,7 @@ class GPUvmem(Imager):
         )
         with fits.open(model_fits) as hdu_model:
             im_model = hdu_model[0].data
+            header_model = hdu_model[0].header
         pix_scale = Quantity(self.cell)
 
         imsize = [self.M, self.N]
@@ -270,7 +271,7 @@ class GPUvmem(Imager):
         )
         image = dirty_mapper.transform()[0].data[0].compute()
 
-        fits_io.write(image, output_name=residual_casa_image + ".fits")
+        fits_io.write(image, output_name=residual_casa_image + ".fits", header=header_model)
 
         psf = dataset.psf[0]
 
@@ -286,7 +287,7 @@ class GPUvmem(Imager):
 
         im_restored = im_model_convolved + image
 
-        fits_io.write(im_restored, output_name=restored_image + ".fits")
+        fits_io.write(im_restored, output_name=restored_image + ".fits", header=header_model)
 
         return residual_casa_image + ".fits", restored_image + ".fits"
 
