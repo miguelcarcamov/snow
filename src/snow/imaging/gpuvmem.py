@@ -277,7 +277,11 @@ class GPUvmem(Imager):
 
         clean_beam_kernel = psf.as_kernel(pix_scale)
 
-        im_model_convolved = convolve_fft(im_model.squeeze(), clean_beam_kernel)
+        im_model_convolved = convolve_fft(
+            im_model.squeeze(),
+            clean_beam_kernel.array.astype(np.float32),
+            complex_dtype=np.complex64
+        ).astype(np.float32)
 
         pixel_area = np.abs(pix_scale * pix_scale)
         pix_area_scale = u.pixel_scale(pixel_area / u.pixel)
