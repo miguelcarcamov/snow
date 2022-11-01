@@ -2,7 +2,7 @@ name: snow-env
 dependencies:
 - python=3.8
 - numpy=1.23
-- mpi4py=3.1.3
+- mpi4py
 - anaconda
 - pip
 - pip:
@@ -18,6 +18,6 @@ dependencies:
   - casatools==6.5.2.26
   - casaviewer==1.6.6
   - reproject==0.9
-  - scipy==1.8.1
+  - scipy==1.9.1
   - python-casacore==3.5.2
   - git+https://gitlab.com/miguelcarcamov/pyralysis@development#egg=pyralysis
