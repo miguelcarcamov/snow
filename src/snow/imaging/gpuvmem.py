@@ -269,15 +269,19 @@ class GPUvmem(Imager):
             hermitian_symmetry=hermitian_symmetry,
             padding_factor=padding_factor
         )
-        image = dirty_mapper.transform()[0].data[0].compute()
+        residual_image = dirty_mapper.transform()[0].data[0].compute()
 
-        fits_io.write(image, output_name=residual_casa_image + ".fits")
+        fits_io.write(residual_image, output_name=residual_casa_image + ".fits")
 
         psf = dataset.psf[0]
 
         clean_beam_kernel = psf.as_kernel(pix_scale)
 
-        im_model_convolved = convolve_fft(im_model.squeeze(), clean_beam_kernel)
+        im_model_convolved = convolve_fft(
+            im_model.squeeze(),
+            clean_beam_kernel.array.astype(np.float32),
+            complex_dtype=np.complex64
+        ).astype(np.float32)
 
         pixel_area = np.abs(pix_scale * pix_scale)
         pix_area_scale = u.pixel_scale(pixel_area / u.pixel)
@@ -285,9 +289,9 @@ class GPUvmem(Imager):
 
         im_model_convolved *= beam_area_pixels.value
 
-        im_restored = im_model_convolved + image
+        im_restored = im_model_convolved + residual_image
 
-        fits_io.write(im_restored, output_name=restored_image + ".fits")
+        fits_io.write(im_restored.astype(np.float32), output_name=restored_image + ".fits")
 
         return residual_casa_image + ".fits", restored_image + ".fits"
 
