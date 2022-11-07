@@ -1,6 +1,7 @@
 from casatasks import tclean
 
 from dataclasses import dataclass, field
+from astropy.units import Quantity
 from .imager import Imager
 
 
@@ -95,6 +96,7 @@ class Tclean(Imager):
 
     def run(self, imagename=""):
         __imsize = [self.M, self.N]
+        aux_reference_freq = self._check_reference_frequency()
         tclean(
             vis=self.inputvis,
             imagename=imagename,
@@ -108,6 +110,7 @@ class Tclean(Imager):
             scales=self.scales,
             nterms=self.nterms,
             imsize=__imsize,
+            reffreq=aux_reference_freq,
             cell=self.cell,
             weighting=self.weighting,
             robust=self.robust,

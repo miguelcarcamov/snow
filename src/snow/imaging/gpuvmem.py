@@ -328,12 +328,15 @@ class GPUvmem(Imager):
 
         importfits(imagename="model_out", fitsimage=model_fits, overwrite=True)
 
+        aux_reference_freq = self._check_reference_frequency()
+
         tclean(
             vis=residual_ms,
             imagename=residual_image,
             specmode='mfs',
             deconvolver='hogbom',
             niter=0,
+            reffreq=aux_reference_freq,
             stokes=self.stokes,
             nterms=1,
             weighting=self.weighting,
@@ -409,12 +412,14 @@ class GPUvmem(Imager):
             A string with absolute path to the output FITS image file
         """
         fits_image = name + '.fits'
+        aux_reference_freq = self._check_reference_frequency()
         tclean(
             vis=self.inputvis,
             imagename=name,
             specmode='mfs',
             niter=0,
             deconvolver='hogbom',
+            reffreq=aux_reference_freq,
             interactive=False,
             cell=self.cell,
             stokes=self.stokes,
@@ -456,6 +461,14 @@ class GPUvmem(Imager):
 
         if self.gridding:
             args += " -g " + str(self.gridding_threads)
+
+        if self.reference_freq:
+            if isinstance(self.reference_freq, Quantity):
+                args += " -F " + str(self.reference_freq.to(u.Hz))
+            elif isinstance(self.reference_freq, float):
+                args += " -F " + str(self.reference_freq)
+            else:
+                args += " -F " + self.reference_freq
 
         if self.print_images:
             args += " --print-images"
