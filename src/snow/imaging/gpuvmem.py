@@ -443,9 +443,10 @@ class GPUvmem(Imager):
         if self.model_input is None:
             self.model_input = self.__create_model_input(imagename + "_input")
         else:
+            print()
             with fits.open(self.model_input) as hdul:
                 header = hdul[0].header
-                self.reference_freq = Quantity(header['CRVAL3'] + " Hz")
+                self.reference_freq = Quantity(header['CRVAL3'] * u.Hz)
 
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
@@ -472,8 +473,12 @@ class GPUvmem(Imager):
                 args += " -F " + str(self.reference_freq.to(u.Hz).value)
             elif isinstance(self.reference_freq, float):
                 args += " -F " + str(self.reference_freq)
-            else:
+            elif isinstance(self.reference_freq, str):
                 args += " -F " + self.reference_freq
+            else:
+                raise NotImplementedError(
+                    "Type {} has not implementation in snow".format(type(self.reference_freq))
+                )
 
         if self.print_images:
             args += " --print-images"
