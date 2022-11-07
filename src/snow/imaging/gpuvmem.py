@@ -443,12 +443,12 @@ class GPUvmem(Imager):
         if self.model_input is None:
             print("Model input is None - Creating model_input...")
             self.model_input = self.__create_model_input(imagename + "_input")
-        else:
-            print("Model input is not None - Reading CRVAL3 as reference frequency...")
-            if self.reference_freq == "":
-                with fits.open(self.model_input) as hdul:
-                    header = hdul[0].header
-                    self.reference_freq = Quantity(header['CRVAL3'] * u.Hz)
+
+        if self.reference_freq is None:
+            print("Reference frequency is None - Reading CRVAL3 as reference frequency...")
+            with fits.open(self.model_input) as hdul:
+                header = hdul[0].header
+                self.reference_freq = Quantity(header['CRVAL3'] * u.Hz)
 
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
