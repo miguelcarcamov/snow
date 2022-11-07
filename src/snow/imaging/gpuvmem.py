@@ -442,6 +442,11 @@ class GPUvmem(Imager):
         """
         if self.model_input is None:
             self.model_input = self.__create_model_input(imagename + "_input")
+        else:
+            with fits.open(self.model_input) as hdul:
+                header = hdul[0].header
+                self.reference_freq = Quantity(header['CRVAL3'] + " Hz")
+
         model_output = imagename + ".fits"
         _residual_output = imagename + "_" + self.residual_output
         restored_image = imagename + ".restored"
@@ -464,7 +469,7 @@ class GPUvmem(Imager):
 
         if self.reference_freq:
             if isinstance(self.reference_freq, Quantity):
-                args += " -F " + str(self.reference_freq.to(u.Hz))
+                args += " -F " + str(self.reference_freq.to(u.Hz).value)
             elif isinstance(self.reference_freq, float):
                 args += " -F " + str(self.reference_freq)
             else:
