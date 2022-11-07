@@ -66,7 +66,7 @@ class Imager(metaclass=ABCMeta):
     data_column: str = "corrected"
     M: int = 512
     N: int = 512
-    reference_freq: Union[str, float, Quantity] = ""
+    reference_freq: Union[str, float, Quantity, None] = None
     niter: int = 100
     noise_pixels: int = None
     save_model: bool = True
@@ -138,8 +138,14 @@ class Imager(metaclass=ABCMeta):
         if self.reference_freq:
             if isinstance(self.reference_freq, Quantity) or isinstance(self.reference_freq, float):
                 aux_reference_freq = str(self.reference_freq)
-            else:
+            elif self.reference_freq is None:
+                aux_reference_freq = ""
+            elif isinstance(self.reference_freq, str):
                 aux_reference_freq = self.reference_freq
+            else:
+                raise NotImplementedError(
+                    "Type {} has not implementation in snow".format(type(self.reference_freq))
+                )
         return aux_reference_freq
 
     @abstractmethod
