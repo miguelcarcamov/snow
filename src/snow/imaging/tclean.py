@@ -123,7 +123,7 @@ class Tclean(Imager):
             pbcor=self.pbcor,
             uvtaper=self.uvtaper,
             savemodel=self.clean_savemodel,
-            usemask=self.usemask,
+            usemask=self.use_mask,
             negativethreshold=self.negative_threshold,
             lownoisethreshold=self.low_noise_threshold,
             noisethreshold=self.noise_threshold,
