@@ -1,7 +1,6 @@
 from casatasks import tclean
 
 from dataclasses import dataclass, field
-from astropy.units import Quantity
 from .imager import Imager
 
 
