@@ -388,7 +388,7 @@ class Selfcal(metaclass=ABCMeta):
             return False
 
     def _flag_dataset(
-        self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
+        self, datacolumn=None, mode="rflag", timedevscale=3.0, freqdevscale=3.0
     ) -> None:
         """
         Protected method that flag the dataset on each iteration. This functions aims to flag residual outliers.
@@ -411,6 +411,12 @@ class Selfcal(metaclass=ABCMeta):
             For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$ freqdev.
         """
 
+        if datacolumn is None:
+            if is_column_in_ms(self.visfile, "CORRECTED_DATA"):
+                datacolumn = "RESIDUAL"
+            else:
+                datacolumn = "RESIDUAL_DATA"
+
         flagdata(
             vis=self.visfile,
             mode=mode,
@@ -418,9 +424,8 @@ class Selfcal(metaclass=ABCMeta):
             field=self.imager.field,
             timecutoff=5.0,
             freqcutoff=5.0,
-            timefit='line',
             freqfit='line',
-            flagdimension='freqtime',
+            flagdimension='freq',
             extendflags=False,
             timedevscale=timedevscale,
             freqdevscale=freqdevscale,
@@ -429,6 +434,7 @@ class Selfcal(metaclass=ABCMeta):
             growaround=False,
             flagneartime=False,
             flagnearfreq=False,
+            ntime="scan",
             action='apply',
             flagbackup=True,
             overwrite=True,
