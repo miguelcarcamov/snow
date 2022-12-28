@@ -413,9 +413,9 @@ class Selfcal(metaclass=ABCMeta):
 
         if datacolumn is None:
             if is_column_in_ms(self.visfile, "CORRECTED_DATA"):
-                datacolumn = "RESIDUAL"
+                datacolumn = "residual"
             else:
-                datacolumn = "RESIDUAL_DATA"
+                datacolumn = "residual_data"
 
         flagdata(
             vis=self.visfile,
