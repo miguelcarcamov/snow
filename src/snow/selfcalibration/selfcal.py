@@ -502,7 +502,7 @@ class Selfcal(metaclass=ABCMeta):
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)
 
-    def selfcal_output(self, overwrite=False, _statwt=False) -> str:
+    def selfcal_output(self, overwrite=False, _statwt=False, min_samp=8) -> str:
         """
         Public function that creates a new measurement set only taking the corrected column.
         If _statwt is True then applies the statwt function and creates a .statwt measurement
@@ -513,7 +513,8 @@ class Selfcal(metaclass=ABCMeta):
             Whether to overwrite the measurement set files
         _statwt :
             Whether to create a new measurement applying the statwt function
-
+        min_samp :
+            Minimum number of unflagged visibilities for estimating the scatter if _statwt is True
         Returns
         -------
         Name of the self-calibrated measurement set file
@@ -537,7 +538,7 @@ class Selfcal(metaclass=ABCMeta):
             if os.path.exists(statwt_path):
                 shutil.rmtree(statwt_path)
             shutil.copytree(output_vis, statwt_path)
-            statwt(vis=statwt_path, datacolumn="data")
+            statwt(vis=statwt_path, datacolumn="data", minsamp=min_samp)
         return output_vis
 
     def _uvsubtract(self):
