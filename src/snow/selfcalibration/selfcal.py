@@ -417,6 +417,8 @@ class Selfcal(metaclass=ABCMeta):
             else:
                 datacolumn = "residual_data"
 
+        print("Flagging {0} data column using {1}".format(datacolumn, mode))
+
         flagdata(
             vis=self.visfile,
             mode=mode,
