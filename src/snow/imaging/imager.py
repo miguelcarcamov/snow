@@ -2,6 +2,10 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from dataclasses import field as _field
 
+from typing import Union
+
+from astropy.units import Quantity
+
 from ..utils import (calculate_number_antennas, calculate_psnr_fits, calculate_psnr_ms)
 
 
@@ -62,6 +66,7 @@ class Imager(metaclass=ABCMeta):
     data_column: str = "corrected"
     M: int = 512
     N: int = 512
+    reference_freq: Union[str, float, Quantity, None] = None
     niter: int = 100
     noise_pixels: int = None
     save_model: bool = True
@@ -127,6 +132,21 @@ class Imager(metaclass=ABCMeta):
         self.psnr = peak / stdv
         self.peak = peak
         self.stdv = stdv
+
+    def _check_reference_frequency(self):
+        aux_reference_freq = ""
+        if self.reference_freq:
+            if isinstance(self.reference_freq, Quantity) or isinstance(self.reference_freq, float):
+                aux_reference_freq = str(self.reference_freq)
+            elif self.reference_freq is None:
+                aux_reference_freq = ""
+            elif isinstance(self.reference_freq, str):
+                aux_reference_freq = self.reference_freq
+            else:
+                raise NotImplementedError(
+                    "Type {} has not implementation in snow".format(type(self.reference_freq))
+                )
+        return aux_reference_freq
 
     @abstractmethod
     def run(self, imagename=""):

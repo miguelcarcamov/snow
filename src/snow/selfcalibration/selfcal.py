@@ -388,7 +388,7 @@ class Selfcal(metaclass=ABCMeta):
             return False
 
     def _flag_dataset(
-        self, datacolumn="RESIDUAL", mode="rflag", timedevscale=3.0, freqdevscale=3.0
+        self, datacolumn=None, mode="rflag", timedevscale=3.0, freqdevscale=3.0
     ) -> None:
         """
         Protected method that flag the dataset on each iteration. This functions aims to flag residual outliers.
@@ -411,6 +411,14 @@ class Selfcal(metaclass=ABCMeta):
             For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$ freqdev.
         """
 
+        if datacolumn is None:
+            if is_column_in_ms(self.visfile, "CORRECTED_DATA"):
+                datacolumn = "residual"
+            else:
+                datacolumn = "residual_data"
+
+        print("Flagging {0} data column using {1}".format(datacolumn, mode))
+
         flagdata(
             vis=self.visfile,
             mode=mode,
@@ -418,9 +426,8 @@ class Selfcal(metaclass=ABCMeta):
             field=self.imager.field,
             timecutoff=5.0,
             freqcutoff=5.0,
-            timefit='line',
             freqfit='line',
-            flagdimension='freqtime',
+            flagdimension='freq',
             extendflags=False,
             timedevscale=timedevscale,
             freqdevscale=freqdevscale,
@@ -429,6 +436,7 @@ class Selfcal(metaclass=ABCMeta):
             growaround=False,
             flagneartime=False,
             flagnearfreq=False,
+            ntime="scan",
             action='apply',
             flagbackup=True,
             overwrite=True,
@@ -494,7 +502,7 @@ class Selfcal(metaclass=ABCMeta):
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)
 
-    def selfcal_output(self, overwrite=False, _statwt=False) -> str:
+    def selfcal_output(self, overwrite=False, _statwt=False, min_samp=8) -> str:
         """
         Public function that creates a new measurement set only taking the corrected column.
         If _statwt is True then applies the statwt function and creates a .statwt measurement
@@ -505,7 +513,8 @@ class Selfcal(metaclass=ABCMeta):
             Whether to overwrite the measurement set files
         _statwt :
             Whether to create a new measurement applying the statwt function
-
+        min_samp :
+            Minimum number of unflagged visibilities for estimating the scatter if _statwt is True
         Returns
         -------
         Name of the self-calibrated measurement set file
@@ -529,7 +538,7 @@ class Selfcal(metaclass=ABCMeta):
             if os.path.exists(statwt_path):
                 shutil.rmtree(statwt_path)
             shutil.copytree(output_vis, statwt_path)
-            statwt(vis=statwt_path, datacolumn="data")
+            statwt(vis=statwt_path, datacolumn="data", minsamp=min_samp)
         return output_vis
 
     def _uvsubtract(self):
