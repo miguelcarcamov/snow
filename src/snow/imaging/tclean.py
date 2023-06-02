@@ -1,7 +1,6 @@
 from casatasks import tclean
 
 from dataclasses import dataclass, field
-from astropy.units import Quantity
 from .imager import Imager
 
 
@@ -76,6 +75,7 @@ class Tclean(Imager):
     noise_threshold: float = 4.25
     sidelobe_threshold: float = 2.0
     min_beam_frac: float = 0.3
+    grow_iterations: float = 75.0
     specmode: str = ""
     gridder: str = "standard"
     wproj_planes: int = -1
@@ -123,12 +123,13 @@ class Tclean(Imager):
             pbcor=self.pbcor,
             uvtaper=self.uvtaper,
             savemodel=self.clean_savemodel,
-            usemask=self.usemask,
+            usemask=self.use_mask,
             negativethreshold=self.negative_threshold,
             lownoisethreshold=self.low_noise_threshold,
             noisethreshold=self.noise_threshold,
             sidelobethreshold=self.sidelobe_threshold,
             minbeamfrac=self.min_beam_frac,
+            growiterations=self.grow_iterations,
             cycleniter=self.cycle_niter,
             verbose=self.verbose
         )
