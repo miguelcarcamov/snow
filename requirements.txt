@@ -1,5 +1,5 @@
 almatasks==1.6.1
-astropy==5.3
+astropy==5.2.2
 casadata==2023.4.10
 casafeather==0.0.18
 casampi==0.5.3
