@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.3.0
+  rev: v2.9.0
   hooks:
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']
@@ -8,7 +8,7 @@ repos:
     args: [--autofix]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.2.0
+  rev: v4.4.0
   hooks:
   - id: check-yaml
   - id: end-of-file-fixer
@@ -26,7 +26,7 @@ repos:
     additional_dependencies: [toml]
 
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.31.1
+  rev: v0.34.0
   hooks:
   - id: markdownlint-fix
     entry: markdownlint -f '**/*.md' --disable MD013 MD036 MD046 MD033 MD041 MD040
