@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.stats import sigma_clipped_stats
 from casatasks import exportfits, imstat
 from reproject import reproject_interp
 
@@ -156,7 +157,9 @@ def export_ms_to_fits(msname: str = "") -> str:
 def calculate_psnr_fits(
     signal_fits_name: str = "",
     residual_fits_name: str = "",
-    pixels: int = None
+    pixels: int = None,
+    sigma: float = 5,
+    use_sigma_clipped_stats: bool = True,
 ) -> Tuple[float, float, float]:
     """
     Function that calculates the peak signal-to-noise ratio of a reconstruction with images resulting in FITS files.
@@ -170,6 +173,10 @@ def calculate_psnr_fits(
         The absolute path to the residual image
     pixels :
         Number of pixels on where to calculate the RMS
+    sigma:
+        Number of sigma noise values to calculate the noise in the residual image
+    use_sigma_clipped_stats:
+        Whether to use astropy sigma_clipped_stats to calculate the mad_std of the residual image
 
     Returns
     -------
@@ -179,11 +186,16 @@ def calculate_psnr_fits(
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
 
-    stdv = nanrms(res_data[0:pixels, 0:pixels])
+    if use_sigma_clipped_stats:
+        noise = sigma_clipped_stats(
+            data=res_data[0:pixels, 0:pixels], sigma=sigma, stdfunc="mad_std"
+        )
+    else:
+        noise = nanrms(res_data[0:pixels, 0:pixels])
     peak = np.nanmax(signal_data)
-    psnr = peak / stdv
+    peak_signal_to_noise = peak / noise
 
-    return psnr, peak, stdv
+    return peak_signal_to_noise, peak, noise
 
 
 def calculate_psnr_ms(signal_ms_name: str = "",
