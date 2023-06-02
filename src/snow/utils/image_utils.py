@@ -187,7 +187,7 @@ def calculate_psnr_fits(
     res_data = get_data(residual_fits_name)
 
     if use_sigma_clipped_stats:
-        noise = sigma_clipped_stats(
+        _, _, noise = sigma_clipped_stats(
             data=res_data[0:pixels, 0:pixels], sigma=sigma, stdfunc="mad_std"
         )
     else:
