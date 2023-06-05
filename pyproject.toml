@@ -1,32 +1,32 @@
 [build-system]
-requires = ["setuptools>=65.5.0", "setuptools-scm", "wheel"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools>=65.5.0", "setuptools-scm", "wheel"]
 
 [project]
-name = "snow"
 authors = [
-    {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"},
+  {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"}
 ]
-maintainers = [
-    {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"},
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent"
 ]
 description = "A Python object oriented framework to do radio-interferometric self-calibration"
-readme = "README.md"
-license = {text = "GNU GPL"}
-requires-python = ">=3.8, <=3.8.13"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent"
-]
 dynamic = ["version", "dependencies"]
+license = {text = "GNU GPL"}
+maintainers = [
+  {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"}
+]
+name = "snow"
+readme = "README.md"
+requires-python = ">=3.8, <=3.8.16"
 
 [project.urls]
 Source = "https://github.com/miguelcarcamov/selfcalframework"
 
 [tool.setuptools.packages.find]
-where = ["src"]
 include = ["snow*"]
 namespaces = false
+where = ["src"]
 
 [tool.setuptools_scm]
 write_to = "src/snow/_version.py"
