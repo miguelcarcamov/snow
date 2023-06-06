@@ -123,8 +123,10 @@ class GPUvmem(Imager):
                 field=self.field,
                 phasecenter=self.phase_center
             )
+
         self.model_input = model_input
         self.user_mask = user_mask
+
 
     @property
     def user_mask(self):
@@ -151,8 +153,6 @@ class GPUvmem(Imager):
                 else:
                     if os.path.exists(model_input):
                         self.__model_input = model_input
-                        if self.user_mask is not None:
-                            self.__check_mask()
                     else:
                         raise FileNotFoundError("Model input image does not exist...")
             else:
