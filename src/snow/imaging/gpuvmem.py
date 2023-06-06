@@ -127,7 +127,6 @@ class GPUvmem(Imager):
         self.model_input = model_input
         self.user_mask = user_mask
 
-
     @property
     def user_mask(self):
         return self.__user_mask
