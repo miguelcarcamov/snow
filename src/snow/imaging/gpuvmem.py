@@ -124,6 +124,9 @@ class GPUvmem(Imager):
                 phasecenter=self.phase_center
             )
 
+        self.__model_input = None
+        self.__user_mask = None
+
         self.model_input = model_input
         self.user_mask = user_mask
 
@@ -152,6 +155,8 @@ class GPUvmem(Imager):
                 else:
                     if os.path.exists(model_input):
                         self.__model_input = model_input
+                        if self.__user_mask is not None:
+                            self.__check_mask()
                     else:
                         raise FileNotFoundError("Model input image does not exist...")
             else:
@@ -171,8 +176,8 @@ class GPUvmem(Imager):
             ‘biquadratic’
             ‘bicubic’
         """
-        if self.__user_mask is not None and self.model_input is not None:
-            new_mask_name = reproject(self.__user_mask, self.model_input, order=order)
+        if self.__user_mask is not None and self.__model_input is not None:
+            new_mask_name = reproject(self.__user_mask, self.__model_input, order=order)
 
             if new_mask_name is not None:
                 self.__user_mask = new_mask_name
