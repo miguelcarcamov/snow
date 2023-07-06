@@ -14,4 +14,4 @@ numpy==1.23.4
 git+https://gitlab.com/clirai/pyralysis@development#egg=pyralysis
 python-casacore==3.5.2
 reproject==0.9.1
-scipy==1.9.1
+scipy==1.10.0
