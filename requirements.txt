@@ -1,5 +1,5 @@
 astropy==5.2.2
-casadata==2023.9.25
+casadata==2023.9.18
 casafeather==0.0.20
 casalogger==1.0.17
 casampi==0.5.4
