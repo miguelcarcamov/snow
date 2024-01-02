@@ -18,7 +18,7 @@ maintainers = [
 ]
 name = "snow"
 readme = "README.md"
-requires-python = ">=3.8, <=3.8.16"
+requires-python = ">=3.10, <=3.11"
 
 [project.urls]
 Source = "https://github.com/miguelcarcamov/selfcalframework"
