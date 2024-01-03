@@ -5,7 +5,8 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update -y && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get install -y tzdata --no-install-recommends && \
     apt-get install -y keyboard-configuration --no-install-recommends && \
     apt-get install -y software-properties-common --no-install-recommends
 
@@ -14,7 +15,7 @@ RUN add-apt-repository main && \
   add-apt-repository restricted && \
   add-apt-repository multiverse && \
   apt-get update -y && \
-  rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* &&\
+  rm -rf /var/lib/apt/lists/* &&\
   apt-get install -y build-essential --no-install-recommends && \
   apt-get install -y zlib1g-dev libncurses5-dev --no-install-recommends && \
   apt-get install -y libgdbm-dev libnss3-dev libssl-dev  --no-install-recommends && \
