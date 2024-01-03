@@ -6,7 +6,6 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update -y && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
-    apt-get install -y ca-certificates --no-install-recommends && \
     apt-get install -y tzdata --no-install-recommends && \
     apt-get install -y keyboard-configuration --no-install-recommends && \
     apt-get install -y software-properties-common --no-install-recommends
