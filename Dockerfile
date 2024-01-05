@@ -4,7 +4,8 @@ ENV TZ=Etc/UTC
 RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" > /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
-    apt-get update -y && \
+    apt-get update -y --fix-missing && \
+    apt-get install -y --no-install-recommends software-properties-common && \
     rm -rf /var/lib/apt/lists/* && \
     add-apt-repository main && \
     add-apt-repository universe && \
@@ -14,7 +15,6 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     rm -rf /var/lib/apt/lists/* && \
     apt-get install -y --no-install-recommends tzdata && \
     apt-get install -y --no-install-recommends keyboard-configuration && \
-    apt-get install -y --no-install-recommends software-properties-common
 
 RUN apt-get install -y --no-install-recommends build-essential && \
   apt-get install -y --no-install-recommends zlib1g-dev libncurses5-dev && \
