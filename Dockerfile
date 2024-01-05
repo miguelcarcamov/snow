@@ -13,26 +13,24 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     apt-get update -y && \
     apt-get install -y --no-install-recommends tzdata && \
     apt-get install -y --no-install-recommends keyboard-configuration && \
-    rm -rf /var/lib/apt/lists/* && \
-
-RUN apt-get install -y --no-install-recommends build-essential && \
-  apt-get install -y --no-install-recommends zlib1g-dev libncurses5-dev && \
-  apt-get install -y --no-install-recommends libgdbm-dev libnss3-dev libssl-dev && \
-  apt-get install -y --no-install-recommends libreadline-dev libffi-dev wget && \
-  apt-get install -y --no-install-recommends --no-install-recommends && \
-  apt-get install -y --no-install-recommends  python3-dev && \
-  apt-get install -y --no-install-recommends python3-pip && \
-  apt-get install -y --no-install-recommends python3-wheel && \
-  apt-get install -y --no-install-recommends python3-setuptools && \
-  apt-get install -y --no-install-recommends libblas-dev && \
-  apt-get install -y --no-install-recommends liblapack-dev && \
-  apt-get install -y --no-install-recommends liblapacke-dev && \
-  apt-get install -y --no-install-recommends git && \
-  apt-get install -y --no-install-recommends ImageMagick* && \
-  apt-get install -y --no-install-recommends xorg && \
-  apt-get install -y --no-install-recommends libgfortran4 && \
-  apt-get install -y --no-install-recommends libopenmpi-dev && \
-  rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    apt-get install -y --no-install-recommends build-essential && \
+    apt-get install -y --no-install-recommends zlib1g-dev libncurses5-dev && \
+    apt-get install -y --no-install-recommends libgdbm-dev libnss3-dev libssl-dev && \
+    apt-get install -y --no-install-recommends libreadline-dev libffi-dev wget && \
+    apt-get install -y --no-install-recommends --no-install-recommends && \
+    apt-get install -y --no-install-recommends  python3-dev && \
+    apt-get install -y --no-install-recommends python3-pip && \
+    apt-get install -y --no-install-recommends python3-wheel && \
+    apt-get install -y --no-install-recommends python3-setuptools && \
+    apt-get install -y --no-install-recommends libblas-dev && \
+    apt-get install -y --no-install-recommends liblapack-dev && \
+    apt-get install -y --no-install-recommends liblapacke-dev && \
+    apt-get install -y --no-install-recommends git && \
+    apt-get install -y --no-install-recommends ImageMagick* && \
+    apt-get install -y --no-install-recommends xorg && \
+    apt-get install -y --no-install-recommends libgfortran4 && \
+    apt-get install -y --no-install-recommends libopenmpi-dev && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN python3 --version
 RUN pip3 --version
