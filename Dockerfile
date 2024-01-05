@@ -7,7 +7,9 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     echo 'APT::Get::Always-Include-Phased-Updates "true";' | tee -a /etc/apt/apt.conf.d/99-phased-updates && \
     apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
+    apt-get install -y --no-install-recommends openssl && \
     update-ca-certificates && \
+    apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository main && \
     add-apt-repository universe && \
