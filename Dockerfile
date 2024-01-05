@@ -5,6 +5,7 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update -y && \
+    apt-get install -y --no-install-recommends ca-certificates && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository main && \
     add-apt-repository universe && \
