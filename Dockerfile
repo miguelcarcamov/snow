@@ -5,7 +5,7 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo 'APT::Get::Always-Include-Phased-Updates "true";' | tee -a /etc/apt/apt.conf.d/99-phased-updates && \
-    apt-get update -y && \
+    apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
     update-ca-certificates && \
     apt-get install -y --no-install-recommends software-properties-common && \
@@ -13,7 +13,7 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     add-apt-repository universe && \
     add-apt-repository restricted && \
     add-apt-repository multiverse && \
-    apt-get update -y && \
+    apt-get update && \
     apt-get install -y --no-install-recommends tzdata && \
     apt-get install -y --no-install-recommends keyboard-configuration && \
     apt-get install -y --no-install-recommends build-essential && \
