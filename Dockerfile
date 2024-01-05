@@ -5,9 +5,6 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update -y && \
-    dpkg --configure -a && \
-    apt-get install -yf --no-install-recommends &&\
-    apt-get install -y --no-install-recommends apt-utils && \
     apt-get install -y --no-install-recommends ca-certificates && \
     apt-get install -y --no-install-recommends openssl && \
     update-ca-certificates && \
@@ -23,7 +20,7 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     apt-get install -y --no-install-recommends tzdata && \
     apt-get install -y --no-install-recommends keyboard-configuration && \
     apt-get install -y --no-install-recommends build-essential && \
-    apt-get install -y --no-install-recommends zlib1g-dev libncurses5-dev && \
+    apt-get install -y --no-install-recommends zlib1g-dev libncurses6-dev && \
     apt-get install -y --no-install-recommends libgdbm-dev libnss3-dev libssl-dev && \
     apt-get install -y --no-install-recommends libreadline-dev libffi-dev wget && \
     apt-get install -y --no-install-recommends --no-install-recommends && \
@@ -37,7 +34,7 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     apt-get install -y --no-install-recommends git && \
     apt-get install -y --no-install-recommends ImageMagick* && \
     apt-get install -y --no-install-recommends xorg && \
-    apt-get install -y --no-install-recommends libgfortran4 && \
+    apt-get install -y --no-install-recommends libgfortran5 && \
     apt-get install -y --no-install-recommends libopenmpi-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
