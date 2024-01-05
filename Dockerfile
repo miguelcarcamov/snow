@@ -7,7 +7,9 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     apt-get update -y && \
     apt-get install -y ca-certificates && \
     apt-get install -y openssl && \
+    apt-get install -y software-properties-common && \
     update-ca-certificates && \
+    apt-get update -y && \
     add-apt-repository main && \
     add-apt-repository universe && \
     add-apt-repository restricted && \
