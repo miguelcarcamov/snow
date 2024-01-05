@@ -1,10 +1,11 @@
-FROM ubuntu:jammy-20231211.1
+FROM ubuntu:jammy
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" > /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME) main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && echo $VERSION_CODENAME)-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update -y && \
+    apt-get install -y --no-install-recommends apt-utils && \
     apt-get install -y --no-install-recommends ca-certificates && \
     apt-get install -y --no-install-recommends openssl && \
     update-ca-certificates && \
@@ -36,7 +37,8 @@ RUN echo "deb mirror://mirrors.ubuntu.com/mirrors.txt $(. /etc/os-release && ech
     apt-get install -y --no-install-recommends xorg && \
     apt-get install -y --no-install-recommends libgfortran4 && \
     apt-get install -y --no-install-recommends libopenmpi-dev && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
 
 RUN python3 --version
 RUN pip3 --version
