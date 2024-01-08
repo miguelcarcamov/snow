@@ -15,7 +15,7 @@ RUN apt-get update -y && \
     apt-get install -y tzdata && \
     apt-get install -y keyboard-configuration && \
     apt-get install -y build-essential && \
-    apt-get install -y zlib1g-dev libncurses6-dev && \
+    apt-get install -y zlib1g-dev libncurses-dev && \
     apt-get install -y libgdbm-dev libnss3-dev libssl-dev && \
     apt-get install -y libreadline-dev libffi-dev wget && \
     apt-get install -y --no-install-recommends && \
