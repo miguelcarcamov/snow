@@ -1,5 +1,5 @@
 almatasks==1.5.2
-astropy==5.1.1
+astropy==5.3.3
 casadata==2022.9.5
 casampi==0.5.01
 casaplotms==1.8.7
