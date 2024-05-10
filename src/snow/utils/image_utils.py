@@ -265,29 +265,22 @@ def reproject(fits_file_to_resamp: str = "",
         model_N = header_model['NAXIS2']
         model_dy = header_model['CDELT2']
 
-        mask_M = header_mask['NAXIS1']
-        mask_N = header_mask['NAXIS2']
-        mask_dy = header_mask['CDELT2']
+        print("Resampling image...")
+        reprojected_array = reproject_interp(
+            (data_mask, mask_WCS),
+            model_WCS,
+            return_footprint=False,
+            order=order,
+            shape_out=(model_M, model_N)
+        )
+        path_object = Path(fits_file_to_resamp)
+        resampled_mask_name = "{0}_{2}{1}".format(
+            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "resampled"
+        )
+        fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
 
-        same_astrometry_cond = np.fabs((model_dy / mask_dy) - 1.) < 1E-3
+        return resampled_mask_name
 
-        if same_astrometry_cond or mask_M != model_M or mask_N != model_N:
-            print("The mask header is not the same as the model image, resampling...")
-            reprojected_array = reproject_interp(
-                (data_mask, mask_WCS),
-                model_WCS,
-                return_footprint=False,
-                order=order,
-                shape_out=(model_M, model_N)
-            )
-            path_object = Path(fits_file_to_resamp)
-            resampled_mask_name = "{0}_{2}{1}".format(
-                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "resampled"
-            )
-            fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
-            return resampled_mask_name
-        else:
-            return None
     else:
         print("Fits file to reproject: {0}".format(fits_file_to_resamp))
         print("Fits file model: {0}".format(fits_file_model))
