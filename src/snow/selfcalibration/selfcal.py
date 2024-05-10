@@ -374,13 +374,14 @@ class Selfcal(metaclass=ABCMeta):
                         format(current_iteration)
                     )
 
-                    current_visfile = self._copy_directory_during_iterations(current_iteration)
+                    if current_iteration + 1 < self._loops:
+                        current_visfile = self._copy_directory_during_iterations(current_iteration)
 
-                    # Saving old visfile name
-                    self._psnr_visfile_backup = self.visfile
-                    # Changing visfile attribute to new current_visfile for selfcal and imager
-                    self.visfile = current_visfile
-                    self.imager.inputvis = current_visfile
+                        # Saving old visfile name
+                        self._psnr_visfile_backup = self.visfile
+                        # Changing visfile attribute to new current_visfile for selfcal and imager
+                        self.visfile = current_visfile
+                        self.imager.inputvis = current_visfile
                     return False
             else:
                 return False

@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
+from astropy.stats import sigma_clipped_stats
 from casatasks import exportfits, imstat
 from reproject import reproject_interp
 
@@ -156,7 +157,9 @@ def export_ms_to_fits(msname: str = "") -> str:
 def calculate_psnr_fits(
     signal_fits_name: str = "",
     residual_fits_name: str = "",
-    pixels: int = None
+    pixels: int = None,
+    sigma: float = 5,
+    use_sigma_clipped_stats: bool = True,
 ) -> Tuple[float, float, float]:
     """
     Function that calculates the peak signal-to-noise ratio of a reconstruction with images resulting in FITS files.
@@ -170,6 +173,10 @@ def calculate_psnr_fits(
         The absolute path to the residual image
     pixels :
         Number of pixels on where to calculate the RMS
+    sigma:
+        Number of sigma noise values to calculate the noise in the residual image
+    use_sigma_clipped_stats:
+        Whether to use astropy sigma_clipped_stats to calculate the mad_std of the residual image
 
     Returns
     -------
@@ -179,11 +186,16 @@ def calculate_psnr_fits(
     signal_data = get_data(signal_fits_name)
     res_data = get_data(residual_fits_name)
 
-    stdv = nanrms(res_data[0:pixels, 0:pixels])
+    if use_sigma_clipped_stats:
+        _, _, noise = sigma_clipped_stats(
+            data=res_data[0:pixels, 0:pixels], sigma=sigma, stdfunc="mad_std"
+        )
+    else:
+        noise = nanrms(res_data[0:pixels, 0:pixels])
     peak = np.nanmax(signal_data)
-    psnr = peak / stdv
+    peak_signal_to_noise = peak / noise
 
-    return psnr, peak, stdv
+    return peak_signal_to_noise, peak, noise
 
 
 def calculate_psnr_ms(signal_ms_name: str = "",
@@ -253,29 +265,22 @@ def reproject(fits_file_to_resamp: str = "",
         model_N = header_model['NAXIS2']
         model_dy = header_model['CDELT2']
 
-        mask_M = header_mask['NAXIS1']
-        mask_N = header_mask['NAXIS2']
-        mask_dy = header_mask['CDELT2']
+        print("Resampling image...")
+        reprojected_array = reproject_interp(
+            (data_mask, mask_WCS),
+            model_WCS,
+            return_footprint=False,
+            order=order,
+            shape_out=(model_M, model_N)
+        )
+        path_object = Path(fits_file_to_resamp)
+        resampled_mask_name = "{0}_{2}{1}".format(
+            Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "resampled"
+        )
+        fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
 
-        same_astrometry_cond = np.fabs((model_dy / mask_dy) - 1.) < 1E-3
+        return resampled_mask_name
 
-        if same_astrometry_cond or mask_M != model_M or mask_N != model_N:
-            print("The mask header is not the same as the model image, resampling...")
-            reprojected_array = reproject_interp(
-                (data_mask, mask_WCS),
-                model_WCS,
-                return_footprint=False,
-                order=order,
-                shape_out=(model_M, model_N)
-            )
-            path_object = Path(fits_file_to_resamp)
-            resampled_mask_name = "{0}_{2}{1}".format(
-                Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "resampled"
-            )
-            fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
-            return resampled_mask_name
-        else:
-            return None
     else:
         print("Fits file to reproject: {0}".format(fits_file_to_resamp))
         print("Fits file model: {0}".format(fits_file_model))
