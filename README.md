@@ -38,7 +38,7 @@ pip install .
 ```bash
 git clone https://github.com/miguelcarcamov/snow
 cd snow
-pip install e .
+pip install -e .
 ```
 
 ## Using docker container
