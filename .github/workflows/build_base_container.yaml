@@ -5,13 +5,10 @@ on:
     branches:
     - feature/refactoring
     - development
-    paths:
-    - Dockerfile
   pull_request:
     branches:
     - master
-    paths:
-    - Dockerfile
+
 env:
   REGISTRY: ghcr.io
 
