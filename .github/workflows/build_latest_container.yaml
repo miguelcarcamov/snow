@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
     - '**.py'
+    - .github/build_latest_container.yaml
     - Dockerfile.prod
   release:
     types: [published]
