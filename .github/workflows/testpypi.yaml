@@ -20,7 +20,7 @@ jobs:
       image: ghcr.io/${{ github.repository }}:base
       credentials:
         username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     steps:
     - uses: actions/checkout@v3.0.2
       with:
