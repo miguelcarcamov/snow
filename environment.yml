@@ -1,6 +1,6 @@
 name: snow-env
 dependencies:
-- python=3.10
+- python>=3.10,<3.11
 - numpy=1.26
 - matplotlib
 - mpi4py
