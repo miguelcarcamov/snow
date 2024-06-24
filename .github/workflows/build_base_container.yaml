@@ -6,12 +6,12 @@ on:
     - feature/refactoring
     - development
     paths:
+    - .github/build_base_container.yaml
     - Dockerfile
   pull_request:
     branches:
     - master
-    paths:
-    - Dockerfile
+
 env:
   REGISTRY: ghcr.io
 

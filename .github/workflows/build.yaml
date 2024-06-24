@@ -45,8 +45,6 @@ jobs:
         python3 -m pip install build
     - name: Build package
       run: python3 -m build
-    - name: Build bdist package
-      run: python3 setup.py bdist_wheel
     - name: Install snow
       run: pip install dist/*.tar.gz
     - name: Upload artifacts
