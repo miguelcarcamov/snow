@@ -116,14 +116,6 @@ class GPUvmem(Imager):
         self.print_images = print_images
         self.restore_pyra = restore_pyra
 
-        if self.phase_center != "":
-            fixvis(
-                vis=self.inputvis,
-                outputvis=self.inputvis,
-                field=self.field,
-                phasecenter=self.phase_center
-            )
-
         self.__model_input = None
         self.__user_mask = None
 
