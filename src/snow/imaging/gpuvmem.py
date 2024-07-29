@@ -468,7 +468,7 @@ class GPUvmem(Imager):
         if self.gridding:
             args += " -g " + str(self.gridding_threads)
 
-        if self.reference_freq:
+        if self.reference_freq is not None:
             if isinstance(self.reference_freq, Quantity):
                 args += " -F " + str(self.reference_freq.to(u.Hz).value)
             elif isinstance(self.reference_freq, float):
