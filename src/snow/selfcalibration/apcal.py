@@ -95,9 +95,9 @@ class AmpPhasecal(Selfcal):
             if self.__incremental:
                 applycal(
                     vis=self.visfile,
-                    spw=self.imager.spw,
+                    spw=self.spw,
                     spwmap=[self.spwmap, self.spwmap],
-                    field=self.imager.field,
+                    field=self.field,
                     gaintable=[self.input_caltable, caltable],
                     gainfield='',
                     calwt=False,
@@ -109,9 +109,9 @@ class AmpPhasecal(Selfcal):
             else:
                 applycal(
                     vis=self.visfile,
-                    spw=self.imager.spw,
+                    spw=self.spw,
                     spwmap=self.spwmap,
-                    field=self.imager.field,
+                    field=self.field,
                     gaintable=[caltable],
                     gainfield='',
                     calwt=False,

@@ -71,8 +71,8 @@ class Phasecal(Selfcal):
             print("Applying calibration tables to {0} file".format(self.visfile))
             applycal(
                 vis=self.visfile,
-                field=self.imager.field,
-                spw=self.imager.spw,
+                field=self.field,
+                spw=self.spw,
                 spwmap=self.spwmap,
                 gaintable=[caltable],
                 gainfield='',
