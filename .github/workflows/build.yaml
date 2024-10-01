@@ -76,7 +76,7 @@ jobs:
     #  run: |
     #    pip3 install pytest
     #    pip3 install pytest-cov
-    - uses: actions/download-artifact@v4.1.7
+    - uses: actions/download-artifact@v4
       id: download
       with:
         name: snow-artifacts
