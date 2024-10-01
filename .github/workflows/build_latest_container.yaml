@@ -17,7 +17,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3.0.2
+    - uses: actions/checkout@v4.2.0
       with:
         fetch-depth: 0
         set-safe-directory: true
@@ -36,7 +36,7 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.REGISTRY_TOKEN }}
     steps:
-    - uses: actions/checkout@v3.0.2
+    - uses: actions/checkout@v4.2.0
       with:
         fetch-depth: 0
         set-safe-directory: true
