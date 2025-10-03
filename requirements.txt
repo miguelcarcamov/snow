@@ -13,5 +13,5 @@ casatools==6.7.0.31
 casaviewer==2.4.4
 numpy==1.26.0
 python-casacore==3.7.1
-reproject==0.16.0
-scipy==1.11.4
+reproject==0.14.1
+scipy==1.15.0
