@@ -4,36 +4,18 @@ requires = ["setuptools>=70.0.0", "setuptools-scm", "wheel"]
 
 [project]
 authors = [
-  {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"}
+  {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent"
 ]
-dependencies = [
-  "almatasks==0.0.0.3",
-  "astropy==6.1.0",
-  "casafeather==0.0.22",
-  "casalogger==1.0.19",
-  "casampi==0.5.5",
-  "casaplotms==2.4.3",
-  "casaplotserver==1.8.2",
-  "casashell==6.6.4.34",
-  "casatablebrowser==0.0.35",
-  "casatasks==6.6.4.34",
-  "casatestutils==6.6.4.34",
-  "casatools==6.6.4.34",
-  "casaviewer==2.1.4",
-  "numpy==1.26.0",
-  "python-casacore==3.5.2",
-  "reproject==0.11.0",
-  "scipy==1.11.4"
-]
+
 description = "A Python object oriented framework to do radio-interferometric self-calibration"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 license = {file = "LICENSE"}
 maintainers = [
-  {name = "Miguel Cárcamo", email = "miguel.carcamo@manchester.ac.uk"}
+  {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
 name = "snow"
 readme = "README.md"
@@ -41,6 +23,9 @@ requires-python = ">=3.10, <3.11"
 
 [project.urls]
 Source = "https://github.com/miguelcarcamov/snow"
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
 
 [tool.setuptools.packages.find]
 include = ["snow*"]
