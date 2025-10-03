@@ -3,9 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-- python>=3.11, <3.13
+- python=3.10
 - numpy=1.26
-- ncurses=6.4
+- ncurses=6.2
 - matplotlib
 - mpi4py
 - anaconda
