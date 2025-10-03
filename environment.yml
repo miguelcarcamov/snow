@@ -2,6 +2,7 @@ name: snow-env
 dependencies:
 - python>=3.10,<3.11
 - numpy=1.26
+- ncurses=6.2
 - matplotlib
 - mpi4py
 - anaconda
@@ -9,17 +10,18 @@ dependencies:
 - pip:
   - almatasks==0.0.0.3
   - astropy==6.1.0
-  - casafeather==0.0.22
-  - casalogger==1.0.19
-  - casampi==0.5.5
-  - casaplotms==2.4.3
-  - casaplotserver==1.8.2
-  - casashell==6.6.4.34
-  - casatablebrowser==0.0.35
-  - casatasks==6.6.4.34
-  - casatestutils==6.6.4.34
-  - casatools==6.6.4.34
-  - casaviewer==2.1.4
+  - casafeather==0.0.27
+  - casalogger==1.0.23
+  - casampi==0.5.9
+  - casaplotms==2.7.4
+  - casaplotserver==2.0.3
+  - casashell==6.7.0.31
+  - casatablebrowser==0.0.39
+  - casatasks==6.7.0.31
+  - casatestutils==6.7.2.42
+  - casatools==6.7.0.31
+  - casaviewer==2.4.4
+  - numpy==1.26.0
   - python-casacore==3.5.2
-  - reproject==0.13.1
-  - scipy==1.13.1
+  - reproject==0.11.0
+  - scipy==1.11.4
