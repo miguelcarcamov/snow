@@ -5,7 +5,7 @@ channels:
 dependencies:
 - python>=3.11, <3.13
 - numpy=1.26
-- ncurses=6.2
+- ncurses=6.4
 - matplotlib
 - mpi4py
 - anaconda
