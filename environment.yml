@@ -26,5 +26,5 @@ dependencies:
   - casaviewer==2.4.4
   - numpy==1.26.0
   - python-casacore==3.7.1
-  - reproject==0.11.0
+  - reproject==0.16.0
   - scipy==1.11.4
