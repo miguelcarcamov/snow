@@ -1,11 +1,15 @@
 FROM ghcr.io/miguelcarcamov/snow:base
 
-RUN python3 --version
-RUN pip3 --version
-RUN echo "Installing snow"
-RUN pip3 install git+https://github.com/miguelcarcamov/snow.git
-RUN echo "Hello from snow production image"
-RUN mkdir -p ~/.casa/data
+# Install snow and clean up to minimize image size
+RUN python3 --version && \
+    pip3 --version && \
+    echo "Installing snow" && \
+    pip3 install --no-cache-dir git+https://github.com/miguelcarcamov/snow.git && \
+    python3 -m pip cache purge && \
+    rm -rf /root/.cache/pip && \
+    rm -rf /tmp/* /var/tmp/* && \
+    mkdir -p ~/.casa/data && \
+    echo "Hello from snow production image"
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
 LABEL org.opencontainers.image.description="Container image for SNOW"
 LABEL org.opencontainers.image.licenses=GPL3
