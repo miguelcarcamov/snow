@@ -76,9 +76,9 @@ class Ampcal(Selfcal):
             print("Applying calibration tables to {0} file".format(self.visfile))
             applycal(
                 vis=self.visfile,
-                spw=self.imager.spw,
+                spw=self.spw,
                 spwmap=[self.spwmap, self.spwmap],
-                field=self.imager.field,
+                field=self.field,
                 gaintable=[self.input_caltable, caltable],
                 gainfield='',
                 calwt=False,

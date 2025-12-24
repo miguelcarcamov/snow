@@ -135,7 +135,7 @@ class Imager(metaclass=ABCMeta):
 
     def _check_reference_frequency(self):
         aux_reference_freq = ""
-        if self.reference_freq:
+        if self.reference_freq is not None:
             if isinstance(self.reference_freq, Quantity) or isinstance(self.reference_freq, float):
                 aux_reference_freq = str(self.reference_freq)
             elif self.reference_freq is None:

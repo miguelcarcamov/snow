@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.12.0
+  rev: v2.15.0
   hooks:
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']
@@ -8,7 +8,7 @@ repos:
     args: [--autofix]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
+  rev: v6.0.0
   hooks:
   - id: check-yaml
   - id: end-of-file-fixer
@@ -19,19 +19,23 @@ repos:
 #    hooks:
 #    id: black
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.27.3
+  rev: 0.36.0
   hooks:
   - id: check-github-actions
   - id: check-github-workflows
 
-- repo: https://github.com/pre-commit/mirrors-yapf
-  rev: v0.32.0
+- repo: https://github.com/google/yapf
+  rev: v0.43.0
   hooks:
   - id: yapf
-    additional_dependencies: [toml]
+    name: yapf
+    language: python
+    entry: yapf
+    args: [-i]
+    types: [python]
 
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.38.0
+  rev: v0.47.0
   hooks:
   - id: markdownlint-fix
     entry: markdownlint -f '**/*.md' --disable MD013 MD036 MD046 MD033 MD041 MD040

@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHON_VERSION: '3.10'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,30 +24,23 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.REGISTRY_TOKEN }}
     steps:
-    - uses: actions/checkout@v3.0.2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         set-safe-directory: true
     - name: Force directory safe
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.8'
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip wheel setuptools setuptools-scm
-        python3 -m pip install virtualenv
         python3 -m pip install build
     - name: Build package
       run: python3 -m build
-    - name: Build bdist package
-      run: python3 setup.py bdist_wheel
-    - name: Publish package
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@master
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
-        verify_metadata: false
+        verify_metadata: true
+        skip_existing: false

@@ -24,6 +24,8 @@ class Selfcal(metaclass=ABCMeta):
         self,
         visfile: str = "",
         imager: Imager = None,
+        field: str = "",
+        spw: str = "",
         refant: str = "",
         spwmap: list = [],
         minblperant: int = 4,
@@ -98,6 +100,8 @@ class Selfcal(metaclass=ABCMeta):
         # Public variables
         self.visfile = visfile
         self.imager = imager
+        self.field = field
+        self.spw = spw
         self.refant = refant
         self.spwmap = spwmap
         self.minblperant = minblperant
@@ -424,7 +428,7 @@ class Selfcal(metaclass=ABCMeta):
             vis=self.visfile,
             mode=mode,
             datacolumn=datacolumn,
-            field=self.imager.field,
+            field=self.field,
             timecutoff=5.0,
             freqcutoff=5.0,
             freqfit='line',

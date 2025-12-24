@@ -12,7 +12,7 @@ objects (phase, amplitude, amplitude-phase) having the self-calibrated dataset a
 ## Requirements
 
 1. `Python == 3.8`
-2. Check CASA pip current version requirements [here](https://casadocs.readthedocs.io/en/stable/notebooks/introduction.html#Modular-Packages).
+2. Check [CASA pip package requirements](https://casadocs.readthedocs.io/en/stable/notebooks/introduction.html#Modular-Packages) for current version requirements.
 3. Check the `requirements.txt` file.
 
 ## Installation
