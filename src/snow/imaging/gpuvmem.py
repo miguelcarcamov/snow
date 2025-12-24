@@ -164,7 +164,6 @@ class GPUvmem(Imager):
             if new_mask_name is not None:
                 self.__user_mask = new_mask_name
 
-
     def __restore(self,
                   model_fits="",
                   residual_ms="",

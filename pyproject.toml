@@ -1,37 +1,103 @@
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools>=70.0.0", "setuptools-scm", "wheel"]
+# pyproject.toml - Python project configuration for SNOW
+# SNOW: A Python object-oriented framework for radio-interferometric self-calibration
+#
+# This file follows PEP 518, PEP 517, and PEP 621 standards for Python project metadata
+# and build configuration.
 
+# ============================================================================
+# Build System Configuration
+# ============================================================================
+# Defines the build backend and required build dependencies
+[build-system]
+# Use setuptools as the build backend (standard for Python packages)
+build-backend = "setuptools.build_meta"
+# Build dependencies required to build this package
+requires = [
+  "setuptools>=70.0.0",  # Package building and distribution
+  "setuptools-scm>=8",  # Automatic version management from git tags
+  "wheel"  # Built distribution format
+]
+
+# ============================================================================
+# Project Metadata (PEP 621)
+# ============================================================================
 [project]
+# Project authors and maintainers
 authors = [
   {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
+# PyPI classifiers for better package discoverability
 classifiers = [
+  # Development status
+  "Development Status :: 4 - Beta",
+  # Intended audience
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  # Programming language
   "Programming Language :: Python :: 3",
-  "Operating System :: OS Independent"
+  "Programming Language :: Python :: 3.10",
+  # License (update if different from LICENSE file)
+  "License :: OSI Approved",
+  # Operating system
+  "Operating System :: OS Independent",
+  # Additional metadata
+  "Natural Language :: English"
 ]
-
 description = "A Python object oriented framework to do radio-interferometric self-calibration"
+# Dynamic fields that are resolved at build time
+# version: Automatically determined from git tags via setuptools-scm
+# dependencies: Read from requirements.txt
 dynamic = ["version", "dependencies"]
+# Keywords for PyPI search
+keywords = [
+  "radio astronomy",
+  "interferometry",
+  "self-calibration",
+  "CASA",
+  "astronomy",
+  "radio interferometry",
+  "imaging",
+  "calibration"
+]
 license = {file = "LICENSE"}
 maintainers = [
   {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
 name = "snow"
 readme = "README.md"
-requires-python = ">=3.10, <3.11"
+requires-python = ">=3.10, <3.11"  # Constrained to Python 3.10 for CASA compatibility
 
+# Project URLs (homepage, repository, documentation, etc.)
 [project.urls]
+Homepage = "https://github.com/miguelcarcamov/snow"
+Repository = "https://github.com/miguelcarcamov/snow"
 Source = "https://github.com/miguelcarcamov/snow"
 
+# Setuptools-specific configuration
+[tool.setuptools]
+
+# Dynamic field resolution
 [tool.setuptools.dynamic]
+# Dependencies are read from requirements.txt
+# Version is automatically handled by setuptools-scm (no explicit configuration needed)
 dependencies = {file = "requirements.txt"}
 
+# Package discovery configuration
 [tool.setuptools.packages.find]
+# Find all packages starting with "snow"
 include = ["snow*"]
+# Don't use namespace packages
 namespaces = false
+# Look for packages in the src directory
 where = ["src"]
 
+# ============================================================================
+# setuptools-scm Configuration
+# ============================================================================
+# Automatic version management from git tags
+# When version is in [project] dynamic, setuptools-scm automatically provides it
 [tool.setuptools_scm]
+# Don't add local version identifier (e.g., +dirty, +local)
 local_scheme = "no-local-version"
+# Write version to this file for runtime access
 write_to = "src/snow/_version.py"

@@ -1,30 +1,54 @@
+# Conda environment file for the SNOW (Self-calibration) project
+# SNOW: A Python object-oriented framework for radio-interferometric self-calibration
+#
+# To create this environment:
+#   conda env create -f environment.yml
+#
+# To update this environment:
+#   conda env update -f environment.yml --prune
+#
+# To activate this environment:
+#   conda activate snow-env
+
 name: snow-env
+
+# Channel priority: conda-forge first (more up-to-date packages), then defaults
 channels:
-  - conda-forge
-  - defaults
+- conda-forge
+- defaults
+
 dependencies:
+  # Python version constraint
+  # Note: Constrained to Python 3.10 due to CASA (Common Astronomy Software Applications)
+  # compatibility requirements. CASA packages may not support newer Python versions.
 - python>=3.10,<3.11
+
+  # Core scientific computing libraries
+  # numpy: Fundamental package for numerical computing (pinned for CASA compatibility)
 - numpy=1.26
+
+  # System libraries
+  # ncurses: Terminal control library (required by some CASA tools)
 - ncurses=6.2
+
+  # Visualization
+  # matplotlib: Plotting library for data visualization
 - matplotlib
+
+  # Parallel computing
+  # mpi4py: Python bindings for MPI (Message Passing Interface) for parallel processing
 - mpi4py
-- anaconda
+
+  # Package management
+  # pip: Python package installer (needed to install packages from requirements.txt)
 - pip
+
+  # Pip-installed packages
+  # These packages are installed via pip rather than conda because:
+  # 1. CASA packages are primarily distributed via PyPI
+  # 2. Some packages need specific versions that are better managed through pip
+  # 3. Some packages may not be available in conda-forge
 - pip:
-  - almatasks==0.0.0.3
-  - astropy==6.1.0
-  - casafeather==0.0.27
-  - casalogger==1.0.23
-  - casampi==0.5.9
-  - casaplotms==2.7.4
-  - casaplotserver==2.0.3
-  - casashell==6.7.0.31
-  - casatablebrowser==0.0.39
-  - casatasks==6.7.0.31
-  - casatestutils==6.7.2.42
-  - casatools==6.7.0.31
-  - casaviewer==2.4.4
-  - numpy==1.26.0
-  - python-casacore==3.7.1
-  - reproject==0.14.1
-  - scipy==1.15.0
+    # Install all packages listed in requirements.txt
+    # This includes CASA packages, astropy, scipy, and other dependencies
+  - -r requirements.txt
