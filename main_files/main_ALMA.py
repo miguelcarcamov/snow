@@ -34,7 +34,7 @@ if __name__ == '__main__':
         interactive=True
     )
 
-    clean_imager_ampphs = Clean(
+    clean_imager_ampphs = Tclean(
         inputvis=visfile,
         output=output,
         niter=100,
