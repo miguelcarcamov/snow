@@ -1,178 +1,127 @@
+"""
+Amplitude-phase self-calibration of an e-MERLIN target, on top of existing phase solutions, imaged
+with multiscale tclean. Optionally flags residual RFI before self-calibrating.
+
+Usage: python main_eMERLIN.py <visfile> <output_prefix> <field> [--phase-caltable pcal1] [--flag]
+       [--plot]
+"""
+import argparse
 import os
-import sys
-from casatasks import flagdata, mstransform, flagmanager
+from pathlib import Path
+
+from casatasks import flagdata, flagmanager, mstransform
 
 from snow.imaging import Tclean
 from snow.selfcalibration import AmpPhasecal
 
+# Spectral window groups flagged together with rflag
+RFLAG_SPW_GROUPS = ("0", "1~2", "3~5", "5~7")
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("visfile", help="Calibrated measurement set (CORRECTED_DATA is used)")
+    parser.add_argument("output", help="Prefix of the output images and calibration tables")
+    parser.add_argument("field", help="Target field to self-calibrate")
+    parser.add_argument(
+        "--phase-caltable",
+        default="pcal1",
+        help="Existing phase calibration table to pre-apply (solutions combined over spws)"
+    )
+    parser.add_argument(
+        "--flag", action="store_true", help="Flag residual RFI with rflag before self-calibrating"
+    )
+    parser.add_argument("--plot", action="store_true", help="Plot the gain solutions")
+    return parser.parse_args()
+
+
+def flag_residual_rfi(vis: str) -> None:
+    flagmanager(vis=vis, mode='save', versionname='before_selfcal_flagging')
+    for spw in RFLAG_SPW_GROUPS:
+        flagdata(
+            vis=vis,
+            datacolumn="data",
+            spw=spw,
+            correlation="LL,RR",
+            mode="rflag",
+            action="apply",
+            flagbackup=False
+        )
+        flagdata(
+            vis=vis,
+            datacolumn="data",
+            spw=spw,
+            mode="extend",
+            extendflags=False,
+            action="apply",
+            flagbackup=False
+        )
+    flagmanager(vis=vis, mode='save', versionname='after_selfcal_flagging')
+
+
 if __name__ == '__main__':
+    args = parse_arguments()
 
-    print(sys.argv)
-    visfile = sys.argv[1]
-    output = sys.argv[2]
-    flagging = eval(sys.argv[3])
-    field = sys.argv[4]
-    want_plot = eval(sys.argv[5])
-
-    selfcal_vis = visfile.split("./../")[1][:-3] + ".flagged.ms"
+    # Self-calibration solves against DATA, so the calibrated target is split into DATA first
+    selfcal_vis = Path(args.visfile).stem + ".flagged.ms"
     if not os.path.exists(selfcal_vis):
-        mstransform(vis=visfile, outputvis=selfcal_vis, datacolumn="corrected", field=field)
+        mstransform(
+            vis=args.visfile, outputvis=selfcal_vis, datacolumn="corrected", field=args.field
+        )
+
+    # Flag before creating the self-calibration object, which works on a copy of selfcal_vis
+    if args.flag:
+        flag_residual_rfi(selfcal_vis)
 
     clean_imager = Tclean(
         inputvis=selfcal_vis,
-        output=output,
+        output=args.output,
         niter=10000,
         M=1024,
         N=1024,
         cell="0.02arcsec",
         stokes="I",
-        datacolumn="corrected",
+        data_column="corrected",
         robust=2.0,
         scales=[0, 3, 5, 10, 15, 20, 30, 40, 50, 80, 100],
         specmode="mfs",
         deconvolver="multiscale",
         gridder="standard",
         pbcor=False,
-        savemodel=True,
+        save_model=True,
         nsigma=3.0,
         interactive=False,
-        cycleniter=100,
-        usemask='user',
-        mask=output + "_ph2.mask"
+        cycle_niter=100,
+        use_mask="user",
+        mask=args.output + "_ph2.mask"
     )
 
-    shared_vars_dict = {
-        'visfile': clean_imager.getVis(),
-        'minblperant': 2,
-        'refant': "Kn,Cm,Mk2,Pi,De,Da",
-        'spwmap': [0, 0, 0, 0, 0, 0, 0, 0],
-        'gaintype': 'G',
-        'want_plot': want_plot,
-        'flag_dataset_bool': True,
-        'restore_PSNR': True
+    # Imaging parameters that change on each solution interval
+    varchange_imager = {
+        "nsigma": [2.0, 2.0, 2.0],
+        "use_mask": ["user", "user", "auto-multithresh"],
+        "mask": [args.output + "_ph2.mask", args.output + "_ph2.mask", ""],
     }
-
-    #solint_phs = ['128s', '64s', '32s', '16s']
-    solint_phs = ['3.5min', '2min', '1min', '30s', '15s']
-    #varchange_phs = {'nsigma' : [4.0, 3.0, 3.0, 2.0, 1.0]}
-    #solint_amp = ['1h']
-    varchange_ap = {
-        'nsigma': [2.0, 2.0, 2.0],
-        'usemask': ['user', 'user', 'auto-multithresh'],
-        'mask': [output + '_ph2.mask', output + '_ph2.mask', '']
-    }
-    solint_ap = ['14min', '7min', '3.5min']
-
-    #phscal = Phasecal(minsnr=2.0, solint=solint_phs,
-    #                  combine="spw", varchange=varchange_phs, Imager=clean_imager, **shared_vars_dict)
 
     apcal = AmpPhasecal(
-        minsnr=3.0,
-        solint=solint_ap,
-        varchange=varchange_ap,
+        visfile=selfcal_vis,
+        imager=clean_imager,
+        input_caltable=args.phase_caltable,
+        # Map of the input phase table, whose solutions are combined over the 8 spws
+        spwmap=[0, 0, 0, 0, 0, 0, 0, 0],
+        solint=["14min", "7min", "3.5min"],
+        varchange_imager=varchange_imager,
         combine="spw",
-        input_caltable="pcal1",
         applymode="calonly",
-        Imager=clean_imager,
         uvrange=">60klambda",
-        **shared_vars_dict
+        minsnr=3.0,
+        minblperant=2,
+        refant="Kn,Cm,Mk2,Pi,De,Da",
+        gaintype="G",
+        flag_dataset=True,
+        restore_psnr=True,
+        want_plot=args.plot
     )
-
-    if flagging:
-        # Backup MS to the state before self-cal
-        flagmanager(vis=selfcal_vis, mode='save', versionname='before_selfcal_flagging')
-
-        # Flag residual RFI
-        mode = "rflag"
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="0",
-            correlation="LL,RR",
-            mode=mode,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="0",
-            mode="extend",
-            extendflags=False,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="1~2",
-            correlation="LL,RR",
-            mode=mode,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="1~2",
-            mode="extend",
-            extendflags=False,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="3~5",
-            correlation="LL,RR",
-            mode=mode,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="3~5",
-            mode="extend",
-            extendflags=False,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="5~7",
-            correlation="LL,RR",
-            mode=mode,
-            action="apply",
-            flagbackup=False
-        )
-        flagdata(
-            vis=selfcal_vis,
-            datacolumn="data",
-            spw="5~7",
-            mode="extend",
-            extendflags=False,
-            action="apply",
-            flagbackup=False
-        )
-
-        # Backup MS to the state after self-cal
-        flagmanager(vis=selfcal_vis, mode='save', versionname='after_selfcal_flagging')
-    #else:
-    #    phscal.reset_selfcal(caltable_version="after_selfcal_flagging")
-
-    # Run phase-loop self-calibration
-    #phscal.run()
-
-    # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
-    #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
-
-    #amp_caltable = ampcal.run()
-
-    #apcal = AmpPhasecal(minsnr=2.0,
-    #                    solint=solint_ap, combine="", input_caltable=phs_caltable, Imager=clean_imager, **shared_vars_dict)
-
     apcal.run()
 
     apcal.selfcal_output(overwrite=True)

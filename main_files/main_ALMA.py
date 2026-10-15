@@ -1,97 +1,74 @@
-import sys
+"""
+Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tclean.
+
+Usage: python main_ALMA.py <visfile> <output_prefix> [--plot]
+"""
+import argparse
+
 from snow.imaging import Tclean
 from snow.selfcalibration import AmpPhasecal, Phasecal
 
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("visfile", help="Measurement set with the calibrated data in DATA")
+    parser.add_argument("output", help="Prefix of the output images and calibration tables")
+    parser.add_argument("--plot", action="store_true", help="Plot the gain solutions")
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    visfile = sys.argv[3]
-    output = sys.argv[4]
-    want_plot = eval(sys.argv[5])
+    args = parse_arguments()
 
-    # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/Automasking_Guide
-    # The default clean object will use automasking values for short baselines
-    # In this case we will use automasking values for long baselines
-    clean_imager_phs = Tclean(
-        inputvis=visfile,
-        output=output,
+    # Automasking values for long baselines: https://casaguides.nrao.edu/index.php/Automasking_Guide
+    imaging_parameters = dict(
+        inputvis=args.visfile,
+        output=args.output,
         niter=100,
         M=1024,
         N=1024,
         cell="0.005arcsec",
         stokes="I",
-        datacolumn="corrected",
+        data_column="corrected",
         robust=0.5,
         specmode="mfs",
         deconvolver="hogbom",
         gridder="standard",
-        savemodel=True,
-        usemask='auto-multithresh',
-        threshold="0.1mJy",
-        sidelobethreshold=3.0,
-        noisethreshold=5.0,
-        minbeamfrac=0.3,
-        lownoisethreshold=1.5,
-        negativethreshold=0.0,
-        interactive=True
+        save_model=True,
+        use_mask="auto-multithresh",
+        sidelobe_threshold=3.0,
+        noise_threshold=5.0,
+        min_beam_frac=0.3,
+        low_noise_threshold=1.5,
+        negative_threshold=0.0,
+        interactive=False  # True to edit the masks by hand
     )
+    clean_imager_phs = Tclean(threshold="0.1mJy", **imaging_parameters)
+    clean_imager_ampphs = Tclean(threshold="0.025mJy", **imaging_parameters)
 
-    clean_imager_ampphs = Tclean(
-        inputvis=visfile,
-        output=output,
-        niter=100,
-        M=1024,
-        N=1024,
-        cell="0.005arcsec",
-        stokes="I",
-        datacolumn="corrected",
-        robust=0.5,
-        specmode="mfs",
-        deconvolver="hogbom",
-        gridder="standard",
-        savemodel=True,
-        usemask='auto-multithresh',
-        threshold="0.025mJy",
-        sidelobethreshold=3.0,
-        noisethreshold=5.0,
-        minbeamfrac=0.3,
-        lownoisethreshold=1.5,
-        negativethreshold=0.0,
-        interactive=True
+    # Parameters shared by every self-calibration step. spwmap is derived from combine.
+    shared_parameters = dict(
+        minsnr=3.0, minblperant=6, refant="DA51", gaintype="T", want_plot=args.plot
     )
-
-    shared_vars_dict = {
-        'visfile': visfile,
-        'minblperant': 6,
-        'refant': "DA51",
-        'spwmap': [0, 0, 0, 0],
-        'gaintype': 'T',
-        'want_plot': want_plot
-    }
-
-    #solint_phs = ['128s', '64s', '32s', '16s']
-    solint_phs = ['600s', 'inf']
-    #solint_amp = ['1h']
-    solint_ap = ['inf']
 
     phscal = Phasecal(
-        minsnr=3.0, solint=solint_phs, combine="spw", Imager=clean_imager_phs, **shared_vars_dict
+        visfile=args.visfile,
+        imager=clean_imager_phs,
+        solint=["inf", "600s"],
+        combine="spw",
+        **shared_parameters
     )
-
     phscal.run()
 
-    # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
-    #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
-
-    #amp_caltable = ampcal.run()
-
+    # Continues from the phase self-calibration (its measurement set, model and tables), so it is
+    # created after phscal.run()
     apcal = AmpPhasecal(
-        minsnr=3.0,
-        solint=solint_ap,
+        previous_selfcal=phscal,
+        imager=clean_imager_ampphs,
+        solint=["inf"],
         combine="",
-        selfcal_object=phscal,
-        Imager=clean_imager_ampphs,
-        **shared_vars_dict
+        **shared_parameters
     )
-
     apcal.run()
 
     apcal.selfcal_output(overwrite=True)
