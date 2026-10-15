@@ -2,8 +2,9 @@
 Amplitude-phase self-calibration of an e-MERLIN target, on top of existing phase solutions, imaged
 with multiscale tclean. Optionally flags residual RFI before self-calibrating.
 
-Usage: python main_eMERLIN.py <visfile> <output_prefix> <field> [--phase-caltable pcal1] [--flag]
-       [--plot]
+Usage: python main_eMERLIN.py <visfile> <output_prefix> <field> [--phase-caltable pcal]
+       [--phase-caltable-per-spw] [--mask MASK] [--uvrange UVRANGE] [--refant REFANT]
+       [--flag [--rflag-spw SPW ...]] [--plot]
 """
 import argparse
 import os
@@ -13,9 +14,11 @@ from casatasks import flagdata, flagmanager, mstransform
 
 from snow.imaging import Tclean
 from snow.selfcalibration import AmpPhasecal
+from snow.selfcalibration.caltable import derive_spwmap
+from snow.utils import count_spectral_windows, get_spw_ids
 
-# Spectral window groups flagged together with rflag
-RFLAG_SPW_GROUPS = ("0", "1~2", "3~5", "5~7")
+# Amplitude-phase solution intervals, from long to short
+SOLINTS = ["14min", "7min", "3.5min"]
 
 
 def parse_arguments():
@@ -24,20 +27,35 @@ def parse_arguments():
     parser.add_argument("output", help="Prefix of the output images and calibration tables")
     parser.add_argument("field", help="Target field to self-calibrate")
     parser.add_argument(
-        "--phase-caltable",
-        default="pcal1",
-        help="Existing phase calibration table to pre-apply (solutions combined over spws)"
+        "--phase-caltable", default="pcal", help="Existing phase calibration table to pre-apply"
+    )
+    parser.add_argument(
+        "--phase-caltable-per-spw",
+        action="store_true",
+        help="The phase table has one solution per spw (default: combined over spws)"
+    )
+    parser.add_argument("--mask", help="CASA mask image; automasking is used if omitted")
+    parser.add_argument("--uvrange", default="", help="uv-range used to solve, e.g. '>60klambda'")
+    parser.add_argument(
+        "--refant", default="Kn,Cm,Mk2,Pi,De,Da", help="Reference antennas, in order of preference"
     )
     parser.add_argument(
         "--flag", action="store_true", help="Flag residual RFI with rflag before self-calibrating"
+    )
+    parser.add_argument(
+        "--rflag-spw",
+        action="append",
+        default=None,
+        help="Spectral window selection flagged together; repeat for several groups "
+        "(default: all spws in one pass)"
     )
     parser.add_argument("--plot", action="store_true", help="Plot the gain solutions")
     return parser.parse_args()
 
 
-def flag_residual_rfi(vis: str) -> None:
+def flag_residual_rfi(vis: str, spw_groups: list) -> None:
     flagmanager(vis=vis, mode='save', versionname='before_selfcal_flagging')
-    for spw in RFLAG_SPW_GROUPS:
+    for spw in spw_groups:
         flagdata(
             vis=vis,
             datacolumn="data",
@@ -71,8 +89,9 @@ if __name__ == '__main__':
 
     # Flag before creating the self-calibration object, which works on a copy of selfcal_vis
     if args.flag:
-        flag_residual_rfi(selfcal_vis)
+        flag_residual_rfi(selfcal_vis, args.rflag_spw or [""])
 
+    # Cell size and scales suit e-MERLIN at L-band; adjust them to your band and target
     clean_imager = Tclean(
         inputvis=selfcal_vis,
         output=args.output,
@@ -89,34 +108,34 @@ if __name__ == '__main__':
         gridder="standard",
         pbcor=False,
         save_model=True,
-        nsigma=3.0,
         interactive=False,
         cycle_niter=100,
-        use_mask="user",
-        mask=args.output + "_ph2.mask"
+        use_mask="user" if args.mask else "auto-multithresh",
+        mask=args.mask or ""
     )
 
-    # Imaging parameters that change on each solution interval
-    varchange_imager = {
-        "nsigma": [2.0, 2.0, 2.0],
-        "use_mask": ["user", "user", "auto-multithresh"],
-        "mask": [args.output + "_ph2.mask", args.output + "_ph2.mask", ""],
-    }
+    # Clean deeper as the calibration improves: one value per solution interval
+    varchange_imager = {"nsigma": [3.0, 2.5, 2.0]}
+
+    # spwmap of the input phase table: solutions combined over spws are stored under the lowest one
+    phase_spwmap = derive_spwmap(
+        "" if args.phase_caltable_per_spw else "spw", get_spw_ids(selfcal_vis),
+        count_spectral_windows(selfcal_vis)
+    )
 
     apcal = AmpPhasecal(
         visfile=selfcal_vis,
         imager=clean_imager,
         input_caltable=args.phase_caltable,
-        # Map of the input phase table, whose solutions are combined over the 8 spws
-        spwmap=[0, 0, 0, 0, 0, 0, 0, 0],
-        solint=["14min", "7min", "3.5min"],
+        spwmap=phase_spwmap,
+        solint=SOLINTS,
         varchange_imager=varchange_imager,
         combine="spw",
         applymode="calonly",
-        uvrange=">60klambda",
+        uvrange=args.uvrange,
         minsnr=3.0,
         minblperant=2,
-        refant="Kn,Cm,Mk2,Pi,De,Da",
+        refant=args.refant,
         gaintype="G",
         flag_dataset=True,
         restore_psnr=True,
