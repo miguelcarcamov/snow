@@ -1,55 +1,81 @@
 ---
-description: Class design for snow — config objects, rounds, policies, strategies, parameter budget, no I/O in constructors
+description: Class design for snow — one self-cal loop, CalibrationStep hierarchy, CalStack, schedule rules, imager contract, config objects, policies
 globs:
   - "src/**/*.py"
 alwaysApply: true
 ---
 
+# Architecture (see GitHub issues #22 and #23)
+
+```text
+Selfcal (the ONLY self-cal loop — template method)
+ ├── steps: CalibrationStep (ABC, frozen dataclass)
+ │     ├── Phasecal
+ │     └── _AmplitudeStep  (solnorm, amplitude prerequisites)
+ │           ├── Ampcal
+ │           └── AmpPhasecal
+ ├── imager: Imager (ABC; image() enforces the contract, subclasses implement _reconstruct)
+ ├── solver: GainSolver · acceptance: AcceptancePolicy · stack policy: StackPolicy
+ ├── workspace: MSWorkspace (snapshot / restore)
+ └── observers: SelfcalObserver (logging, plots, provenance)
+```
+
+# Inheritance: put it where behaviour varies
+
+- **The loop exists once**, in `Selfcal.run`. Never add a `run()` loop to a step or imager subclass.
+- Calibration types are **subclasses of `CalibrationStep`** because they differ in behaviour (prerequisites, normalisation, plotting, gaincal extras). Put what varies in `ClassVar`s and small hooks (`_extra_gaincal_kwargs`), and build everything shared once in the base class. Shared amplitude behaviour lives once in `_AmplitudeStep`.
+- A new calibration type = a new subclass plus its transition rules. The loop doesn't change.
+- Imagers subclass `Imager` and implement only `_reconstruct`. The public `image()` is final, so it can always enforce the contract.
+- Use a subclass when behaviour differs; use a field when only a value differs. Don't add `if calmode == ...` or `isinstance` branches in the loop.
+
+# Dataclasses
+
+- Steps, config objects (`Selection`, `SolveOptions`, `ApplyOptions`, `ImageGeometry`, `Weighting`), `CalTable`, `CalStack` and results are `@dataclass(frozen=True)`.
+- Use `KW_ONLY` so the primary value stays positional (`Phasecal("60s")`) and everything else is keyword-only. That keeps subclasses free to add defaulted fields.
+- Validate in `__post_init__`, once. Derive values with `dataclasses.replace(...)`, which rejects unknown names, never `setattr` by string.
+- No mutable defaults: use `field(default_factory=...)`, tuples or `MappingProxyType`.
+
+# multimethod: type dispatch at boundaries and for rules
+
+Use `multimethod` (as Pyralysis does) when behaviour depends on the **runtime types of the arguments**, instead of `isinstance` chains:
+
+- `check_transition(prev, step, stack)`: schedule rules dispatched on `(previous step type, next step type)`. Each theory rule is one overload with its own test.
+- Coercion at the API boundary: `solint_seconds(str | float)`, `to_casa_quantity(str | float | Quantity)`, `as_initial_stack(None | CalStack | SelfcalResult | str)`.
+
+Don't use it where ordinary polymorphism (a method on the class) is enough.
+
+# Calibration state and schedules
+
+- Calibration state is an immutable `CalStack` of `CalTable(path, step, spwmap, interp)`. Only `CalStack` builds `gaincal` pre-apply and `applycal` argument lists. `spwmap` is derived per table, never a user parameter.
+- Every solve pre-applies the accepted stack (the `StackPolicy` decides which tables are kept).
+- `Selfcal.__init__` validates the whole schedule by simulating the stack. A schedule that breaks calibration theory raises `ScheduleError` **before any I/O**. Continuing a run uses `Selfcal.resume(result, ...)`, never another object's internals.
+
 # Parameter budget
 
-The main design problem in snow is classes that copy the whole parameter list of the tasks they wrap (`Tclean` 38 parameters, `Selfcal` 24). Don't add to it.
-
-- A public constructor takes **at most ~8 parameters**. If you need more, the class is doing too much, or loose parameters belong in a config object.
-- **Every parameter must be used.** No placeholders for future features and no parameters that only feed a stub.
-- Don't add a parameter a preset or the data can supply (`spwmap` from `combine`, cell/imsize from the uv coverage, thresholds from measured noise). Accept an explicit override only if a user really needs it.
-
-# Value objects for configuration
-
-- Group parameters **by responsibility** into small `@dataclass(frozen=True)` value objects: `Selection` (field/spw/uvrange), `SolveOptions` (gaincal), `ApplyOptions` (applycal), `ImageGeometry`, `Weighting`.
-- One concept, one object, **shared by reference**. Solve, apply and imaging all read the same `Selection`; never duplicate `field`/`spw`/`uvrange` on several classes.
-- Validate in `__post_init__`, once. Derive values with `dataclasses.replace(...)`, which rejects unknown field names, rather than `setattr` by string.
-- No mutable default arguments. Use `field(default_factory=...)` or tuples.
-
-# The self-cal schedule is data
-
-- A procedure is an ordered list of `Round(calmode, solint, solve_overrides, imaging_overrides)`.
-- Don't add parallel per-iteration lists or dicts (the legacy `solint` + `varchange_imager` + `varchange_selfcal`). Anything that varies per round goes in `Round`.
-- Validate every round's overrides **before** the first round runs.
+- A public constructor takes **at most ~8 parameters**, all of them used. If you need more, group them into a config object or split the class.
+- Don't add a parameter that a preset or the data can supply (spwmap, cell/imsize, noise-based thresholds).
 
 # Policies and strategies
 
 Follow the Pyralysis "Policies" convention ([`.cursor/rules/design.mdc` in Pyralysis](https://gitlab.com/clirai/pyralysis/-/blob/development/.cursor/rules/design.mdc)): one family per configurable decision, frozen dataclasses, the default is an instance, and policies decide but never act.
 
-- `AcceptancePolicy`: keep or roll back a round (PSNR, flagged fraction, beam/flux stability; combinable).
-- `GainSolver`: how gains are solved (CASA `gaincal` now).
-- `Imager`: a Protocol with **one** method, `image(ms, name, selection, overrides) -> ImagingResult`.
-- Strings such as `"alma"` or `"tclean"` are accepted only at the boundary (config file, CLI, user-facing constructors) and turned into objects by one factory per family.
+- `AcceptancePolicy` (keep or roll back a round; `AllOf`/`AnyOf` combinators), `StackPolicy` (`Accumulate`, `ReplacePhase`), `GainSolver`.
+- Strings (`"tclean"`, `"ap"`, `"alma"`) only at the boundary (config files, CLI), turned into objects by one registry/factory per family. Third-party imagers register via the `snow.imagers` entry point.
 
-# Backends
+# Imagers (plug-ins)
 
-- Imagers **pass backend options through using the backend's own names** (`tclean`'s `usemask`, not a renamed `use_mask`). Check names against the backend's signature at construction.
-- An imager must not hold or mutate the MS path as state; the pipeline passes it on every call.
-- Image statistics (peak, noise, PSNR) are computed in **one** shared component, not separately per imager.
-- Optional backends (Pyralysis, GPUvmem) are **extras with lazy imports**. `import snow.imaging` must work without them.
+- The contract: image `CORRECTED_DATA` and write `MODEL_DATA` to the MS given in the request. `Imager.image()` invalidates the model first and verifies it afterwards, raising `ImagerContractError` if it wasn't written.
+- Imagers are stateless with respect to the MS (it arrives in every `ImagingRequest`).
+- Backend options pass through using the backend's own names (`tclean`'s `usemask`). Validate them against the backend's signature.
+- Every imager, including users' own, should pass `snow.testing.ImagerContractSuite`.
+- Image statistics are computed once, by `ImageStatistics`, for all imagers. Optional backends are extras with lazy imports.
 
-# State and side effects
+# Cross-cutting concerns and side effects
 
-- **No I/O in constructors.** Copying Measurement Sets, imaging and table creation happen in `run()`.
-- One component (`MSWorkspace`) owns MS copies, flag versions, rollback and cleanup.
-- Calibration state is an explicit ordered stack of `CalTable(path, calmode, spwmap, interp)`, carried in a `SelfcalResult`. Never pass another object's private fields (`_caltables`, `_psnr_history`) between objects.
-- Prefer composition over inheritance. A subclass that only changes one constant (e.g. `calmode`) should be data, not a class.
-- Keep the core pure where practical (argument building, spwmap derivation, statistics) and keep CASA/filesystem calls in a thin shell, so the core can be unit-tested without CASA.
+- Logging, gain plots and provenance are `SelfcalObserver`s, not constructor flags.
+- No I/O in constructors. `MSWorkspace` owns snapshots, rollback and cleanup.
+- Keep argument building, rules and statistics pure, so they can be tested without CASA.
 
 # Backwards compatibility
 
-When you replace a public parameter or class, keep a deprecated alias that builds the new object and emits a `DeprecationWarning`. Remove it in the next major version, and add a test showing the alias and the new form behave the same.
+v1.0 replaces the legacy constructors. Legacy arguments (`visfile=`, `solint=[...]`, `previous_selfcal=`) raise a `TypeError` that shows the new call. Deprecated aliases emit `DeprecationWarning` and have a test showing they behave like the new form.

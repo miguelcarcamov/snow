@@ -18,7 +18,7 @@ Judge every change against that goal:
 Layers, from the user inward:
 
 1. **Recipe / config file** (TOML or YAML) + telescope presets — what most users touch.
-2. **Python API** (`SelfcalPipeline`, `Round`, config objects) — for power users and scripting.
+2. **Python API** (`Selfcal`, the `Phasecal`/`Ampcal`/`AmpPhasecal` steps, config objects) — for power users and scripting.
 3. **Backends** — CASA tasks (`gaincal`, `applycal`, `tclean`), GPUvmem, Pyralysis.
 
 The target design is tracked in GitHub issue #22 (milestone "v1.0 redesign"). The end goal is self-cal with the Pyralysis imager (#24).

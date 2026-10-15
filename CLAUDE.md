@@ -14,7 +14,13 @@ The conventions live in **`.cursor/rules/*.mdc`** (see `.cursor/rules/README.md`
 
 Highlights to keep in mind:
 
-- **Parameter budget:** at most ~8 constructor parameters, all of them used. Group parameters into frozen config objects (`Selection`, `SolveOptions`, `ApplyOptions`, `ImageGeometry`, `Weighting`). Put per-round variation in `Round`. Prefer presets and data-derived defaults over new parameters (`design.mdc`).
+- **Architecture** (`design.mdc`):
+  - One self-cal loop, in `Selfcal`.
+  - Calibration types are frozen-dataclass subclasses of `CalibrationStep` (`Phasecal`, `Ampcal`, `AmpPhasecal`), in any valid order.
+  - `CalStack` is the only place that builds `gaincal`/`applycal` table lists.
+  - Theory rules are `multimethod` overloads of `check_transition`; an invalid schedule raises `ScheduleError` before any I/O.
+- **Parameter budget:** at most ~8 constructor parameters, all of them used. Group parameters into frozen config objects (`Selection`, `SolveOptions`, `ApplyOptions`, `ImageGeometry`, `Weighting`). Prefer presets and data-derived defaults over new parameters.
+- **Pluggable imagers:** subclass `Imager` and implement `_reconstruct` (or wrap a function with `CallableImager`). The final `image()` method enforces the contract: image `CORRECTED_DATA`, write `MODEL_DATA`.
 - **Self-cal invariants** (`selfcal-domain.mdc`):
   - `gaincal` solves against `DATA`.
   - `MODEL_DATA` must hold the accepted model.
