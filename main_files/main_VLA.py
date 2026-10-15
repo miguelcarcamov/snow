@@ -1,74 +1,73 @@
-import sys
+"""
+Phase, then amplitude-phase self-calibration of a VLA dataset imaged with tclean.
+
+Usage: python main_VLA.py <visfile> <output_prefix> [--plot]
+"""
+import argparse
+
 from snow.imaging import Tclean
 from snow.selfcalibration import AmpPhasecal, Phasecal
 
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("visfile", help="Measurement set with the calibrated data in DATA")
+    parser.add_argument("output", help="Prefix of the output images and calibration tables")
+    parser.add_argument("--plot", action="store_true", help="Plot the gain solutions")
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    visfile = sys.argv[3]
-    output = sys.argv[4]
-    want_plot = eval(sys.argv[5])
+    args = parse_arguments()
 
-    # Table for automasking on long or short baselines can be found here: https://casaguides.nrao.edu/index.php/        Automasking_Guide
-    # The default clean object will use automasking values for short baselines
-    # In this case we will use automasking values for long baselines
-
+    # Automasking values for long baselines: https://casaguides.nrao.edu/index.php/Automasking_Guide
     clean_imager = Tclean(
-        inputvis=visfile,
-        output=output,
+        inputvis=args.visfile,
+        output=args.output,
         niter=100,
         M=1024,
         N=1024,
         cell="0.3arcsec",
         stokes="I",
-        datacolumn="corrected",
+        data_column="corrected",
         robust=0.5,
         specmode="mfs",
         deconvolver="hogbom",
         gridder="standard",
         pbcor=True,
-        savemodel=True,
-        usemask='auto-multithresh',
-        sidelobethreshold=1.25,
-        noisethreshold=5.0,
-        minbeamfrac=0.1,
-        lownoisethreshold=2.0,
-        negativethreshold=0.0,
-        interactive=True
+        save_model=True,
+        use_mask="auto-multithresh",
+        sidelobe_threshold=1.25,
+        noise_threshold=5.0,
+        min_beam_frac=0.1,
+        low_noise_threshold=2.0,
+        negative_threshold=0.0,
+        interactive=False  # True to edit the masks by hand
     )
 
-    shared_vars_dict = {
-        'visfile': clean_imager.getVis(),
-        'minblperant': 4,
-        'refant': "VA05",
-        'spwmap': [0, 0, 0, 0],
-        'gaintype': 'G',
-        'want_plot': want_plot
-    }
-
-    #solint_phs = ['128s', '64s', '32s', '16s']
-    solint_phs = ['inf']
-    solint_amp = ['1h']
-    solint_ap = ['inf']
+    # Parameters shared by every self-calibration step. spwmap is derived from combine.
+    shared_parameters = dict(
+        minsnr=3.0, minblperant=4, refant="VA05", gaintype="G", want_plot=args.plot
+    )
 
     phscal = Phasecal(
-        minsnr=3.0, solint=solint_phs, combine="spw", Imager=clean_imager, **shared_vars_dict
+        visfile=args.visfile,
+        imager=clean_imager,
+        solint=["inf"],
+        combine="spw",
+        **shared_parameters
     )
-
     phscal.run()
 
-    # ampcal = Ampcal(minsnr=2.0, solint=solint_amp, combine="scan",
-    #                selfcal_object=parent_selfcal, input_caltable=phs_caltable)
-
-    #amp_caltable = ampcal.run()
-
+    # Continues from the phase self-calibration (its measurement set, model and tables), so it is
+    # created after phscal.run()
     apcal = AmpPhasecal(
-        minsnr=3.0,
-        solint=solint_ap,
+        previous_selfcal=phscal,
+        imager=clean_imager,
+        solint=["inf"],
         combine="",
-        selfcal_object=phscal,
-        Imager=clean_imager,
-        **shared_vars_dict
+        **shared_parameters
     )
-
     apcal.run()
 
     apcal.selfcal_output(overwrite=True)

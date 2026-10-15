@@ -2,12 +2,12 @@
 
 ## ca**S**a pytho**N** self-calibrati**O**n frame**W**ork
 
-**SNOW** is an object-oriented Python framework for radio-interferometric self-calibration that simplifies the process of writing self-calibration scripts. Instead of rewriting calibration workflows for each dataset, SNOW provides a unified interface to run imagers (tclean, wsclean, gpuvmem, rascil, etc.) and self-calibration algorithms (phase, amplitude, amplitude-phase) in a single, streamlined workflow.
+**SNOW** is an object-oriented Python framework for radio-interferometric self-calibration that simplifies the process of writing self-calibration scripts. Instead of rewriting calibration workflows for each dataset, SNOW provides a unified interface to run imagers (CASA tclean and GPUvmem, or your own) and self-calibration algorithms (phase, amplitude, amplitude-phase) in a single, streamlined workflow.
 
 ### Features
 
 - **Object-oriented design**: Clean, modular architecture for easy customization
-- **Multiple imagers supported**: CASA tclean, wsclean, GPUvmem, and more
+- **Multiple imagers supported**: CASA tclean and GPUvmem; WSClean and Pyralysis are planned
 - **Flexible self-calibration**: Phase-only, amplitude-only, or combined amplitude-phase calibration
 - **CASA integration**: Built on CASA (Common Astronomy Software Applications) for radio astronomy data processing
 - **Reproducible workflows**: Version-controlled calibration pipelines
@@ -82,114 +82,102 @@ The Docker image includes all dependencies and is ready to use. See the [Docker 
 
 ### Basic Usage Example
 
+Phase, then amplitude-phase self-calibration of an ALMA dataset. This is
+[`main_files/main_ALMA.py`](main_files/main_ALMA.py); a test keeps the two identical.
+
 ```python
-import sys
-from snow.selfcalibration import Phasecal, AmpPhasecal
+"""
+Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tclean.
+
+Usage: python main_ALMA.py <visfile> <output_prefix> [--plot]
+"""
+import argparse
+
 from snow.imaging import Tclean
+from snow.selfcalibration import AmpPhasecal, Phasecal
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("visfile", help="Measurement set with the calibrated data in DATA")
+    parser.add_argument("output", help="Prefix of the output images and calibration tables")
+    parser.add_argument("--plot", action="store_true", help="Plot the gain solutions")
+    return parser.parse_args()
+
 
 if __name__ == '__main__':
-    # Get input parameters (adjust as needed for your use case)
-    visfile = sys.argv[1]  # Input measurement set
-    output = sys.argv[2]   # Output prefix
-    want_plot = eval(sys.argv[3])  # Whether to generate plots
+    args = parse_arguments()
 
-    # Create imager for phase calibration
-    # See CASA automasking guide: https://casaguides.nrao.edu/index.php/Automasking_Guide
-    clean_imager_phs = Tclean(
-        inputvis=visfile,
-        output=output,
+    # Automasking values for long baselines: https://casaguides.nrao.edu/index.php/Automasking_Guide
+    imaging_parameters = dict(
+        inputvis=args.visfile,
+        output=args.output,
         niter=100,
         M=1024,
         N=1024,
         cell="0.005arcsec",
         stokes="I",
-        datacolumn="corrected",
+        data_column="corrected",
         robust=0.5,
         specmode="mfs",
         deconvolver="hogbom",
         gridder="standard",
-        savemodel=True,
-        usemask='auto-multithresh',
-        threshold="0.1mJy",
-        sidelobethreshold=3.0,
-        noisethreshold=5.0,
-        minbeamfrac=0.3,
-        lownoisethreshold=1.5,
-        negativethreshold=0.0,
-        interactive=True
+        save_model=True,
+        use_mask="auto-multithresh",
+        sidelobe_threshold=3.0,
+        noise_threshold=5.0,
+        min_beam_frac=0.3,
+        low_noise_threshold=1.5,
+        negative_threshold=0.0,
+        interactive=False  # True to edit the masks by hand
+    )
+    clean_imager_phs = Tclean(threshold="0.1mJy", **imaging_parameters)
+    clean_imager_ampphs = Tclean(threshold="0.025mJy", **imaging_parameters)
+
+    # Parameters shared by every self-calibration step. spwmap is derived from combine.
+    shared_parameters = dict(
+        minsnr=3.0, minblperant=6, refant="DA51", gaintype="T", want_plot=args.plot
     )
 
-    # Create imager for amplitude-phase calibration (with lower threshold)
-    clean_imager_ampphs = Tclean(
-        inputvis=visfile,
-        output=output,
-        niter=100,
-        M=1024,
-        N=1024,
-        cell="0.005arcsec",
-        stokes="I",
-        datacolumn="corrected",
-        robust=0.5,
-        specmode="mfs",
-        deconvolver="hogbom",
-        gridder="standard",
-        savemodel=True,
-        usemask='auto-multithresh',
-        threshold="0.025mJy",
-        sidelobethreshold=3.0,
-        noisethreshold=5.0,
-        minbeamfrac=0.3,
-        lownoisethreshold=1.5,
-        negativethreshold=0.0,
-        interactive=True
-    )
-
-    # Shared parameters for self-calibration objects
-    shared_vars_dict = {
-        'visfile': visfile,
-        'minblperant': 6,
-        'refant': "DA51",
-        'spwmap': [0, 0, 0, 0],
-        'gaintype': 'T',
-        'want_plot': want_plot
-    }
-
-    # Solution intervals for phase calibration
-    solint_phs = ['inf', '600s']
-
-    # Solution intervals for amplitude-phase calibration
-    solint_ap = ['inf']
-
-    # Phase-only self-calibration
     phscal = Phasecal(
-        minsnr=3.0,
-        solint=solint_phs,
-        combine="spw",
+        visfile=args.visfile,
         imager=clean_imager_phs,
-        **shared_vars_dict
+        solint=["inf", "600s"],
+        combine="spw",
+        **shared_parameters
     )
     phscal.run()
 
-    # Amplitude-phase self-calibration (optional, only if phase calibration is successful)
+    # Continues from the phase self-calibration (its measurement set, model and tables), so it is
+    # created after phscal.run()
     apcal = AmpPhasecal(
-        minsnr=3.0,
-        solint=solint_ap,
-        combine="",
         previous_selfcal=phscal,
         imager=clean_imager_ampphs,
-        **shared_vars_dict
+        solint=["inf"],
+        combine="",
+        **shared_parameters
     )
     apcal.run()
 
-    # Output the final calibrated measurement set
     apcal.selfcal_output(overwrite=True)
 ```
 
 Run the script:
 
 ```bash
-python yourscript.py <visfile> <output_prefix> True
+python main_files/main_ALMA.py target.ms target_selfcal
 ```
+
+How the steps fit together:
+
+- Each self-calibration step continues from the previous one with `previous_selfcal=...`: it
+  uses that step's measurement set, model and accepted calibration tables, which stay applied.
+  Create it after the previous step's `run()`.
+- Amplitude steps (`Ampcal`, `AmpPhasecal`) need phase solutions first; an order that would
+  discard or skip them raises a `ValueError` before any data is touched.
+- `spwmap` is derived per calibration table from `combine`, so it rarely needs to be set.
+
+More examples for VLA and e-MERLIN are in [`main_files/`](main_files/).
 
 ## API Overview
 
@@ -198,7 +186,7 @@ python yourscript.py <visfile> <output_prefix> True
 SNOW supports multiple imaging backends:
 
 - **`Tclean`**: CASA tclean task wrapper for standard imaging
-- **`WSClean`**: WSClean imager interface
+- **`WSClean`**: placeholder, not implemented yet
 - **`GPUvmem`**: GPU-accelerated imaging with GPUvmem
 - **`Imager`**: Base class for custom imagers
 
