@@ -51,10 +51,19 @@ RUN cd /usr/local/cuda && \
     cd / && \
     rm -rf /tmp/* /var/tmp/*
 
-# Install GPUVmem and clean up build artifacts
-RUN git clone --depth 1 https://github.com/miguelcarcamov/gpuvmem.git && \
+# Install GPUVmem and clean up build artifacts.
+# GPUVMEM_REF pins the gpuvmem commit so upstream changes cannot silently break this image.
+# CUDA_ARCH lists the GPU compute capabilities to compile for: CI builders have no GPU to
+# auto-detect one, and the image must run on any of them (Pascal to Hopper by default).
+ARG GPUVMEM_REF=b860b9406fcf11c91b34d06f0b18008b36cb0f11
+ARG CUDA_ARCH="60;70;75;80;86;89;90"
+RUN mkdir gpuvmem && \
     cd gpuvmem && \
-    cmake . -B $BUILD_DIR -DCMAKE_BUILD_TYPE=$CONFIG && \
+    git init -q && \
+    git remote add origin https://github.com/miguelcarcamov/gpuvmem.git && \
+    git fetch -q --depth 1 origin "$GPUVMEM_REF" && \
+    git checkout -q FETCH_HEAD && \
+    cmake . -B $BUILD_DIR -DCMAKE_BUILD_TYPE=$CONFIG -DCUDA_ARCH="$CUDA_ARCH" && \
     cd $BUILD_DIR && \
     cmake --build . --target install --verbose -j$(nproc) && \
     cd / && \
