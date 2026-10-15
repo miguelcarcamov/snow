@@ -24,6 +24,7 @@ class Ampcal(Selfcal):
         self._calmode = 'a'
         self._loops = len(self.solint)
         self.__solnorm = solnorm
+        self._require_phase_solution()
 
         self._copy_directory_at_start()
         self._init_selfcal()
