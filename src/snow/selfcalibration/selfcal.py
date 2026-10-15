@@ -8,11 +8,14 @@ from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from dataclasses import dataclass
 
-from casatasks import (clearcal, delmod, flagdata, flagmanager, split, statwt, uvsub)
+from casatasks import (
+    applycal, clearcal, delmod, flagdata, flagmanager, gaincal, split, statwt, uvsub
+)
 from casatools import table
 
 from ..imaging.imager import Imager
-from ..utils.selfcal_utils import is_column_in_ms
+from ..utils.selfcal_utils import count_spectral_windows, get_spw_ids, is_column_in_ms
+from .caltable import CalTable, build_gaintable_arguments, derive_spwmap
 
 tb = table()
 
@@ -140,6 +143,8 @@ class Selfcal(metaclass=ABCMeta):
 
         # Protected variables
         self._caltables = []
+        # Accepted tables currently applied to the data, in application order (#26)
+        self._caltable_stack = []
         self._caltables_versions = []
         self._psnr_history = []
         self._calmode = ""
@@ -224,10 +229,9 @@ class Selfcal(metaclass=ABCMeta):
         if self.input_caltable:
             return True
         previous = self.previous_selfcal
-        if previous is None:
-            return False
-        return (bool(previous._caltables)
-                and 'p' in previous._calmode) or previous._has_phase_solution()
+        return previous is not None and any(
+            caltable.solves_phase for caltable in previous._caltable_stack
+        )
 
     def _require_phase_solution(self) -> None:
         """
@@ -337,7 +341,131 @@ class Selfcal(metaclass=ABCMeta):
                 self.input_caltable = self.previous_selfcal._caltables[-1]
             else:
                 self.input_caltable = ""
+            self._caltable_stack = list(self.previous_selfcal._caltable_stack)
             self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
+        elif self.input_caltable:
+            # A user table is assumed to hold phase solutions, applied with the user spwmap
+            self._caltable_stack = [CalTable(self.input_caltable, "p", tuple(self.spwmap))]
+
+    def _preapplied_caltables(self) -> list:
+        """
+        Protected method that returns the tables applied on the fly while solving. By default
+        self-calibration is incremental: every accepted table is pre-applied.
+
+        Returns
+        -------
+        List of calibration tables in application order
+        """
+        return list(self._caltable_stack)
+
+    def _applied_caltables(self, caltable: CalTable) -> list:
+        """
+        Protected method that returns the tables applied to the data after solving a new table
+
+        Parameters
+        ----------
+        caltable :
+            The newly solved calibration table
+
+        Returns
+        -------
+        List of calibration tables in application order
+        """
+        return self._preapplied_caltables() + [caltable]
+
+    def _accept_caltable(self, caltable: CalTable) -> None:
+        """
+        Protected method that records a calibration table whose iteration was accepted
+
+        Parameters
+        ----------
+        caltable :
+            The accepted calibration table
+        """
+        self._caltable_stack.append(caltable)
+
+    def _solution_spwmap(self) -> tuple:
+        """
+        Protected method that returns the spectral window map needed to apply the solutions of the
+        current iteration, derived from combine and the solved spectral windows. An explicit
+        spwmap is respected for solutions that combine spectral windows.
+
+        Returns
+        -------
+        The spectral window map as a tuple
+        """
+        derived = derive_spwmap(
+            self.combine, get_spw_ids(self.visfile, self.imager.spw),
+            count_spectral_windows(self.visfile)
+        )
+        if derived and self.spwmap:
+            if list(self.spwmap) != derived:
+                warnings.warn(
+                    "spwmap {0} differs from {1}, derived from combine='{2}' and spw='{3}'. "
+                    "Solutions combined over spectral windows are stored under the lowest "
+                    "selected spectral window.".format(
+                        list(self.spwmap), derived, self.combine, self.imager.spw
+                    )
+                )
+            return tuple(self.spwmap)
+        return tuple(derived)
+
+    def _solve(self, caltable: str, solint: str, **kwargs) -> CalTable:
+        """
+        Protected method that solves the gains of the current iteration with gaincal, pre-applying
+        the tables returned by _preapplied_caltables
+
+        Parameters
+        ----------
+        caltable :
+            Path of the output calibration table
+        solint :
+            Solution interval
+        kwargs :
+            Extra gaincal arguments of the calibration mode, e.g. solnorm
+
+        Returns
+        -------
+        The solved calibration table
+        """
+        gaincal(
+            vis=self.visfile,
+            caltable=caltable,
+            field=self.imager.field,
+            spw=self.imager.spw,
+            uvrange=self.uvrange,
+            gaintype=self.gaintype,
+            refant=self.refant,
+            calmode=self._calmode,
+            combine=self.combine,
+            solint=solint,
+            minsnr=self.minsnr,
+            minblperant=self.minblperant,
+            **build_gaintable_arguments(self._preapplied_caltables(), self.interp),
+            **kwargs
+        )
+        return CalTable(caltable, self._calmode, self._solution_spwmap())
+
+    def _apply(self, caltable: CalTable) -> None:
+        """
+        Protected method that applies the tables returned by _applied_caltables to the data
+
+        Parameters
+        ----------
+        caltable :
+            The newly solved calibration table
+        """
+        print("Applying calibration tables to {0} file".format(self.visfile))
+        applycal(
+            vis=self.visfile,
+            field=self.field,
+            spw=self.spw,
+            gainfield='',
+            calwt=False,
+            flagbackup=False,
+            applymode=self.applymode,
+            **build_gaintable_arguments(self._applied_caltables(caltable), self.interp)
+        )
 
     def _init_run(self, image_name_string: str = "") -> None:
         """

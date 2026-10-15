@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
-from casatasks import applycal, gaincal, rmtables
+from casatasks import rmtables
 
+from .caltable import CalTable
 from .selfcal import Selfcal
 
 
@@ -30,7 +31,9 @@ class Phasecal(Selfcal):
                 "discarded.".format(self.input_caltable)
             )
         previous = self.previous_selfcal
-        if previous is not None and previous._caltables and 'a' in previous._calmode:
+        if previous is not None and any(
+            caltable.solves_amplitude for caltable in previous._caltable_stack
+        ):
             raise ValueError(
                 "Phasecal after an amplitude self-calibration ({0}) would discard its amplitude "
                 "solutions.".format(type(previous).__name__)
@@ -38,6 +41,19 @@ class Phasecal(Selfcal):
 
         self._copy_directory_at_start()
         self._init_selfcal()
+
+    def _preapplied_caltables(self) -> list:
+        """
+        Phase self-calibration solves from scratch against the model: earlier phase tables are
+        not pre-applied but replaced
+        """
+        return []
+
+    def _accept_caltable(self, caltable: CalTable) -> None:
+        """
+        A new phase table replaces the previous ones, which it was solved without
+        """
+        self._caltable_stack = [caltable]
 
     def run(self):
         caltable = "before_selfcal"
@@ -52,21 +68,7 @@ class Phasecal(Selfcal):
 
             self._set_attributes_from_dicts(i)
 
-            gaincal(
-                vis=self.visfile,
-                caltable=caltable,
-                field=self.imager.field,
-                spw=self.imager.spw,
-                uvrange=self.uvrange,
-                gaintype=self.gaintype,
-                refant=self.refant,
-                calmode=self._calmode,
-                combine=self.combine,
-                solint=self.solint[i],
-                minsnr=self.minsnr,
-                spwmap=self.spwmap,
-                minblperant=self.minblperant
-            )
+            table = self._solve(caltable, self.solint[i])
 
             self._plot_selfcal(
                 caltable,
@@ -82,19 +84,7 @@ class Phasecal(Selfcal):
             self._save_selfcal(caltable_version=version_name, overwrite=True)
             self._caltables_versions.append(version_name)
 
-            print("Applying calibration tables to {0} file".format(self.visfile))
-            applycal(
-                vis=self.visfile,
-                field=self.field,
-                spw=self.spw,
-                spwmap=self.spwmap,
-                gaintable=[caltable],
-                gainfield='',
-                calwt=False,
-                flagbackup=False,
-                interp=self.interp,
-                applymode=self.applymode
-            )
+            self._apply(table)
 
             if self.flag_dataset:
                 self._flag_dataset(mode=self.flag_mode)
@@ -103,3 +93,5 @@ class Phasecal(Selfcal):
 
             if self._finish_selfcal_iteration(i):
                 break
+
+            self._accept_caltable(table)
