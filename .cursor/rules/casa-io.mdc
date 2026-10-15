@@ -19,7 +19,7 @@ alwaysApply: false
 - Build paths with `pathlib.Path`. Don't concatenate strings or `partition(".ms")`.
 - A Measurement Set comes with a sibling `<ms>.flagversions` directory. Copying, moving or deleting the MS must handle both.
 
-# Subprocesses (GPUvmem and other executables)
+# Subprocesses (external executables)
 
 - `subprocess.run([...], check=True)` with an argument **list**. No shell strings and no `shlex.split` of concatenated text.
 - Log the command, and surface the exit code and stderr in the raised exception.

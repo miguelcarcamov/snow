@@ -20,7 +20,7 @@ Layers, from the user inward:
 
 1. **Recipe / config file** (TOML or YAML) + telescope presets — what most users touch.
 2. **Python API** (`Selfcal`, the `Phasecal`/`Ampcal`/`AmpPhasecal` steps, config objects) — for power users and scripting.
-3. **Backends** — CASA tasks (`gaincal`, `applycal`, `tclean`), GPUvmem, Pyralysis.
+3. **Backends** — CASA tasks (`gaincal`, `applycal`, `tclean`) and Pyralysis (replaces the deprecated GPUvmem).
 
 The target design is tracked in GitHub issue #22 (milestone "v1.0 redesign"). The end goal is self-cal with the Pyralysis imager (#24).
 
@@ -168,7 +168,7 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 - Build paths with `pathlib.Path`. Don't concatenate strings or `partition(".ms")`.
 - A Measurement Set comes with a sibling `<ms>.flagversions` directory. Copying, moving or deleting the MS must handle both.
 
-## Subprocesses (GPUvmem and other executables)
+## Subprocesses (external executables)
 
 - `subprocess.run([...], check=True)` with an argument **list**. No shell strings and no `shlex.split` of concatenated text.
 - Log the command, and surface the exit code and stderr in the raised exception.
@@ -250,13 +250,13 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 ## Packaging
 
 - `pyproject.toml` is the single source of metadata and dependencies. Use lower bounds in `dependencies`; put exact pins only in lock/constraint files for CI and Docker.
-- Declare only what is imported. Optional backends go in extras (`snow[pyralysis]`, `snow[gpuvmem]`).
+- Declare only what is imported. Optional backends go in extras (e.g. `snow[pyralysis]`).
 - Version comes from setuptools-scm (`version_file`); the generated `_version.py` is git-ignored.
 
 ## Containers
 
 - Combine `apt-get update && apt-get install ... && rm -rf /var/lib/apt/lists/*` in one layer.
-- Pin external sources (casacore tag, gpuvmem tag/SHA).
+- Pin external sources (tags or commit SHAs) cloned or downloaded during builds.
 - Use multi-stage builds: compile in a devel stage, run on a runtime base.
 
 ## Branches, commits and releases

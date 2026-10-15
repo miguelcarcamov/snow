@@ -21,13 +21,13 @@ alwaysApply: false
 # Packaging
 
 - `pyproject.toml` is the single source of metadata and dependencies. Use lower bounds in `dependencies`; put exact pins only in lock/constraint files for CI and Docker.
-- Declare only what is imported. Optional backends go in extras (`snow[pyralysis]`, `snow[gpuvmem]`).
+- Declare only what is imported. Optional backends go in extras (e.g. `snow[pyralysis]`).
 - Version comes from setuptools-scm (`version_file`); the generated `_version.py` is git-ignored.
 
 # Containers
 
 - Combine `apt-get update && apt-get install ... && rm -rf /var/lib/apt/lists/*` in one layer.
-- Pin external sources (casacore tag, gpuvmem tag/SHA).
+- Pin external sources (tags or commit SHAs) cloned or downloaded during builds.
 - Use multi-stage builds: compile in a devel stage, run on a runtime base.
 
 # Branches, commits and releases
