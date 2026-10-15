@@ -56,13 +56,37 @@ def test_phase_then_ampphase_examples_run(script, last_phase_table, casa, workdi
             ] == [last_phase_table, "target_scapcal_0"]
 
 
-@pytest.mark.parametrize("flag", [False, True])
-def test_emerlin_example_runs(flag, casa, casatasks_module, workdir):
+@pytest.mark.parametrize(
+    "flag_args, flagged_spws", [
+        ([], []), (["--flag"], [""]),
+        (["--flag", "--rflag-spw", "0", "--rflag-spw", "1~7"], ["0", "1~7"])
+    ]
+)
+def test_emerlin_example_flags_before_selfcal(
+    flag_args, flagged_spws, casa, casatasks_module, workdir
+):
     casa.nspw, casa.spw_ids = 8, list(range(8))
-    (workdir / "pcal1").mkdir()
-    args = ["target.ms", "target_sc", "1252+5634"] + (["--flag"] if flag else [])
+    (workdir / "pcal").mkdir()
 
-    run_example(EXAMPLES / "main_eMERLIN.py", *args)
+    run_example(EXAMPLES / "main_eMERLIN.py", "target.ms", "target_sc", "1252+5634", *flag_args)
 
-    assert casatasks_module.flagdata.called == flag
-    assert casa.applycal.call_args.kwargs["gaintable"][0] == "pcal1"
+    rflag_calls = [
+        call for call in casatasks_module.flagdata.call_args_list if call.kwargs["mode"] == "rflag"
+    ]
+    assert [call.kwargs["spw"] for call in rflag_calls] == flagged_spws
+
+
+@pytest.mark.parametrize(
+    "phase_args, phase_spwmap", [([], [0] * 8), (["--phase-caltable-per-spw"], [])]
+)
+def test_emerlin_example_preapplies_phase_table(
+    phase_args, phase_spwmap, casa, casatasks_module, workdir
+):
+    casa.nspw, casa.spw_ids = 8, list(range(8))
+    (workdir / "pcal").mkdir()
+
+    run_example(EXAMPLES / "main_eMERLIN.py", "target.ms", "target_sc", "1252+5634", *phase_args)
+
+    applied = casa.applycal.call_args.kwargs
+    assert applied["gaintable"][0] == "pcal"
+    assert applied["spwmap"][0] == phase_spwmap

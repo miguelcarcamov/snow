@@ -20,6 +20,7 @@ for _module in ("casatasks", "casatools"):
 
 from snow.imaging import tclean  # noqa: E402
 from snow.selfcalibration import ampcal, apcal, phasecal, selfcal  # noqa: E402
+from snow import utils  # noqa: E402
 from snow.utils import image_utils, selfcal_utils  # noqa: E402
 
 CASA_NAMES = (
@@ -49,6 +50,7 @@ def casa(monkeypatch) -> SimpleNamespace:
         for name in CASA_NAMES:
             if hasattr(module, name):
                 monkeypatch.setattr(module, name, getattr(mocks, name))
-    monkeypatch.setattr(selfcal, "get_spw_ids", lambda ms_name, spw: mocks.spw_ids)
-    monkeypatch.setattr(selfcal, "count_spectral_windows", lambda ms_name: mocks.nspw)
+    for module in (selfcal, utils):
+        monkeypatch.setattr(module, "get_spw_ids", lambda ms_name, spw="": mocks.spw_ids)
+        monkeypatch.setattr(module, "count_spectral_windows", lambda ms_name: mocks.nspw)
     return mocks
