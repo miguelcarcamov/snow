@@ -2,12 +2,12 @@
 
 ## ca**S**a pytho**N** self-calibrati**O**n frame**W**ork
 
-**SNOW** is an object-oriented Python framework for radio-interferometric self-calibration that simplifies the process of writing self-calibration scripts. Instead of rewriting calibration workflows for each dataset, SNOW provides a unified interface to run imagers (CASA tclean and GPUvmem, or your own) and self-calibration algorithms (phase, amplitude, amplitude-phase) in a single, streamlined workflow.
+**SNOW** is an object-oriented Python framework for radio-interferometric self-calibration that simplifies the process of writing self-calibration scripts. Instead of rewriting calibration workflows for each dataset, SNOW provides a unified interface to run imagers (CASA tclean, or your own) and self-calibration algorithms (phase, amplitude, amplitude-phase) in a single, streamlined workflow.
 
 ### Features
 
 - **Object-oriented design**: Clean, modular architecture for easy customization
-- **Multiple imagers supported**: CASA tclean and GPUvmem; WSClean and Pyralysis are planned
+- **Multiple imagers supported**: CASA tclean, or your own; Pyralysis (GPU) and WSClean are planned
 - **Flexible self-calibration**: Phase-only, amplitude-only, or combined amplitude-phase calibration
 - **CASA integration**: Built on CASA (Common Astronomy Software Applications) for radio astronomy data processing
 - **Reproducible workflows**: Version-controlled calibration pipelines
