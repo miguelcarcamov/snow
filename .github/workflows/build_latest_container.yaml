@@ -10,6 +10,11 @@ on:
   release:
     types: [published]
 
+# Superseded pull request runs are cancelled; release runs always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   REGISTRY: ghcr.io
   PYTHON_VERSION: '3.10'
@@ -36,7 +41,7 @@ jobs:
     - name: Install yapf
       run: |
         python -m pip install --upgrade pip
-        pip install yapf
+        pip install yapf==0.43.0  # same version as .pre-commit-config.yaml
     - name: Run yapf
       run: |
         yapf --recursive --verbose --diff .
@@ -79,6 +84,12 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+    # The image installs the wheel built and tested by the build job, i.e. this exact commit.
+    - name: Download built package
+      uses: actions/download-artifact@v4
+      with:
+        name: snow-artifacts
+        path: dist/
     - name: Free up disk space
       run: |
         sudo rm -rf /usr/share/dotnet
@@ -101,8 +112,11 @@ jobs:
       with:
         context: .
         file: ./Dockerfile.prod
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
+        # Pull requests only check that the image builds; releases publish it.
+        push: ${{ github.event_name == 'release' }}
+        tags: |
+          ${{ env.REGISTRY }}/${{ github.repository }}:latest
+          ${{ github.event_name == 'release' && format('{0}/{1}:{2}', env.REGISTRY, github.repository, github.event.release.tag_name) || '' }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |
