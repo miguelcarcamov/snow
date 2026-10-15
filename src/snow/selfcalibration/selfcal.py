@@ -97,6 +97,21 @@ class Selfcal(metaclass=ABCMeta):
         subtract_source :
             Subtract source model if needed
         """
+        # Continuing from another self-calibration must start from its measurement set; any other
+        # dataset silently discards its solutions and model (#25).
+        if previous_selfcal is not None:
+            if visfile == "":
+                visfile = previous_selfcal.visfile
+            elif Path(visfile).resolve() != Path(previous_selfcal.visfile).resolve():
+                raise ValueError(
+                    "visfile ({0}) is not the measurement set of previous_selfcal ({1}). Starting "
+                    "from another dataset discards the previous self-calibration. Pass "
+                    "visfile=previous_selfcal.visfile (or leave visfile empty), and create this "
+                    "object after previous_selfcal.run().".format(
+                        visfile, previous_selfcal.visfile
+                    )
+                )
+
         # Public variables
         self.visfile = visfile
         self.imager = imager
@@ -196,6 +211,36 @@ class Selfcal(metaclass=ABCMeta):
                 raise ValueError("The input_caltable should be a string")
         else:
             self.__input_caltable = ""
+
+    def _has_phase_solution(self) -> bool:
+        """
+        Protected method that checks whether phase solutions are available to pre-apply, either
+        from an input calibration table or from the chain of previous self-calibrations
+
+        Returns
+        -------
+        True if phase solutions are available, False otherwise
+        """
+        if self.input_caltable:
+            return True
+        previous = self.previous_selfcal
+        if previous is None:
+            return False
+        return (bool(previous._caltables)
+                and 'p' in previous._calmode) or previous._has_phase_solution()
+
+    def _require_phase_solution(self) -> None:
+        """
+        Protected method that raises if amplitude self-calibration would run without phase
+        solutions. Phase errors decorrelate the visibilities within the solution interval and bias
+        the amplitude solutions low.
+        """
+        if not self._has_phase_solution():
+            raise ValueError(
+                "{0} needs phase solutions to pre-apply: run a Phasecal first and pass it as "
+                "previous_selfcal (after calling its run()), or pass an input_caltable with phase "
+                "solutions.".format(type(self).__name__)
+            )
 
     def _copy_directory_at_start(self):
         if self.visfile is not None:

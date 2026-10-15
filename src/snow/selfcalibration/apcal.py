@@ -8,14 +8,16 @@ from .selfcal import Selfcal
 @dataclass(init=False, repr=True)
 class AmpPhasecal(Selfcal):
 
-    def __init__(self, incremental: bool = False, solnorm: bool = True, **kwargs):
+    def __init__(self, incremental: bool = True, solnorm: bool = True, **kwargs):
         """
-        Amplitude-phase self-calibration object
+        Amplitude-phase self-calibration object. Solutions are solved and applied on top of the
+        previous phase solutions (incremental self-calibration).
 
         Parameters
         ----------
         incremental :
-            Whether to self-calibrate incrementally or not
+            Must be True. Non-incremental amplitude-phase self-calibration ignores the previous
+            phase solutions and is no longer supported (#25)
         solnorm :
             Normalize average solution amplitudes to 1.0 (G, T only)
         kwargs :
@@ -25,8 +27,14 @@ class AmpPhasecal(Selfcal):
 
         self._calmode = 'ap'
         self._loops = len(self.solint)
-        self.__incremental = incremental
         self.__solnorm = solnorm
+
+        if not incremental:
+            raise ValueError(
+                "incremental=False ignores the previous phase solutions, which biases the "
+                "amplitude solutions; use incremental=True (the default)."
+            )
+        self._require_phase_solution()
 
         self._copy_directory_at_start()
         self._init_selfcal()
@@ -41,41 +49,23 @@ class AmpPhasecal(Selfcal):
 
             self._set_attributes_from_dicts(i)
 
-            if self.__incremental:
-                gaincal(
-                    vis=self.visfile,
-                    field=self.imager.field,
-                    caltable=caltable,
-                    spw=self.imager.spw,
-                    uvrange=self.uvrange,
-                    gaintype=self.gaintype,
-                    refant=self.refant,
-                    calmode=self._calmode,
-                    combine=self.combine,
-                    solint=self.solint[i],
-                    minsnr=self.minsnr,
-                    minblperant=self.minblperant,
-                    gaintable=self.input_caltable,
-                    spwmap=self.spwmap,
-                    solnorm=self.__solnorm
-                )
-            else:
-                gaincal(
-                    vis=self.visfile,
-                    field=self.imager.field,
-                    caltable=caltable,
-                    spw=self.imager.spw,
-                    uvrange=self.uvrange,
-                    gaintype=self.gaintype,
-                    refant=self.refant,
-                    calmode=self._calmode,
-                    combine=self.combine,
-                    solint=self.solint[i],
-                    minsnr=self.minsnr,
-                    minblperant=self.minblperant,
-                    spwmap=self.spwmap,
-                    solnorm=self.__solnorm
-                )
+            gaincal(
+                vis=self.visfile,
+                field=self.imager.field,
+                caltable=caltable,
+                spw=self.imager.spw,
+                uvrange=self.uvrange,
+                gaintype=self.gaintype,
+                refant=self.refant,
+                calmode=self._calmode,
+                combine=self.combine,
+                solint=self.solint[i],
+                minsnr=self.minsnr,
+                minblperant=self.minblperant,
+                gaintable=self.input_caltable,
+                spwmap=self.spwmap,
+                solnorm=self.__solnorm
+            )
 
             self._plot_selfcal(
                 caltable,
@@ -92,33 +82,20 @@ class AmpPhasecal(Selfcal):
             self._caltables_versions.append(version_name)
 
             print("Applying calibration tables to {0} file".format(self.visfile))
-            if self.__incremental:
-                applycal(
-                    vis=self.visfile,
-                    spw=self.spw,
-                    spwmap=[self.spwmap, self.spwmap],
-                    field=self.field,
-                    gaintable=[self.input_caltable, caltable],
-                    gainfield='',
-                    calwt=False,
-                    flagbackup=False,
-                    interp=self.interp,
-                    applymode=self.applymode
-                )
-                self.input_caltable = caltable
-            else:
-                applycal(
-                    vis=self.visfile,
-                    spw=self.spw,
-                    spwmap=self.spwmap,
-                    field=self.field,
-                    gaintable=[caltable],
-                    gainfield='',
-                    calwt=False,
-                    flagbackup=False,
-                    interp=self.interp,
-                    applymode=self.applymode
-                )
+            applycal(
+                vis=self.visfile,
+                spw=self.spw,
+                spwmap=[self.spwmap, self.spwmap],
+                field=self.field,
+                gaintable=[self.input_caltable, caltable],
+                gainfield='',
+                calwt=False,
+                flagbackup=False,
+                interp=self.interp,
+                applymode=self.applymode
+            )
+            self.input_caltable = caltable
+
             if self.flag_dataset:
                 self._flag_dataset(mode=self.flag_mode)
 

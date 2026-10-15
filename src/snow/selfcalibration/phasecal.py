@@ -22,6 +22,20 @@ class Phasecal(Selfcal):
         self._calmode = 'p'
         self._loops = len(self.solint)
 
+        # Phasecal solves and applies only its own tables, so earlier amplitude solutions or an
+        # input table would be silently discarded (#25).
+        if self.input_caltable:
+            raise ValueError(
+                "Phasecal does not pre-apply input_caltable ({0}); its solutions would be "
+                "discarded.".format(self.input_caltable)
+            )
+        previous = self.previous_selfcal
+        if previous is not None and previous._caltables and 'a' in previous._calmode:
+            raise ValueError(
+                "Phasecal after an amplitude self-calibration ({0}) would discard its amplitude "
+                "solutions.".format(type(previous).__name__)
+            )
+
         self._copy_directory_at_start()
         self._init_selfcal()
 
