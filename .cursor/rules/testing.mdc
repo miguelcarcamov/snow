@@ -1,0 +1,16 @@
+---
+description: pytest layout, CASA-free unit tests, simulated end-to-end self-cal tests
+globs:
+  - "tests/**"
+  - "src/**/*.py"
+alwaysApply: true
+---
+
+# Tests
+
+- Layout: `tests/unit/` mirrors `src/snow/`; `tests/integration/` holds tests that need CASA.
+- **Unit tests must not need CASA.** Keep argument building, spwmap derivation, config validation and statistics pure, so they can be tested with synthetic inputs (FITS arrays, dataclasses).
+- Mark CASA-dependent tests `@pytest.mark.casa`, GPU tests `@pytest.mark.gpu`, and long tests `@pytest.mark.slow`.
+- **Scientific regression test:** simulate a small MS with Pyralysis, inject known antenna phase/gain errors (`PhaseNoiseInjector`, `AntennaGainInjector`) with a fixed seed, run self-cal, and assert that the recovered gains match the injected ones (up to the reference-antenna phase) and that PSNR improves. Any change to the self-cal loop must keep this passing (#32).
+- Every bug fix comes with a test that fails before the fix.
+- Test the README/example recipes at least by import or a dry run.
