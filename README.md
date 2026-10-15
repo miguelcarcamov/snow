@@ -187,7 +187,6 @@ SNOW supports multiple imaging backends:
 
 - **`Tclean`**: CASA tclean task wrapper for standard imaging
 - **`WSClean`**: placeholder, not implemented yet
-- **`GPUvmem`**: GPU-accelerated imaging with GPUvmem
 - **`Imager`**: Base class for custom imagers
 
 ### Self-Calibration Classes
@@ -207,7 +206,7 @@ SNOW supports multiple imaging backends:
 ```
 snow/
 ├── src/snow/
-│   ├── imaging/          # Imaging backends (tclean, wsclean, gpuvmem)
+│   ├── imaging/          # Imaging backends (tclean; wsclean planned)
 │   ├── selfcalibration/  # Self-calibration algorithms
 │   └── utils/            # Utility functions
 ├── main_files/           # Example scripts for different telescopes

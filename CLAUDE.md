@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## What this project is
 
-snow is a Python framework for radio-interferometric **self-calibration** on top of CASA (`casatasks`/`casatools`), with pluggable imagers (`tclean`, GPUvmem, and Pyralysis as the target). Its purpose is to let astronomers describe a self-cal procedure **briefly and reproducibly** instead of rewriting a one-off script for every dataset. Every change should make that easier, and stay correct by self-cal theory.
+snow is a Python framework for radio-interferometric **self-calibration** on top of CASA (`casatasks`/`casatools`), with pluggable imagers (`tclean` today; Pyralysis, which replaces the deprecated GPUvmem, is the target). Its purpose is to let astronomers describe a self-cal procedure **briefly and reproducibly** instead of rewriting a one-off script for every dataset. Every change should make that easier, and stay correct by self-cal theory.
 
 Source lives in `src/snow/`: `selfcalibration/` (self-cal loop), `imaging/` (imager backends) and `utils/`. Example scripts are in `main_files/`.
 
@@ -28,7 +28,7 @@ Highlights to keep in mind:
   - One selection for solve, apply and imaging.
   - Never use PSNR alone to accept a round.
 - No I/O in constructors, no module-level CASA tool singletons, no `os.system`, no files with fixed names in the working directory (`casa-io.mdc`).
-- Imagers pass backend options through with the backend's own parameter names; Pyralysis and GPUvmem are optional extras imported lazily.
+- Imagers pass backend options through with the backend's own parameter names; optional backends such as Pyralysis are extras imported lazily.
 - Legacy code predates these rules. Follow them in new or changed code; don't refactor beyond the scope of the issue you're working on.
 
 ## Roadmap and issues
@@ -59,8 +59,7 @@ pre-commit install
 
 - CASA wheels exist only for specific Python versions; check `requires-python` in `pyproject.toml`.
 - CASA needs measures data (`casaconfig`) the first time `casatools` is imported. Without network access, provide a measures directory.
-- `import snow.imaging` currently imports Pyralysis at module level (#29/#30); install Pyralysis or import `snow.imaging.tclean` directly.
-- The full Docker image (`ghcr.io/miguelcarcamov/snow:base`) has CUDA, casacore and GPUvmem. It's only needed for GPUvmem.
+- The Docker images (`ghcr.io/miguelcarcamov/snow:base`, `:latest`) are optional. The base image provides CUDA for the planned Pyralysis GPU backend (#24).
 
 ## Tests and linting
 
