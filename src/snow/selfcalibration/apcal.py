@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from casatasks import applycal, gaincal, rmtables
+from casatasks import rmtables
 
 from .selfcal import Selfcal
 
@@ -49,23 +49,7 @@ class AmpPhasecal(Selfcal):
 
             self._set_attributes_from_dicts(i)
 
-            gaincal(
-                vis=self.visfile,
-                field=self.imager.field,
-                caltable=caltable,
-                spw=self.imager.spw,
-                uvrange=self.uvrange,
-                gaintype=self.gaintype,
-                refant=self.refant,
-                calmode=self._calmode,
-                combine=self.combine,
-                solint=self.solint[i],
-                minsnr=self.minsnr,
-                minblperant=self.minblperant,
-                gaintable=self.input_caltable,
-                spwmap=self.spwmap,
-                solnorm=self.__solnorm
-            )
+            table = self._solve(caltable, self.solint[i], solnorm=self.__solnorm)
 
             self._plot_selfcal(
                 caltable,
@@ -81,21 +65,7 @@ class AmpPhasecal(Selfcal):
             self._save_selfcal(caltable_version=version_name, overwrite=True)
             self._caltables_versions.append(version_name)
 
-            print("Applying calibration tables to {0} file".format(self.visfile))
-            applycal(
-                vis=self.visfile,
-                spw=self.spw,
-                spwmap=[self.spwmap, self.spwmap],
-                field=self.field,
-                gaintable=[self.input_caltable, caltable],
-                gainfield='',
-                calwt=False,
-                flagbackup=False,
-                interp=self.interp,
-                applymode=self.applymode
-            )
-            self.input_caltable = caltable
-
+            self._apply(table)
             if self.flag_dataset:
                 self._flag_dataset(mode=self.flag_mode)
 
@@ -103,3 +73,5 @@ class AmpPhasecal(Selfcal):
 
             if self._finish_selfcal_iteration(i):
                 break
+
+            self._accept_caltable(table)

@@ -3,38 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from snow.imaging.imager import Imager
 from snow.selfcalibration import AmpPhasecal, Ampcal, Phasecal
 
-
-class FakeImager(Imager):
-
-    def run(self, imagename=""):
-        pass
-
-
-@pytest.fixture
-def ms(tmp_path) -> str:
-    path = tmp_path / "target.ms"
-    path.mkdir()
-    (path / "table.dat").write_text("visibilities")
-    return str(path)
-
-
-@pytest.fixture
-def imager(tmp_path) -> FakeImager:
-    return FakeImager(output=str(tmp_path / "out"))
-
-
-def make_caltable(tmp_path, name) -> str:
-    path = tmp_path / name
-    path.mkdir()
-    return str(path)
-
-
-def mark_as_run(selfcal, caltable) -> None:
-    """Simulate a finished run() that accepted one calibration table."""
-    selfcal._caltables.append(caltable)
+from .helpers import make_caltable, mark_as_run
 
 
 @pytest.fixture

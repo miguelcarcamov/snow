@@ -1,6 +1,6 @@
 import os
 
-from casatools import table
+from casatools import ms, table
 
 tb = table()
 
@@ -81,3 +81,45 @@ def calculate_number_antennas(ms_name: str = "") -> int:
             raise FileNotFoundError("The Measurement Set File does not exist")
     else:
         raise ValueError("Measurement Set File cannot be empty")
+
+
+def count_spectral_windows(ms_name: str = "") -> int:
+    """
+    Function that returns the number of spectral windows of a measurement set
+
+    Parameters
+    ----------
+    ms_name :
+        Measurement set name
+
+    Returns
+    -------
+    The number of rows of the SPECTRAL_WINDOW table
+    """
+    return get_table_rows(ms_name + "/SPECTRAL_WINDOW")
+
+
+def get_spw_ids(ms_name: str = "", spw: str = "") -> list:
+    """
+    Function that returns the ids of the spectral windows selected by a CASA spw selection
+
+    Parameters
+    ----------
+    ms_name :
+        Measurement set name
+    spw :
+        CASA spectral window selection, e.g. "0~3" or "1,3:10~20". Empty selects every spectral
+        window
+
+    Returns
+    -------
+    Sorted list of selected spectral window ids
+    """
+    if spw in ("", "*"):
+        return list(range(count_spectral_windows(ms_name)))
+    ms_tool = ms()
+    try:
+        selection = ms_tool.msseltoindex(vis=ms_name, spw=spw)
+    finally:
+        ms_tool.done()
+    return sorted(int(spw_id) for spw_id in selection["spw"])
