@@ -1,6 +1,6 @@
 FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
-ENV BUILD_DIR "build"
-ENV CONFIG "Release"
+# GPUVmem, and the casacore and CUDA samples builds it needed, were removed: Pyralysis replaces it
+# as snow's GPU imager (#24). casatools and python-casacore ship their own casacore.
 ENV PATH /usr/local/cuda/bin${PATH:+:${PATH}}
 ENV LD_LIBRARY_PATH /usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
@@ -26,49 +26,6 @@ RUN apt-get update -y && \
     && apt-get update -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
-
-# Install casacore and clean up build artifacts to save space
-RUN git clone --single-branch --branch v3.5.0 --depth 1 https://github.com/casacore/casacore.git && \
-    cd casacore && \
-    mkdir build && \
-    cd build && \
-    cmake -DUSE_FFTW3=ON -DUSE_OPENMP=ON -DUSE_HDF5=ON -DBUILD_PYTHON3=ON -DUSE_THREADS=ON -DBUILD_PYTHON=OFF .. && \
-    make -j$(nproc) && \
-    make install && \
-    cd / && \
-    rm -rf /casacore && \
-    rm -rf /tmp/* /var/tmp/*
-
-# Install CUDA samples (shallow clone to save space)
-RUN cd /usr/local/cuda && \
-    git clone --single-branch --branch v11.8 --depth 1 https://github.com/NVIDIA/cuda-samples.git samples && \
-    cd samples && \
-    mv Common common && \
-    mv Samples samples && \
-    cd common && \
-    mkdir inc && \
-    mv *.h inc/ && \
-    cd / && \
-    rm -rf /tmp/* /var/tmp/*
-
-# Install GPUVmem and clean up build artifacts.
-# GPUVMEM_REF pins the gpuvmem commit so upstream changes cannot silently break this image.
-# CUDA_ARCH lists the GPU compute capabilities to compile for: CI builders have no GPU to
-# auto-detect one, and the image must run on any of them (Pascal to Hopper by default).
-ARG GPUVMEM_REF=b860b9406fcf11c91b34d06f0b18008b36cb0f11
-ARG CUDA_ARCH="60;70;75;80;86;89;90"
-RUN mkdir gpuvmem && \
-    cd gpuvmem && \
-    git init -q && \
-    git remote add origin https://github.com/miguelcarcamov/gpuvmem.git && \
-    git fetch -q --depth 1 origin "$GPUVMEM_REF" && \
-    git checkout -q FETCH_HEAD && \
-    cmake . -B $BUILD_DIR -DCMAKE_BUILD_TYPE=$CONFIG -DCUDA_ARCH="$CUDA_ARCH" && \
-    cd $BUILD_DIR && \
-    cmake --build . --target install --verbose -j$(nproc) && \
-    cd / && \
-    rm -rf /gpuvmem && \
-    rm -rf /tmp/* /var/tmp/*
 
 # Upgrade pip and install Python dependencies (no cache to save space)
 RUN python3 --version && \
