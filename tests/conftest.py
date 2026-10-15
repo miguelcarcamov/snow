@@ -25,7 +25,7 @@ from snow.utils import image_utils, selfcal_utils  # noqa: E402
 
 CASA_NAMES = (
     "gaincal", "applycal", "rmtables", "flagmanager", "delmod", "clearcal", "flagdata", "split",
-    "statwt", "uvsub", "tb", "tclean", "imstat"
+    "statwt", "uvsub", "tclean", "imstat"
 )
 CASA_MODULES = (selfcal, phasecal, ampcal, apcal, tclean, image_utils, selfcal_utils)
 
@@ -37,7 +37,7 @@ def casa(monkeypatch) -> SimpleNamespace:
     execute without CASA. Set ``spw_ids``/``nspw`` to describe the measurement set. Image
     statistics report a peak that grows on every call, so each iteration improves the PSNR.
     """
-    mocks = SimpleNamespace(spw_ids=[0, 1, 2, 3], nspw=4)
+    mocks = SimpleNamespace(spw_ids=[0, 1, 2, 3], nspw=4, tb=mock.MagicMock(name="table"))
     for name in CASA_NAMES:
         setattr(mocks, name, mock.MagicMock(name=name))
     # Like gaincal, create the output table so later steps can check that it exists
@@ -50,6 +50,8 @@ def casa(monkeypatch) -> SimpleNamespace:
         for name in CASA_NAMES:
             if hasattr(module, name):
                 monkeypatch.setattr(module, name, getattr(mocks, name))
+    # open_table() creates its table tool through this factory
+    monkeypatch.setattr(selfcal_utils, "table", lambda: mocks.tb)
     for module in (selfcal, utils):
         monkeypatch.setattr(module, "get_spw_ids", lambda ms_name, spw="": mocks.spw_ids)
         monkeypatch.setattr(module, "count_spectral_windows", lambda ms_name: mocks.nspw)

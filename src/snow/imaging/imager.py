@@ -81,6 +81,20 @@ class Imager(metaclass=ABCMeta):
         if self.inputvis is not None and self.inputvis != "":
             self.nantennas = calculate_number_antennas(self.inputvis)
 
+    def _noise_pixels(self, stdv_pixels=None):
+        """
+        Pixels where to calculate the RMS: stdv_pixels if given, otherwise noise_pixels
+        """
+        return self.noise_pixels if stdv_pixels is None else stdv_pixels
+
+    def _set_statistics(self, psnr: float, peak: float, stdv: float) -> None:
+        """
+        Stores the peak signal-to-noise ratio, peak and RMS of the last image
+        """
+        self.psnr = psnr
+        self.peak = peak
+        self.stdv = stdv
+
     def _calculate_statistics_fits(
         self, signal_fits_name="", residual_fits_name="", stdv_pixels=None
     ) -> None:
@@ -96,18 +110,11 @@ class Imager(metaclass=ABCMeta):
         stdv_pixels :
             Pixels where to calculate the RMS
         """
-        if stdv_pixels is None:
-            psnr, peak, stdv = calculate_psnr_fits(
-                signal_fits_name, residual_fits_name, self.noise_pixels
+        self._set_statistics(
+            *calculate_psnr_fits(
+                signal_fits_name, residual_fits_name, self._noise_pixels(stdv_pixels)
             )
-        else:
-            psnr, peak, stdv = calculate_psnr_fits(
-                signal_fits_name, residual_fits_name, stdv_pixels
-            )
-
-        self.psnr = peak / stdv
-        self.peak = peak
-        self.stdv = stdv
+        )
 
     def _calculate_statistics_msimage(
         self, signal_ms_name="", residual_ms_name="", stdv_pixels=None
@@ -124,14 +131,9 @@ class Imager(metaclass=ABCMeta):
         stdv_pixels :
             Pixels where to calculate the RMS
         """
-        if stdv_pixels is None:
-            psnr, peak, stdv = calculate_psnr_ms(
-                signal_ms_name, residual_ms_name, self.noise_pixels
-            )
-
-        self.psnr = peak / stdv
-        self.peak = peak
-        self.stdv = stdv
+        self._set_statistics(
+            *calculate_psnr_ms(signal_ms_name, residual_ms_name, self._noise_pixels(stdv_pixels))
+        )
 
     def _check_reference_frequency(self):
         aux_reference_freq = ""
