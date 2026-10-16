@@ -82,8 +82,8 @@ Pull the pre-built Docker image:
 docker pull ghcr.io/miguelcarcamov/snow:latest
 ```
 
-The image has Python 3.12, snow with its pinned dependencies, and CASA's measures data in
-`/opt/casa/data`, readable by any user (also under Apptainer/Singularity). To stay small it has
+The image has Python 3.12, snow with its pinned dependencies, and CASA's measures data and
+observatory table in `/opt/casa/data`, readable by any user (also under Apptainer/Singularity). To stay small it has
 no CUDA, and it skips the rest of casarundata (antenna responses and simulator files, used by
 e.g. the `awproject` gridder); mount a full copy at `/opt/casa/data` if you need it:
 

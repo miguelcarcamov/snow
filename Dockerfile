@@ -33,21 +33,21 @@ RUN pip install -r /tmp/requirements.txt && \
 FROM builder AS measures
 
 # CASA reads its measures data (IERS Earth orientation, observatory positions, ephemerides) from
-# measurespath. Only the measures (~20 MB) are fetched, with the observatory table they ship
-# (use_astron_obs_table), not the full casarundata (~1 GB), which adds antenna responses and
-# simulator files used by e.g. the awproject gridder; mount it at /opt/casa/data if you need it.
-# The NRAO server can be slow, so the download is retried; MEASURES_SITE selects another server.
+# measurespath. Only the measures (~20 MB) and CASA's maintained observatory table are kept, not the
+# full casarundata (~1 GB), which adds antenna responses and simulator files used by e.g. the
+# awproject gridder; mount it at /opt/casa/data if you need it. tools/fetch_casa_data.py explains
+# where each part comes from. The NRAO server can be slow, so the download is retried;
+# MEASURES_SITE selects another measures server.
 ARG MEASURES_SITE=""
+COPY tools/fetch_casa_data.py /tmp/fetch_casa_data.py
 RUN mkdir -p /opt/casa/data && \
     for attempt in 1 2 3; do \
         rm -rf /opt/casa/data/* && \
-        python -c "from casaconfig import measures_update; \
-measures_update('/opt/casa/data', use_astron_obs_table=True, force=True, \
-measures_site='${MEASURES_SITE}' or None)" && break; \
+        python /tmp/fetch_casa_data.py /opt/casa/data --measures-site "${MEASURES_SITE}" && break; \
         [ "$attempt" = 3 ] && exit 1; \
         sleep 30; \
     done && \
-    test -f /opt/casa/data/geodetic/readme.txt && \
+    test -f /opt/casa/data/geodetic/readme.txt && test -d /opt/casa/data/geodetic/Observatories && \
     printf '%s\n' 'measurespath = "/opt/casa/data"' 'measures_auto_update = False' \
         'data_auto_update = False' > /opt/casa/casasiteconfig.py && \
     chmod -R a+rX /opt/casa
@@ -64,7 +64,9 @@ COPY --from=builder /opt/venv /opt/venv
 # readable by any user (e.g. under Apptainer/Singularity).
 COPY --from=measures /opt/casa /opt/casa
 
-RUN python -c "import casatasks, casatools; print('casatools', casatools.version_string())"
+# CASA looks telescopes up by name in its observatory table (e.g. for frame conversions)
+RUN python -c "import casatasks, casatools; print('casatools', casatools.version_string()); \
+me = casatools.measures(); assert all(me.observatory(t) for t in ('VLA', 'ALMA'))"
 
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
 LABEL org.opencontainers.image.description="Container image for SNOW"

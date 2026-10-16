@@ -83,7 +83,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt "$(ls dist/*.whl)[test]"
     # CASA reads its measures data when casatools is imported. As in the Docker image, only the
-    # measures are fetched (not the ~1 GB casarundata), once a day at most.
+    # measures and CASA's observatory table are fetched (not the ~1 GB casarundata), once a day at
+    # most.
     - name: Date for the CASA data cache
       id: date
       run: echo "today=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
@@ -92,15 +93,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.casa/data
-        key: casa-measures-${{ steps.date.outputs.today }}
-        restore-keys: casa-measures-
+        key: casa-data-${{ steps.date.outputs.today }}
+        restore-keys: casa-data-
     - name: Fetch CASA measures data
       if: steps.casa-data.outputs.cache-hit != 'true'
       run: |
         mkdir -p ~/.casa/data
         # A slow or failing server is fine if an earlier day's copy was restored from the cache
-        python -c "from casaconfig import measures_update; measures_update('$HOME/.casa/data', use_astron_obs_table=True, force=True)" \
-          || test -d ~/.casa/data/geodetic
+        python tools/fetch_casa_data.py ~/.casa/data || test -d ~/.casa/data/geodetic/Observatories
     - name: Turn CASA data auto updates off
       run: |
         mkdir -p ~/.casa
