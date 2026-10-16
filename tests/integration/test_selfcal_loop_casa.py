@@ -9,8 +9,9 @@ from snow.config import ImageGeometry, SolveOptions
 from snow.imaging.backends import Tclean
 from snow.selfcalibration.acceptance import AllOf, PSNRImproves
 from snow.selfcalibration.loop import Selfcal
+from snow.selfcalibration.observers import GainPlotObserver, LoggingObserver
 from snow.selfcalibration.result import SelfcalResult
-from snow.selfcalibration.steps import Phasecal
+from snow.selfcalibration.steps import AmpPhasecal, Phasecal
 from snow.testing import simulate_point_source_ms
 from snow.utils.selfcal_utils import model_column_problem, open_table
 
@@ -26,8 +27,8 @@ def snow_flag_versions(ms: str) -> list:
 @pytest.fixture(scope="module")
 def accepted(tmp_path_factory):
     ms = simulate_point_source_ms(str(tmp_path_factory.mktemp("loop") / "target.ms"))
-    result = Selfcal(ms, IMAGER, [Phasecal("inf"), Phasecal("10min")], solve=SOLVE).run()
-    return result
+    observers = [LoggingObserver(), GainPlotObserver()]
+    return Selfcal(ms, IMAGER, [Phasecal("inf"), Phasecal("10min")], solve=SOLVE).run(observers)
 
 
 def test_every_round_improves_and_is_kept(accepted):
@@ -65,3 +66,18 @@ def test_a_rejected_round_is_rolled_back(tmp_path):
         assert np.allclose(ms_table.getcell("DATA", 0), ms_table.getcell("CORRECTED_DATA", 0))
     assert model_column_problem(ms) == ""
     assert snow_flag_versions(ms) == []
+
+
+def test_gain_plots_are_written_next_to_the_tables(accepted):
+    assert all(os.path.getsize(table.path + ".png") > 0 for table in accepted.stack)
+
+
+def test_resume_continues_from_the_accepted_state(accepted):
+    resumed = Selfcal.resume(accepted, IMAGER, [AmpPhasecal("inf")], solve=SOLVE)
+
+    result = resumed.run()
+
+    # The resumed run starts where the first ended
+    assert result.rounds[0].psnr == pytest.approx(accepted.final.psnr, rel=0.05)
+    assert [t.path for t in result.stack][:2] == [t.path for t in accepted.stack]
+    assert resumed.output != os.path.dirname(accepted.final.image)
