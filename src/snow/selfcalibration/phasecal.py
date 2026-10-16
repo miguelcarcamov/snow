@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from casatasks import rmtables
 
-from .caltable import CalTable
+from .caltable import CalStack, CalTable
 from .selfcal import Selfcal
 
 
@@ -42,18 +42,18 @@ class Phasecal(Selfcal):
         self._copy_directory_at_start()
         self._init_selfcal()
 
-    def _preapplied_caltables(self) -> list:
+    def _preapplied_caltables(self) -> CalStack:
         """
         Phase self-calibration solves from scratch against the model: earlier phase tables are
         not pre-applied but replaced
         """
-        return []
+        return CalStack()
 
     def _accept_caltable(self, caltable: CalTable) -> None:
         """
         A new phase table replaces the previous ones, which it was solved without
         """
-        self._caltable_stack = [caltable]
+        self._caltable_stack = CalStack([caltable])
 
     def run(self):
         caltable = "before_selfcal"

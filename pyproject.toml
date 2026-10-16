@@ -50,7 +50,8 @@ dependencies = [
   "astropy>=6.1",
   "casatasks>=6.7",
   "casatools>=6.7",
-  "numpy>=1.26"
+  "numpy>=1.26",
+  "tomli-w>=1.0"
 ]
 description = "A Python object oriented framework to do radio-interferometric self-calibration"
 # Resolved at build time: the version comes from git tags via setuptools-scm

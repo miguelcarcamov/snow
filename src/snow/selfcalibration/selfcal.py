@@ -16,7 +16,7 @@ from ..imaging.imager import Imager
 from ..utils.selfcal_utils import (
     columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms
 )
-from .caltable import CalTable, build_gaintable_arguments, derive_spwmap
+from .caltable import CalStack, CalTable, derive_spwmap
 
 # Data selection shared by the solve, the apply and the imager (#27)
 SELECTION_PARAMETERS = ("field", "spw")
@@ -155,7 +155,7 @@ class Selfcal(metaclass=ABCMeta):
         # Protected variables
         self._caltables = []
         # Accepted tables currently applied to the data, in application order (#26)
-        self._caltable_stack = []
+        self._caltable_stack = CalStack()
         self._caltables_versions = []
         self._psnr_history = []
         # Fraction of the selected data flagged before self-calibration and after each iteration
@@ -441,37 +441,24 @@ class Selfcal(metaclass=ABCMeta):
                 self.input_caltable = self.previous_selfcal._caltables[-1]
             else:
                 self.input_caltable = ""
-            self._caltable_stack = list(self.previous_selfcal._caltable_stack)
+            self._caltable_stack = self.previous_selfcal._caltable_stack
             self._psnr_history = copy.deepcopy(self.previous_selfcal._psnr_history)
         elif self.input_caltable:
             # A user table is assumed to hold phase solutions, applied with the user spwmap
-            self._caltable_stack = [CalTable(self.input_caltable, "p", tuple(self.spwmap))]
+            self._caltable_stack = CalStack(
+                [CalTable(self.input_caltable, "p", tuple(self.spwmap), self.interp)]
+            )
 
-    def _preapplied_caltables(self) -> list:
+    def _preapplied_caltables(self) -> CalStack:
         """
         Protected method that returns the tables applied on the fly while solving. By default
         self-calibration is incremental: every accepted table is pre-applied.
 
         Returns
         -------
-        List of calibration tables in application order
+        The stack of calibration tables in application order
         """
-        return list(self._caltable_stack)
-
-    def _applied_caltables(self, caltable: CalTable) -> list:
-        """
-        Protected method that returns the tables applied to the data after solving a new table
-
-        Parameters
-        ----------
-        caltable :
-            The newly solved calibration table
-
-        Returns
-        -------
-        List of calibration tables in application order
-        """
-        return self._preapplied_caltables() + [caltable]
+        return self._caltable_stack
 
     def _accept_caltable(self, caltable: CalTable) -> None:
         """
@@ -482,7 +469,7 @@ class Selfcal(metaclass=ABCMeta):
         caltable :
             The accepted calibration table
         """
-        self._caltable_stack.append(caltable)
+        self._caltable_stack = self._caltable_stack.push(caltable)
 
     def _solution_spwmap(self) -> tuple:
         """
@@ -540,14 +527,14 @@ class Selfcal(metaclass=ABCMeta):
             solint=solint,
             minsnr=self.minsnr,
             minblperant=self.minblperant,
-            **build_gaintable_arguments(self._preapplied_caltables(), self.interp),
+            **self._preapplied_caltables().gaincal_arguments(),
             **kwargs
         )
-        return CalTable(caltable, self._calmode, self._solution_spwmap())
+        return CalTable(caltable, self._calmode, self._solution_spwmap(), self.interp)
 
     def _apply(self, caltable: CalTable) -> None:
         """
-        Protected method that applies the tables returned by _applied_caltables to the data
+        Protected method that applies the pre-applied tables plus the newly solved one to the data
 
         Parameters
         ----------
@@ -563,7 +550,7 @@ class Selfcal(metaclass=ABCMeta):
             calwt=False,
             flagbackup=False,
             applymode=self.applymode,
-            **build_gaintable_arguments(self._applied_caltables(caltable), self.interp)
+            **self._preapplied_caltables().applycal_arguments(caltable)
         )
 
     def _init_run(self, image_name_string: str = "") -> None:

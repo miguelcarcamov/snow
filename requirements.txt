@@ -25,3 +25,4 @@ python-dateutil==2.9.0.post0
 pyyaml==6.0.3
 scipy==1.18.1
 six==1.17.0
+tomli-w==1.2.0
