@@ -15,15 +15,17 @@
 
 ## Requirements
 
-- **Python**: `>=3.10, <3.11` (Python 3.10 only, due to CASA compatibility requirements)
-- **CASA packages**: See [CASA pip package requirements](https://casadocs.readthedocs.io/en/stable/notebooks/introduction.html#Modular-Packages) for current version requirements
-- **Dependencies**: See `requirements.txt` for a complete list of required packages
+- **Python**: `>=3.12, <3.14`, the versions with both CASA wheels and Pyralysis support
+- **Dependencies**: casatools, casatasks (CASA >= 6.7), numpy, astropy and reproject. The
+  package declares lower bounds; [`requirements.txt`](requirements.txt) pins the set tested in CI
+  and used in the Docker images.
+- **CASA data**: CASA downloads its measures data the first time `casatools` is imported
+  (see [External Data](https://casadocs.readthedocs.io/en/stable/notebooks/external-data.html)).
+  Without network access, point `measurespath` to an existing copy.
 
-### Key Dependencies
-
-- **CASA packages**: casatasks, casatools, casashell, and related CASA modules
-- **Scientific Python**: numpy (1.26.0), scipy (1.15.0), astropy (6.1.0)
-- **Astronomy tools**: reproject (0.14.1), python-casacore (3.7.1)
+On Debian, Ubuntu or Arch, the `manylinux_2_34` casatools wheel that pip picks fails to import
+(`OPENSSL_3.0.1 not found`). Install from `requirements.txt`, which uses the working
+`manylinux_2_28` wheel, or install that wheel first.
 
 ## Installation
 
@@ -51,7 +53,8 @@ conda env create -f environment.yml
 conda activate snow-env
 ```
 
-The environment file includes all system dependencies and will automatically install Python packages from `requirements.txt`.
+The environment provides Python 3.12 and the pinned dependencies from `requirements.txt`; then
+install snow itself with `pip install -e .` (from a clone) or `pip install snow-selfcal`.
 
 ### Option 4: From Source
 
@@ -79,7 +82,19 @@ Pull the pre-built Docker image:
 docker pull ghcr.io/miguelcarcamov/snow:latest
 ```
 
-The Docker image includes all dependencies and is ready to use. See the [Docker documentation](https://docs.docker.com/) for usage instructions.
+The image has Python 3.12, snow with its pinned dependencies, and CASA's measures data in
+`/opt/casa/data`, readable by any user (also under Apptainer/Singularity). To stay small it has
+no CUDA, and it skips the rest of casarundata (antenna responses and simulator files, used by
+e.g. the `awproject` gridder); mount a full copy at `/opt/casa/data` if you need it:
+
+```bash
+docker run --rm -v "$PWD":/work -w /work ghcr.io/miguelcarcamov/snow:latest python main_ALMA.py target.ms out
+```
+
+CASA needs a writable home directory. Apptainer/Singularity provides yours; with `docker run -u`,
+also pass `-e HOME=/tmp`.
+
+`snow.utils.reproject()` needs the optional `reproject` package: `pip install "snow-selfcal[reproject]"`.
 
 ## Quick Start
 

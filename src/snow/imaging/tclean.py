@@ -75,7 +75,7 @@ class Tclean(Imager):
     noise_threshold: float = 4.25
     sidelobe_threshold: float = 2.0
     min_beam_frac: float = 0.3
-    grow_iterations: float = 75.0
+    grow_iterations: int = 75
     specmode: str = ""
     gridder: str = "standard"
     wproj_planes: int = -1

@@ -26,7 +26,7 @@ The target design is tracked in GitHub issue #22 (milestone "v1.0 redesign"). Th
 
 ## General principles
 
-- Python version follows `requires-python` in `pyproject.toml`. The target is ≥3.11 so snow can be installed alongside Pyralysis (#30).
+- Python version follows `requires-python` in `pyproject.toml`. It is `>=3.12,<3.14`, the overlap of the CASA wheels and Pyralysis (#30).
 - Keep code simple, readable and maintainable; avoid duplication (the three copied self-cal loops are the cautionary example).
 - PEP 8, formatted with `yapf` + `isort` (config in `setup.cfg`, column limit 100), enforced via `pre-commit`.
 - `pytest` for tests. New behaviour needs tests (see `testing.mdc`).
@@ -251,7 +251,8 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 
 - `pyproject.toml` is the single source of metadata and dependencies. Use lower bounds in `dependencies`; put exact pins only in lock/constraint files for CI and Docker.
 - Declare only what is imported. Optional backends go in extras (e.g. `snow[pyralysis]`).
-- Version comes from setuptools-scm (`version_file`); the generated `_version.py` is git-ignored.
+- Version comes from setuptools-scm, read at run time with `importlib.metadata.version("snow-selfcal")`; no version file is written.
+- `requirements.txt` is the pinned set for CI and Docker, generated with `uv pip compile pyproject.toml`.
 
 ## Containers
 

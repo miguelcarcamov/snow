@@ -1,13 +1,15 @@
-FROM ghcr.io/miguelcarcamov/snow:base
+# BASE_IMAGE lets a locally built base be tested: docker build --build-arg BASE_IMAGE=<tag>
+ARG BASE_IMAGE=ghcr.io/miguelcarcamov/snow:base
+FROM ${BASE_IMAGE}
 
 # Install the snow wheel from dist/: in CI this is the wheel built and tested from the same commit
 # (see .github/workflows/build_latest_container.yaml). Locally, run `python3 -m build --wheel`
 # before `docker build -f Dockerfile.prod .`.
 COPY dist/*.whl /tmp/dist/
+# The base image already holds the pinned dependencies and the CASA data in /opt/casa/data
 RUN python3 -m pip install --no-cache-dir /tmp/dist/*.whl && \
-    rm -rf /tmp/dist /root/.cache/pip && \
-    mkdir -p ~/.casa/data && \
-    echo "Hello from snow production image"
+    rm -rf /tmp/dist && \
+    python3 -c "import snow.imaging, snow.selfcalibration; print('snow', snow.__version__)"
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
 LABEL org.opencontainers.image.description="Container image for SNOW"
 LABEL org.opencontainers.image.licenses=GPL3

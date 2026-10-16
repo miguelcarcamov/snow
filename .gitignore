@@ -128,4 +128,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-!/src/snow/_version.py
+# Written by older setuptools-scm configurations; the version now comes from package metadata
+src/snow/_version.py

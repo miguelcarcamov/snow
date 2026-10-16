@@ -48,18 +48,20 @@ The redesign is tracked on GitHub (`miguelcarcamov/snow`), milestone **"v1.0 red
 
 Check the relevant issue before starting work, and reference it in commits and PRs (`Closes #NN`).
 
-Known blocker: snow pins Python `<3.11`, while Pyralysis needs `≥3.11` (#30).
+Python is `>=3.12,<3.14`: the overlap of the CASA wheels (cp312/cp313) and Pyralysis (`<3.14`) (#30).
 
 ## Environment
 
 ```bash
-pip install -e .            # pulls casatools/casatasks wheels (Linux/macOS only)
+pip install -r requirements.txt -e ".[test]"   # pinned CI set; casatools wheels are Linux/macOS only
 pre-commit install
 ```
 
 - CASA wheels exist only for specific Python versions; check `requires-python` in `pyproject.toml`.
-- CASA needs measures data (`casaconfig`) the first time `casatools` is imported. Without network access, provide a measures directory.
-- The Docker images (`ghcr.io/miguelcarcamov/snow:base`, `:latest`) are optional. The base image provides CUDA for the planned Pyralysis GPU backend (#24).
+- CASA needs measures data (`casaconfig`) the first time `casatools` is imported. Without network access, provide a measures directory. The base image ships it in `/opt/casa/data`.
+- `requirements.txt` installs casatools from its `manylinux_2_28` wheel: the `manylinux_2_34` wheel fails to import outside RHEL-like systems (`OPENSSL_3.0.1 not found`).
+- The Docker images (`ghcr.io/miguelcarcamov/snow:base`, `:latest`) are optional and kept small: `python:3.12-slim`, the pinned dependencies, CASA measures data only, no CUDA (Pyralysis brings that in #24). Build locally with `docker build .`; `--build-arg MEASURES_SITE=<url>` picks another measures server.
+- `reproject` is an optional extra (`snow-selfcal[reproject]`), imported inside `snow.utils.reproject()` only.
 
 ## Tests and linting
 
