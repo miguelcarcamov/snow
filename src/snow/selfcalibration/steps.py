@@ -20,6 +20,7 @@ from multimethod import multimethod
 
 from ..config import Selection, SolveOptions
 from .acceptance import AcceptancePolicy, AllOf, EnoughAntennas, FluxNotLost, PSNRImproves
+from .flagging import Flagging, NoFlagging
 
 # Constructor arguments of the classes before snow 1.0, which now belong to Selfcal or its options
 LEGACY_ARGUMENTS = frozenset(
@@ -104,6 +105,9 @@ class CalibrationStep(ABC):
     acceptance :
         Whether this step's round is kept. None uses the run's policy if one is given, otherwise
         the step type's default_acceptance()
+    flagging :
+        What to flag after applying this step's solutions and before imaging, e.g.
+        ResidualFlagging("rflag"); nothing by default
     """
     calmode: ClassVar[str]
     solves_phase: ClassVar[bool]
@@ -118,6 +122,7 @@ class CalibrationStep(ABC):
     solve: Mapping = field(default_factory=dict, hash=False)
     imaging: Mapping = field(default_factory=dict, hash=False)
     acceptance: Optional[AcceptancePolicy] = None
+    flagging: Flagging = NoFlagging()
 
     def __new__(cls, *args, **kwargs):
         legacy = sorted(set(kwargs) & LEGACY_ARGUMENTS)
@@ -146,6 +151,12 @@ class CalibrationStep(ABC):
                 format(type(self).__name__, sorted(unknown))
             )
         dataclasses.replace(SolveOptions(), **self.solve)  # validates the values
+        if not isinstance(self.flagging, Flagging):
+            raise TypeError(
+                "flagging must be a Flagging such as ResidualFlagging(...), not {0!r}".format(
+                    self.flagging
+                )
+            )
         if self.acceptance is not None and not isinstance(self.acceptance, AcceptancePolicy):
             raise TypeError(
                 "acceptance must be an AcceptancePolicy, not {0!r}".format(self.acceptance)

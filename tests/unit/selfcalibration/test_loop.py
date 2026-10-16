@@ -16,6 +16,7 @@ from snow.imaging.statistics import ImageStatistics
 from snow.selfcalibration import loop, observers, workspace
 from snow.selfcalibration.acceptance import AllOf, PSNRImproves
 from snow.selfcalibration.caltable import CalStack, CalTable
+from snow.selfcalibration.flagging import Flagging
 from snow.selfcalibration.loop import Selfcal
 from snow.selfcalibration.observers import GainPlotObserver, SelfcalObserver
 from snow.selfcalibration.result import SelfcalResult
@@ -407,3 +408,51 @@ def test_gain_plots(monkeypatch, tmp_path):
     GainPlotObserver().on_solved(Phasecal("60s"), table)
 
     assert (tmp_path / "round1_p.cal.png").stat().st_size > 0
+
+
+@dataclasses.dataclass(frozen=True)
+class FakeFlagging(Flagging):
+    """Records when it flags, between the apply and the imaging."""
+    events: list = dataclasses.field(default_factory=list, hash=False)
+
+    def flag(self, ms, selection):
+        self.events.append(("flag", selection.field))
+        return 0.1, 0.2
+
+
+@dataclasses.dataclass(frozen=True)
+class EventImager(FakeImager):
+    """Records its imaging into a shared event list."""
+    events: list = dataclasses.field(default=None, hash=False)
+
+    def _reconstruct(self, request):
+        self.events.append(("image", ))
+        return super()._reconstruct(request)
+
+
+class TestResidualFlagging:
+
+    def test_flags_after_the_apply_and_before_the_imaging(self, casa):
+        flagger = FakeFlagging()
+        casa.applycal.side_effect = lambda **kwargs: flagger.events.append(("apply", ))
+        fake = EventImager(peaks=iter([1.0, 2.0]), events=flagger.events)
+
+        Selfcal(casa.ms, fake, [Phasecal("inf", flagging=flagger)],
+                selection=Selection(field="t")).run(observers=())
+
+        assert flagger.events == [("image", ), ("apply", ), ("flag", "t"), ("image", )]
+
+    def test_the_flagged_fractions_are_recorded(self, casa):
+        result = Selfcal(casa.ms, imager(1.0, 2.0),
+                         [Phasecal("inf", flagging=FakeFlagging())]).run(observers=())
+
+        assert result.rounds[0].data_flagged is None
+        assert result.rounds[1].data_flagged == (0.1, 0.2)
+        assert SelfcalResult.from_toml(
+            str(Path(casa.ms).with_suffix("")) + "_selfcal/selfcal.toml"
+        ) == result
+
+    def test_steps_without_flagging_flag_nothing(self, casa):
+        result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
+
+        assert result.rounds[1].data_flagged is None

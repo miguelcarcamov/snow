@@ -39,6 +39,9 @@ class RoundRecord:
         Whether the round was kept
     reasons :
         Why the acceptance policy decided as it did
+    data_flagged :
+        Flagged fraction of the selected data before and after the step's residual flagging, if
+        it flagged
     """
     index: int
     step: str
@@ -52,10 +55,13 @@ class RoundRecord:
     flagged_fraction: float = 0.0
     accepted: bool = True
     reasons: Tuple[str, ...] = ()
+    data_flagged: Optional[Tuple[float, float]] = None
 
     def __post_init__(self):
         if self.beam is not None:
             object.__setattr__(self, "beam", tuple(self.beam))
+        if self.data_flagged is not None:
+            object.__setattr__(self, "data_flagged", tuple(self.data_flagged))
         object.__setattr__(self, "reasons", tuple(self.reasons))
 
 
@@ -119,6 +125,8 @@ class SelfcalResult:
             }
             if record.beam is not None:
                 entry["beam"] = list(record.beam)
+            if record.data_flagged is not None:
+                entry["data_flagged"] = list(record.data_flagged)
             rounds.append(entry)
         data = {
             "ms": relative(self.ms),

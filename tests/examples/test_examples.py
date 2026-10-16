@@ -155,6 +155,7 @@ class TestEmerlinExample:
                 "nsigma": 2.0
             }),
         ]
+        assert all(step.flagging.mode == "rflag" for step in selfcal.steps)
         assert selfcal.selection.uvrange == ">60klambda"
         assert selfcal.apply.applymode == "calonly"
         assert selfcal.solve.combine == "spw" and selfcal.solve.gaintype == "G"

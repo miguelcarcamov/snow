@@ -4,10 +4,12 @@ import os
 import numpy as np
 import pytest
 from casatasks import flagmanager
+from casatools import table
 
 from snow.config import ImageGeometry, SolveOptions
 from snow.imaging.backends import Tclean
 from snow.selfcalibration.acceptance import AllOf, PSNRImproves
+from snow.selfcalibration.flagging import ResidualFlagging
 from snow.selfcalibration.loop import Selfcal
 from snow.selfcalibration.observers import GainPlotObserver, LoggingObserver
 from snow.selfcalibration.result import SelfcalResult
@@ -81,3 +83,41 @@ def test_resume_continues_from_the_accepted_state(accepted):
     assert result.rounds[0].psnr == pytest.approx(accepted.final.psnr, rel=0.05)
     assert [t.path for t in result.stack][:2] == [t.path for t in accepted.stack]
     assert resumed.output != os.path.dirname(accepted.final.image)
+
+
+OUTLIER_ROWS = list(range(100, 3000, 300))
+
+
+def with_outliers(ms: str) -> str:
+    """A few rows with 100 Jy of interference, far above the 1 Jy source."""
+    tb = table()
+    tb.open(ms, nomodify=False)
+    try:
+        for row in OUTLIER_ROWS:
+            tb.putcell("DATA", row, tb.getcell("DATA", row) + 100.0)
+    finally:
+        tb.close()
+    return ms
+
+
+def flagged_rows(ms: str) -> list:
+    with open_table(ms) as ms_table:
+        return [bool(np.all(ms_table.getcell("FLAG", row))) for row in OUTLIER_ROWS]
+
+
+@pytest.mark.parametrize(
+    "policy, kept", [(None, True), (AllOf(PSNRImproves(min_ratio=100.0)), False)]
+)
+def test_residual_flagging(tmp_path, policy, kept):
+    ms = with_outliers(simulate_point_source_ms(str(tmp_path / "target.ms")))
+    clip = ResidualFlagging("clip", clipminmax=[0.0, 50.0])
+
+    result = Selfcal(
+        ms, IMAGER, [Phasecal("10min", flagging=clip, acceptance=policy)], solve=SOLVE
+    ).run()
+
+    before, after = result.rounds[1].data_flagged
+    assert after > before
+    assert result.rounds[1].accepted is kept
+    # Kept: the interference stays flagged. Rejected: the round's flags are rolled back
+    assert flagged_rows(ms) == [kept] * len(OUTLIER_ROWS)

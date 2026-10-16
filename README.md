@@ -183,7 +183,8 @@ How a run is described:
 - **One `Selfcal`, a list of steps.** Each step is one round: `Phasecal`, `Ampcal` or
   `AmpPhasecal` with its solution interval. A step can override the run's solve options
   (`solve={"minsnr": 5.0}`), the imager's options (`imaging={"nsigma": 2.0}`) or the acceptance
-  policy (`acceptance=...`).
+  policy (`acceptance=...`), and can flag residual outliers before imaging
+  (`flagging=ResidualFlagging("rflag")`, off by default).
 - **Invalid schedules fail before any I/O.** An amplitude step needs a phase solution before it,
   in the schedule or in `initial_stack`; otherwise `Selfcal(...)` raises `ScheduleError`.
 - **Every accepted table stays applied.** Each solve pre-applies all accepted tables, each with
