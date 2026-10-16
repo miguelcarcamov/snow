@@ -76,11 +76,11 @@ def get_hdu(fits_name: str = "") -> fits.PrimaryHDU:
 
     Returns
     -------
-    The Primary HDU of the fits file
+    The Primary HDU of the fits file, with header and data loaded in memory
     """
     with fits.open(fits_name) as hdul:
-        hdu = hdul[0]
-    return hdu
+        # Copy while the file is open: the HDU data is read lazily from the file
+        return fits.PrimaryHDU(data=hdul[0].data.copy(), header=hdul[0].header.copy())
 
 
 def get_hdul(fits_name: str = "") -> fits.HDUList:
@@ -235,7 +235,8 @@ def reproject(fits_file_to_resamp: str = "",
               fits_file_model: str = "",
               order: str = "bilinear") -> Union[str, None]:
     """
-    Function that reprojects an image if two images does not have the same size or pixel-size
+    Function that reprojects an image onto the celestial grid (size, pixel size and coordinates)
+    of a model image. For 0/1 masks use order="nearest-neighbor", so the result stays 0/1.
 
     Parameters
     ----------
@@ -258,12 +259,8 @@ def reproject(fits_file_to_resamp: str = "",
         header_mask = get_header(fits_file_to_resamp)
         data_mask = get_data(fits_file_to_resamp)
         header_model = get_header(fits_file_model)
-        model_WCS = WCS(header=header_model, naxis=2)
-        mask_WCS = WCS(header=header_mask, naxis=2)
-
-        model_M = header_model['NAXIS1']
-        model_N = header_model['NAXIS2']
-        model_dy = header_model['CDELT2']
+        model_WCS = WCS(header=header_model).celestial
+        mask_WCS = WCS(header=header_mask).celestial
 
         print("Resampling image...")
         reprojected_array = reproject_interp(
@@ -271,13 +268,15 @@ def reproject(fits_file_to_resamp: str = "",
             model_WCS,
             return_footprint=False,
             order=order,
-            shape_out=(model_M, model_N)
+            # NumPy arrays are (rows, columns) = (NAXIS2, NAXIS1)
+            shape_out=(header_model['NAXIS2'], header_model['NAXIS1'])
         )
         path_object = Path(fits_file_to_resamp)
         resampled_mask_name = "{0}_{2}{1}".format(
             Path.joinpath(path_object.parent, path_object.stem), path_object.suffix, "resampled"
         )
-        fits.writeto(resampled_mask_name, reprojected_array, header_model, overwrite=True)
+        # The output is 2D, so it gets the 2D celestial header of the model
+        fits.writeto(resampled_mask_name, reprojected_array, model_WCS.to_header(), overwrite=True)
 
         return resampled_mask_name
 

@@ -1,8 +1,31 @@
 import os
+from contextlib import contextmanager
 
 from casatools import ms, table
 
-tb = table()
+
+@contextmanager
+def open_table(table_name: str):
+    """
+    Context manager that opens a CASA table read-only and always closes it, also on errors, so
+    no table lock is left behind
+
+    Parameters
+    ----------
+    table_name :
+        Path to the CASA table, e.g. a measurement set or one of its subtables
+
+    Yields
+    ------
+    The opened casatools table tool
+    """
+    table_tool = table()
+    table_tool.open(tablename=table_name)
+    try:
+        yield table_tool
+    finally:
+        table_tool.close()
+        table_tool.done()
 
 
 def is_column_in_ms(ms_name: str = "", column_name: str = "") -> bool:
@@ -22,13 +45,8 @@ def is_column_in_ms(ms_name: str = "", column_name: str = "") -> bool:
     """
     if ms_name != "":
         if os.path.exists(ms_name):
-            # Check if data_column is present in measurement set file
-            tb.open(tablename=ms_name)
-            col_names = tb.colnames()
-            if column_name in col_names:
-                return True
-            else:
-                return False
+            with open_table(ms_name) as ms_table:
+                return column_name in ms_table.colnames()
         else:
             raise FileNotFoundError("The Measurement Set File does not exist")
     else:
@@ -50,15 +68,14 @@ def get_table_rows(ms_table: str = "") -> int:
         The number of rows of the measurement set table
 
     """
-    tb.open(tablename=ms_table)
-    rows = tb.nrows()
-    tb.close()
-    return rows
+    with open_table(ms_table) as table_tool:
+        return table_tool.nrows()
 
 
 def calculate_number_antennas(ms_name: str = "") -> int:
     """
-    Function that calculates the number of non-flagged antennas of a measurement set file
+    Function that counts the antennas of a measurement set that are not flagged in its ANTENNA
+    table (FLAG_ROW). Antennas whose data are all flagged in the main table are still counted.
 
     Parameters
     ----------
@@ -68,15 +85,16 @@ def calculate_number_antennas(ms_name: str = "") -> int:
     Returns
     -------
     nrows :
-        Number of non-flagged antennas
+        Number of antennas not flagged in the ANTENNA table
     """
     if ms_name != "":
         if os.path.exists(ms_name):
-            tb.open(tablename=ms_name + "/ANTENNA")
-            query_table = tb.taql("select NAME from " + ms_name + "/ANTENNA" + " where !FLAG_ROW")
-            nrows = len(query_table.getcol("NAME"))
-            tb.close()
-            return nrows
+            with open_table(ms_name + "/ANTENNA") as antenna_table:
+                unflagged = antenna_table.query(query="!FLAG_ROW")
+                try:
+                    return unflagged.nrows()
+                finally:
+                    unflagged.close()
         else:
             raise FileNotFoundError("The Measurement Set File does not exist")
     else:

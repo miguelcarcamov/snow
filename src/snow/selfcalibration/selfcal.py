@@ -11,13 +11,10 @@ from dataclasses import dataclass
 from casatasks import (
     applycal, clearcal, delmod, flagdata, flagmanager, gaincal, split, statwt, uvsub
 )
-from casatools import table
 
 from ..imaging.imager import Imager
 from ..utils.selfcal_utils import count_spectral_windows, get_spw_ids, is_column_in_ms
 from .caltable import CalTable, build_gaintable_arguments, derive_spwmap
-
-tb = table()
 
 
 @dataclass(init=False, repr=True)
@@ -627,15 +624,9 @@ class Selfcal(metaclass=ABCMeta):
 
         Returns
         -------
-        None
+        True if the MODEL_DATA column exists, False otherwise
         """
-        tb.open(tablename=self.visfile)
-        columns = tb.colnames()
-        tb.close()
-        if "MODEL_DATA" in columns:
-            return True
-        else:
-            return False
+        return is_column_in_ms(self.visfile, "MODEL_DATA")
 
     def _set_attributes_from_dicts(self, current_iteration: int = 0) -> None:
         """
