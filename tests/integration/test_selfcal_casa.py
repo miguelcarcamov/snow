@@ -1,6 +1,6 @@
 """
 End-to-end self-calibration with real CASA: simulate a small VLA observation of a point source
-with phase errors, then run phase self-calibration imaged with tclean.
+with seeded phase errors and noise, then run phase self-calibration imaged with tclean.
 """
 import os
 
@@ -54,13 +54,37 @@ def simulate_measurement_set(path: str) -> str:
     )
     sm.observe(sourcename="target", spwname="C", starttime="-1h", stoptime="1h")
     sm.predict(complist=path + ".cl")
-    # Antenna-based phase errors that self-calibration has to remove, and thermal noise
-    sm.setgain(mode="fbm", amplitude=[0.0, 0.5])
-    sm.setnoise(mode="simplenoise", simplenoise="0.05Jy")
-    sm.corrupt()
     sm.close()
     me.done()
+    corrupt(path, rng)
     return path
+
+
+def corrupt(path: str, rng: np.random.Generator) -> None:
+    """
+    Antenna-based phase errors that self-calibration has to remove (a constant offset plus a slow
+    drift), and thermal noise. Seeded numpy instead of the simulator's corruption, which is not
+    reproducible from run to run.
+    """
+    tb = table()
+    tb.open(path, nomodify=False)
+    try:
+        data = tb.getcol("DATA")  # (correlation, channel, row)
+        antenna1, antenna2 = tb.getcol("ANTENNA1"), tb.getcol("ANTENNA2")
+        hours = (tb.getcol("TIME") - tb.getcol("TIME").min()) / 3600.0
+        offset = rng.uniform(-np.pi / 3, np.pi / 3, 8)
+        drift, period = rng.uniform(-np.pi / 9, np.pi / 9, 8), rng.uniform(1.0, 3.0, 8)
+        phase = offset[:, None] + drift[:, None] * np.sin(2 * np.pi * hours / period[:, None])
+        phase[0] = 0.0  # the reference antenna
+        rows = np.arange(len(hours))
+        gains = np.exp(1j * (phase[antenna1, rows] - phase[antenna2, rows]))
+        noise = 0.05 * (rng.standard_normal(data.shape) + 1j * rng.standard_normal(data.shape))
+        corrupted = data * gains + noise
+        # Imaging starts from CORRECTED_DATA, which must equal DATA before self-calibration
+        for column in {"DATA", "CORRECTED_DATA"} & set(tb.colnames()):
+            tb.putcol(column, corrupted)
+    finally:
+        tb.close()
 
 
 def columns(path: str) -> list:
@@ -114,4 +138,7 @@ def test_calibrated_data_and_model_are_written(phasecal):
 
 
 def test_self_calibration_improves_the_image(phasecal):
-    assert phasecal._psnr_history[-1] > phasecal._psnr_history[0]
+    # The corruption is seeded, so this is deterministic: about 33 -> 55 -> 99
+    psnr = phasecal._psnr_history
+    assert psnr[0] < psnr[1] < psnr[2]
+    assert psnr[2] > 2 * psnr[0]
