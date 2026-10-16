@@ -7,6 +7,7 @@ Usage: python main_eMERLIN.py <visfile> <output_prefix> <field> [--phase-caltabl
        [--flag [--rflag-spw SPW ...]] [--plot]
 """
 import argparse
+import logging
 import os
 from pathlib import Path
 
@@ -79,6 +80,8 @@ def flag_residual_rfi(vis: str, spw_groups: list) -> None:
 
 if __name__ == '__main__':
     args = parse_arguments()
+    # snow logs each self-calibration round's metrics at INFO
+    logging.basicConfig(level=logging.INFO)
 
     # Self-calibration solves against DATA, so the calibrated target is split into DATA first
     selfcal_vis = Path(args.visfile).stem + ".flagged.ms"

@@ -63,7 +63,7 @@ class TestReproject:
         assert WCS(header).naxis == 2
 
     def test_missing_input_raises(self, tmp_path):
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(FileNotFoundError, match="missing.fits"):
             reproject(str(tmp_path / "missing.fits"), str(tmp_path / "model.fits"))
 
 
