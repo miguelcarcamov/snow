@@ -59,8 +59,6 @@ class Tclean(Imager):
             Apply PB correction on the output restored image
         cycle_niter :
             Maximum number of minor-cycle iterations (per plane) before triggering a major cycle
-        clean_savemodel :
-            Options to save model visibilities (none, virtual, modelcolumn)
         kwargs :
             General imager arguments
     """
@@ -85,14 +83,6 @@ class Tclean(Imager):
     uvrange: str = ""
     pbcor: bool = False
     cycle_niter: int = 0
-    clean_savemodel: str = field(init=False, repr=True, default=None)
-
-    def __post_init__(self):
-
-        super().__post_init__()
-
-        if self.save_model:
-            self.clean_savemodel = "modelcolumn"
 
     def run(self, imagename=""):
         __imsize = [self.M, self.N]
@@ -122,7 +112,8 @@ class Tclean(Imager):
             mask=self.mask,
             pbcor=self.pbcor,
             uvtaper=self.uvtaper,
-            savemodel=self.clean_savemodel,
+            # Read at run time, since self-calibration forces save_model on (#27)
+            savemodel="modelcolumn" if self.save_model else "none",
             usemask=self.use_mask,
             negativethreshold=self.negative_threshold,
             lownoisethreshold=self.low_noise_threshold,

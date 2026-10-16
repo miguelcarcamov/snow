@@ -1,6 +1,7 @@
 import os
 from contextlib import contextmanager
 
+import numpy as np
 from casatools import ms, table
 
 
@@ -51,6 +52,36 @@ def is_column_in_ms(ms_name: str = "", column_name: str = "") -> bool:
             raise FileNotFoundError("The Measurement Set File does not exist")
     else:
         raise ValueError("Measurement Set File cannot be empty")
+
+
+def columns_match(ms_name: str, first: str, second: str, samples: int = 100) -> bool:
+    """
+        Function that returns True if two data columns of a Measurement Set hold the same values,
+        compared on rows sampled evenly through the table so that large datasets are not read
+
+        Parameters
+        ----------
+        ms_name :
+            Measurement set name
+        first :
+            First column name, e.g. "DATA"
+        second :
+            Second column name, e.g. "CORRECTED_DATA"
+        samples :
+            Number of rows compared
+
+        Returns
+        -------
+        True if the sampled rows match, False otherwise
+    """
+    with open_table(ms_name) as ms_table:
+        nrows = ms_table.nrows()
+        # Row by row, since rows of different spectral windows can have different shapes
+        for row in np.unique(np.linspace(0, nrows - 1, min(nrows, samples), dtype=int)):
+            row = int(row)
+            if not np.allclose(ms_table.getcell(first, row), ms_table.getcell(second, row)):
+                return False
+    return True
 
 
 def get_table_rows(ms_table: str = "") -> int:
