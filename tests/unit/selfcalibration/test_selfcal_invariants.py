@@ -64,8 +64,8 @@ class TestModel:
 
         assert imager.save_model
 
-    def test_tclean_saves_the_model_column_when_forced_after_creation(self, casa, ms):
-        clean = Tclean(output="out", cell="0.1arcsec", save_model=False)
+    def test_tclean_saves_the_model_column_when_forced_after_creation(self, casa, ms, tmp_path):
+        clean = Tclean(output=str(tmp_path / "out"), cell="0.1arcsec", save_model=False)
 
         with pytest.warns(UserWarning, match="save_model"):
             Phasecal(visfile=ms, imager=clean, solint=["inf"]).run()
