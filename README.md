@@ -180,6 +180,21 @@ How the steps fit together:
   discard or skip them raises a `ValueError` before any data is touched.
 - `spwmap` is derived per calibration table from `combine`, so it rarely needs to be set.
 
+What the input must look like:
+
+- **Calibrated data in `DATA`.** `gaincal` solves against `DATA`, while the imager images
+  `CORRECTED_DATA`. Split the calibrated target first
+  (`split(vis=..., outputvis=..., datacolumn="corrected")`). snow warns when `CORRECTED_DATA`
+  already differs from `DATA`.
+- **A model in `MODEL_DATA`.** Without one, `gaincal` silently solves against a 1 Jy point
+  source. snow turns the imager's `save_model` on and raises if no `MODEL_DATA` was written.
+  A fresh run first removes any virtual model, so only the imager's model column is used.
+- **One selection.** `field` and `spw` are shared by the solve, the apply and the imager. Set
+  them on either the self-calibration or the imager; different values raise a `ValueError`.
+- **`applymode`.** The default `"calflag"` flags data whose solutions fail `minsnr`, and these
+  flags add up over iterations. `"calonly"` leaves those data uncalibrated but unflagged.
+  snow prints the flagged fraction of the selection after each iteration.
+
 More examples for VLA and e-MERLIN are in [`main_files/`](main_files/).
 
 ## API Overview
