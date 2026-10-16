@@ -10,7 +10,7 @@ import inspect
 import os
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Mapping
+from typing import Mapping, Optional
 
 from casatasks import tclean
 
@@ -35,9 +35,38 @@ CONTROLLED = {
     "uvtaper": "Weighting",
 }
 
+# Options of the Tclean class before snow 1.0, and where they went
+LEGACY_OPTIONS = {
+    "inputvis": "Selfcal(ms=...)",
+    "output": "Selfcal(output=...)",
+    "M": "ImageGeometry(imsize=(M, N))",
+    "N": "ImageGeometry(imsize=(M, N))",
+    "phase_center": "ImageGeometry(phasecenter=...)",
+    "data_column": "nothing: imagers always image CORRECTED_DATA",
+    "save_model": "nothing: MODEL_DATA is always written",
+    "use_mask": "usemask",
+    "negative_threshold": "negativethreshold",
+    "low_noise_threshold": "lownoisethreshold",
+    "noise_threshold": "noisethreshold",
+    "sidelobe_threshold": "sidelobethreshold",
+    "min_beam_frac": "minbeamfrac",
+    "grow_iterations": "growiterations",
+    "cycle_niter": "cycleniter",
+    "wproj_planes": "wprojplanes",
+    "reference_freq": "reffreq",
+    "noise_pixels": "nothing: the noise comes from ImageStatistics",
+    "verbose": "nothing: logging is configured with the logging module",
+}
 
-def _tclean_parameters() -> frozenset:
-    return frozenset(inspect.signature(tclean).parameters)
+
+def _tclean_parameters() -> Optional[frozenset]:
+    """
+    tclean's parameter names, or None if its signature doesn't list them (e.g. a stand-in)
+    """
+    parameters = inspect.signature(tclean).parameters
+    if any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters.values()):
+        return None
+    return frozenset(parameters)
 
 
 @dataclass(frozen=True, init=False)
@@ -62,15 +91,16 @@ class Tclean(Imager):
     options: Mapping = field(hash=False)
 
     def __init__(
-        self, geometry: ImageGeometry, weighting: Weighting = Weighting(), **tclean_options
+        self, geometry: ImageGeometry = None, weighting: Weighting = Weighting(), **tclean_options
     ):
+        # Options first, so a call written for snow < 1.0 gets the migration message
+        _check_options(tclean_options)
         if not isinstance(geometry, ImageGeometry) or not isinstance(weighting, Weighting):
             raise TypeError("Tclean needs an ImageGeometry and a Weighting")
         if geometry.imsize is None or not geometry.cell:
             raise ValueError(
                 "Tclean needs the image size and the cell: ImageGeometry(imsize=..., cell=...)"
             )
-        _check_options(tclean_options)
         object.__setattr__(self, "geometry", geometry)
         object.__setattr__(self, "weighting", weighting)
         object.__setattr__(self, "options", MappingProxyType(dict(tclean_options)))
@@ -118,6 +148,13 @@ class Tclean(Imager):
 
 
 def _check_options(options: Mapping) -> None:
+    legacy = sorted(set(options) & set(LEGACY_OPTIONS))
+    if legacy:
+        raise TypeError(
+            "Tclean options use tclean's own names since snow 1.0: " +
+            "; ".join("{0} -> {1}".format(name, LEGACY_OPTIONS[name])
+                      for name in legacy) + ". See docs/migration.md"
+        )
     controlled = sorted(set(options) & set(CONTROLLED))
     if controlled:
         raise TypeError(
@@ -126,6 +163,7 @@ def _check_options(options: Mapping) -> None:
                                               for name in controlled}))
             )
         )
-    unknown = sorted(set(options) - _tclean_parameters())
+    parameters = _tclean_parameters()
+    unknown = sorted(set(options) - parameters) if parameters is not None else []
     if unknown:
         raise TypeError("{0} are not tclean parameters".format(unknown))

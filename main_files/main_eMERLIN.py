@@ -2,7 +2,7 @@
 Amplitude-phase self-calibration of an e-MERLIN target, on top of existing phase solutions, imaged
 with multiscale tclean. Optionally flags residual RFI before self-calibrating.
 
-Usage: python main_eMERLIN.py <visfile> <output_prefix> <field> [--phase-caltable pcal]
+Usage: python main_eMERLIN.py <visfile> <output_directory> <field> [--phase-caltable pcal]
        [--phase-caltable-per-spw] [--mask MASK] [--uvrange UVRANGE] [--refant REFANT]
        [--flag [--rflag-spw SPW ...]] [--plot]
 """
@@ -11,21 +11,25 @@ import logging
 import os
 from pathlib import Path
 
-from casatasks import flagdata, flagmanager, mstransform
+from casatasks import flagdata, flagmanager, mstransform, split
 
+from snow.config import ApplyOptions, ImageGeometry, Selection, SolveOptions, Weighting
 from snow.imaging import Tclean
-from snow.selfcalibration import AmpPhasecal
+from snow.selfcalibration import (
+    AmpPhasecal, CalStack, CalTable, GainPlotObserver, LoggingObserver, Selfcal
+)
 from snow.selfcalibration.caltable import derive_spwmap
 from snow.utils import count_spectral_windows, get_spw_ids
 
-# Amplitude-phase solution intervals, from long to short
+# Amplitude-phase solution intervals, from long to short, cleaning deeper as calibration improves
 SOLINTS = ["14min", "7min", "3.5min"]
+NSIGMAS = [3.0, 2.5, 2.0]
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("visfile", help="Calibrated measurement set (CORRECTED_DATA is used)")
-    parser.add_argument("output", help="Prefix of the output images and calibration tables")
+    parser.add_argument("output", help="Directory for the images, tables and the result record")
     parser.add_argument("field", help="Target field to self-calibrate")
     parser.add_argument(
         "--phase-caltable", default="pcal", help="Existing phase calibration table to pre-apply"
@@ -36,7 +40,9 @@ def parse_arguments():
         help="The phase table has one solution per spw (default: combined over spws)"
     )
     parser.add_argument("--mask", help="CASA mask image; automasking is used if omitted")
-    parser.add_argument("--uvrange", default="", help="uv-range used to solve, e.g. '>60klambda'")
+    parser.add_argument(
+        "--uvrange", default="", help="uv-range to solve, apply and image, e.g. '>60klambda'"
+    )
     parser.add_argument(
         "--refant", default="Kn,Cm,Mk2,Pi,De,Da", help="Reference antennas, in order of preference"
     )
@@ -90,60 +96,51 @@ if __name__ == '__main__':
             vis=args.visfile, outputvis=selfcal_vis, datacolumn="corrected", field=args.field
         )
 
-    # Flag before creating the self-calibration object, which works on a copy of selfcal_vis
     if args.flag:
         flag_residual_rfi(selfcal_vis, args.rflag_spw or [""])
 
-    # Cell size and scales suit e-MERLIN at L-band; adjust them to your band and target
-    clean_imager = Tclean(
-        inputvis=selfcal_vis,
-        output=args.output,
+    # tclean's own parameter names. Cell size and scales suit e-MERLIN at L-band; adjust them to
+    # your band and target
+    imager = Tclean(
+        ImageGeometry(imsize=1024, cell="0.02arcsec"),
+        Weighting("briggs", robust=2.0),
         niter=10000,
-        M=1024,
-        N=1024,
-        cell="0.02arcsec",
-        stokes="I",
-        data_column="corrected",
-        robust=2.0,
         scales=[0, 3, 5, 10, 15, 20, 30, 40, 50, 80, 100],
         specmode="mfs",
         deconvolver="multiscale",
         gridder="standard",
         pbcor=False,
-        save_model=True,
         interactive=False,
-        cycle_niter=100,
-        use_mask="user" if args.mask else "auto-multithresh",
+        cycleniter=100,
+        usemask="user" if args.mask else "auto-multithresh",
         mask=args.mask or ""
     )
 
-    # Clean deeper as the calibration improves: one value per solution interval
-    varchange_imager = {"nsigma": [3.0, 2.5, 2.0]}
-
-    # spwmap of the input phase table: solutions combined over spws are stored under the lowest one
+    # The existing phase table is applied before every solve. Its spwmap: solutions combined over
+    # spws are stored under the lowest one
     phase_spwmap = derive_spwmap(
         "" if args.phase_caltable_per_spw else "spw", get_spw_ids(selfcal_vis),
         count_spectral_windows(selfcal_vis)
     )
+    phase_table = CalTable(args.phase_caltable, "p", tuple(phase_spwmap))
 
-    apcal = AmpPhasecal(
-        visfile=selfcal_vis,
-        imager=clean_imager,
-        input_caltable=args.phase_caltable,
-        spwmap=phase_spwmap,
-        solint=SOLINTS,
-        varchange_imager=varchange_imager,
-        combine="spw",
-        applymode="calonly",
-        uvrange=args.uvrange,
-        minsnr=3.0,
-        minblperant=2,
-        refant=args.refant,
-        gaintype="G",
-        flag_dataset=True,
-        restore_psnr=True,
-        want_plot=args.plot
+    steps = [
+        AmpPhasecal(solint, imaging={"nsigma": nsigma}) for solint, nsigma in zip(SOLINTS, NSIGMAS)
+    ]
+    selfcal = Selfcal(
+        selfcal_vis,
+        imager,
+        steps,
+        selection=Selection(uvrange=args.uvrange),
+        solve=SolveOptions(
+            refant=args.refant, minblperant=2, minsnr=3.0, gaintype="G", combine="spw"
+        ),
+        apply=ApplyOptions(applymode="calonly"),
+        output=args.output,
+        initial_stack=CalStack([phase_table]),
     )
-    apcal.run()
+    observers = [LoggingObserver()] + ([GainPlotObserver()] if args.plot else [])
+    result = selfcal.run(observers)
 
-    apcal.selfcal_output(overwrite=True)
+    # The self-calibrated data, for final imaging
+    split(vis=result.ms, outputvis=args.output + "/selfcal.ms", datacolumn="corrected")
