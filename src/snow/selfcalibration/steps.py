@@ -14,11 +14,12 @@ from abc import ABC
 from dataclasses import KW_ONLY, dataclass, field
 from types import MappingProxyType
 from enum import Enum
-from typing import ClassVar, Mapping, Union
+from typing import ClassVar, Mapping, Optional, Union
 
 from multimethod import multimethod
 
 from ..config import Selection, SolveOptions
+from .acceptance import AcceptancePolicy, AllOf, EnoughAntennas, FluxNotLost, PSNRImproves
 
 # Units of a CASA solution interval, in seconds
 SOLINT_UNITS = {"s": 1.0, "sec": 1.0, "min": 60.0, "m": 60.0, "h": 3600.0, "hr": 3600.0}
@@ -90,17 +91,23 @@ class CalibrationStep(ABC):
     imaging :
         Overrides of the imager's options for this step only, e.g. {"threshold": "0.025mJy"}.
         The imager checks the names (#23)
+    acceptance :
+        Whether this step's round is kept. None uses the run's policy if one is given, otherwise
+        the step type's default_acceptance()
     """
     calmode: ClassVar[str]
     solves_phase: ClassVar[bool]
     solves_amplitude: ClassVar[bool]
     # Default axis of the gain plots
     plot_yaxis: ClassVar[str]
+    # Antennas needed per solution interval: closure phases need 3
+    min_antennas: ClassVar[int] = 3
 
     solint: Union[str, float]
     _: KW_ONLY
     solve: Mapping = field(default_factory=dict, hash=False)
     imaging: Mapping = field(default_factory=dict, hash=False)
+    acceptance: Optional[AcceptancePolicy] = None
 
     def __post_init__(self):
         if not hasattr(type(self), "calmode"):
@@ -115,12 +122,36 @@ class CalibrationStep(ABC):
                 format(type(self).__name__, sorted(unknown))
             )
         dataclasses.replace(SolveOptions(), **self.solve)  # validates the values
+        if self.acceptance is not None and not isinstance(self.acceptance, AcceptancePolicy):
+            raise TypeError(
+                "acceptance must be an AcceptancePolicy, not {0!r}".format(self.acceptance)
+            )
         object.__setattr__(self, "solve", MappingProxyType(dict(self.solve)))
         object.__setattr__(self, "imaging", MappingProxyType(dict(self.imaging)))
 
     @property
     def solint_seconds(self) -> float:
         return solint_seconds(self.solint)
+
+    @classmethod
+    def default_acceptance(cls) -> AcceptancePolicy:
+        """
+        The policy used when neither the step nor the run sets one. Its limits come from theory,
+        not from an instrument, so it holds for any interferometer: the PSNR improves, and every
+        solution interval keeps enough antennas
+        """
+        return AllOf(PSNRImproves(), EnoughAntennas())
+
+    def acceptance_policy(self, run_policy: Optional[AcceptancePolicy] = None) -> AcceptancePolicy:
+        """
+        The policy that judges this step's round: the step's own, else the run's, else the step
+        type's default
+        """
+        if self.acceptance is not None:
+            return self.acceptance
+        if run_policy is not None:
+            return run_policy
+        return self.default_acceptance()
 
     def solve_options(self, options: SolveOptions) -> SolveOptions:
         """
@@ -187,6 +218,8 @@ class _AmplitudeStep(CalibrationStep):
     """
     solves_amplitude: ClassVar[bool] = True
     plot_yaxis: ClassVar[str] = "amp"
+    # Closure amplitudes need 4 antennas
+    min_antennas: ClassVar[int] = 4
 
     _: KW_ONLY
     solnorm: bool = True
@@ -195,6 +228,13 @@ class _AmplitudeStep(CalibrationStep):
         super().__post_init__()
         if not isinstance(self.solnorm, bool):
             raise TypeError("solnorm must be True or False, not {0!r}".format(self.solnorm))
+
+    @classmethod
+    def default_acceptance(cls) -> AcceptancePolicy:
+        """
+        Amplitude gains can absorb unmodelled flux, so the model must also keep its flux
+        """
+        return AllOf(PSNRImproves(), EnoughAntennas(), FluxNotLost())
 
     def _extra_gaincal_kwargs(self) -> dict:
         return {"solnorm": self.solnorm}
