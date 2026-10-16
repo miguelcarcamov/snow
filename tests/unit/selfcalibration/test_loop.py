@@ -1,0 +1,237 @@
+"""The single self-calibration loop (#22c), with CASA replaced by mocks."""
+import dataclasses
+import itertools
+import logging
+import os
+from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
+
+import pytest
+
+from snow.config import ApplyOptions, Selection, SolveOptions
+from snow.imaging import contract
+from snow.imaging.contract import Imager, ImagingResult
+from snow.imaging.statistics import ImageStatistics
+from snow.selfcalibration import loop, workspace
+from snow.selfcalibration.acceptance import AllOf, PSNRImproves
+from snow.selfcalibration.loop import Selfcal
+from snow.selfcalibration.result import SelfcalResult
+from snow.selfcalibration.schedule import ScheduleError
+from snow.selfcalibration.steps import AmpPhasecal, Ampcal, Phasecal
+
+
+@dataclasses.dataclass(frozen=True)
+class FakeResult(ImagingResult):
+    peak: float = 1.0
+
+    def statistics(self):
+        return ImageStatistics(self.peak, 1e-3, 1.0, (1.0, 1.0, 0.0))
+
+
+@dataclasses.dataclass(frozen=True)
+class FakeImager(Imager):
+    """Returns the next peak on every call and records the image names and its niter."""
+    peaks: object = None
+    calls: list = dataclasses.field(default_factory=list, hash=False)
+    niter: int = 100
+
+    def _reconstruct(self, request):
+        self.calls.append((Path(request.name).name, self.niter))
+        return FakeResult(request.name + ".image", "", "", peak=next(self.peaks))
+
+
+@pytest.fixture
+def casa(monkeypatch, tmp_path):
+    """gaincal writes the table unless told not to; everything else is recorded."""
+    mocks = SimpleNamespace(
+        gaincal=mock.Mock(),
+        applycal=mock.Mock(),
+        workspace_applycal=mock.Mock(),
+        clearcal=mock.Mock(),
+        flagmanager=mock.Mock(),
+        solves=True,
+        corrected_matches=True,
+    )
+
+    def gaincal(**kwargs):
+        if mocks.solves:
+            os.makedirs(kwargs["caltable"])
+
+    mocks.gaincal.side_effect = gaincal
+    monkeypatch.setattr(loop, "gaincal", mocks.gaincal)
+    monkeypatch.setattr(loop, "applycal", mocks.applycal)
+    monkeypatch.setattr(workspace, "applycal", mocks.workspace_applycal)
+    monkeypatch.setattr(workspace, "clearcal", mocks.clearcal)
+    monkeypatch.setattr(workspace, "flagmanager", mocks.flagmanager)
+    monkeypatch.setattr(loop, "solution_summary", lambda table: (0.05, (8, 8, 8)))
+    monkeypatch.setattr(loop, "get_spw_ids", lambda ms, spw: [0])
+    monkeypatch.setattr(loop, "count_spectral_windows", lambda ms: 1)
+    monkeypatch.setattr(loop, "is_column_in_ms", lambda ms, column: True)
+    monkeypatch.setattr(loop, "columns_match", lambda ms, a, b: mocks.corrected_matches)
+    # The imager contract: CORRECTED_DATA exists and the model is always written
+    monkeypatch.setattr(contract, "is_column_in_ms", lambda ms, column: True)
+    monkeypatch.setattr(contract, "delmod", mock.Mock())
+    monkeypatch.setattr(contract, "model_column_problem", lambda ms, field, spw: "")
+    mocks.ms = str(tmp_path / "target.ms")
+    return mocks
+
+
+def imager(*peaks, **kwargs) -> FakeImager:
+    return FakeImager(peaks=iter(peaks), **kwargs)
+
+
+def table_names(call) -> list:
+    return [Path(path).name for path in call.kwargs["gaintable"]]
+
+
+class TestConstruction:
+
+    def test_invalid_schedule_raises_before_any_io(self, casa, tmp_path):
+        with pytest.raises(ScheduleError):
+            Selfcal(casa.ms, imager(), [Ampcal("inf")])
+        assert list(tmp_path.iterdir()) == []
+
+    def test_unknown_imaging_override_raises_at_construction(self, casa):
+        with pytest.raises(TypeError):
+            Selfcal(casa.ms, imager(), [Phasecal("inf", imaging={"nitre": 5})])
+
+    def test_imager_must_be_an_imager(self, casa):
+        with pytest.raises(TypeError, match="Imager"):
+            Selfcal(casa.ms, lambda request: None, [Phasecal("inf")])
+
+    def test_output_defaults_next_to_the_measurement_set(self, casa, tmp_path):
+        assert Selfcal(casa.ms, imager(),
+                       [Phasecal("inf")]).output == str(tmp_path / "target_selfcal")
+
+
+class TestAcceptedRounds:
+
+    @pytest.fixture
+    def result(self, casa):
+        run = Selfcal(
+            casa.ms,
+            imager(1.0, 2.0, 3.0, 4.0),
+            [Phasecal("inf"), Phasecal("60s"), AmpPhasecal("inf")],
+            selection=Selection(field="target"),
+            solve=SolveOptions(refant="A0"),
+        )
+        return run.run()
+
+    def test_every_table_is_kept(self, result):
+        assert [Path(t.path).name
+                for t in result.stack] == ["round1_p.cal", "round2_p.cal", "round3_ap.cal"]
+        assert all(record.accepted for record in result.rounds)
+        assert [record.psnr for record in result.rounds] == [1000.0, 2000.0, 3000.0, 4000.0]
+
+    def test_each_solve_preapplies_the_accepted_stack(self, casa, result):
+        assert [table_names(call) for call in casa.gaincal.call_args_list
+                ] == [[], ["round1_p.cal"], ["round1_p.cal", "round2_p.cal"]]
+
+    def test_gaincal_gets_the_step_options_and_the_selection(self, casa, result):
+        first = casa.gaincal.call_args_list[0].kwargs
+        assert (first["calmode"], first["solint"], first["refant"],
+                first["field"]) == ("p", "inf", "A0", "target")
+        assert casa.gaincal.call_args_list[2].kwargs["solnorm"] is True
+
+    def test_each_apply_is_the_stack_plus_the_new_table(self, casa, result):
+        assert [table_names(call) for call in casa.applycal.call_args_list] == [
+            ["round1_p.cal"], ["round1_p.cal", "round2_p.cal"],
+            ["round1_p.cal", "round2_p.cal", "round3_ap.cal"]
+        ]
+        assert casa.applycal.call_args_list[0].kwargs["field"] == "target"
+
+    def test_corrected_data_starts_as_data(self, casa, result):
+        casa.clearcal.assert_called_once()
+
+    def test_flag_snapshots_are_saved_and_discarded(self, casa, result):
+        modes = [
+            (call.kwargs["mode"], call.kwargs["versionname"])
+            for call in casa.flagmanager.call_args_list
+        ]
+        saved = [name for mode, name in modes if mode == "save"]
+        assert saved == [
+            "snow_selfcal_round0", "snow_selfcal_round1", "snow_selfcal_round2",
+            "snow_selfcal_round3"
+        ]
+        assert sorted(name for mode, name in modes if mode == "delete") == sorted(saved)
+
+    def test_the_result_is_written_as_toml(self, casa, result):
+        written = SelfcalResult.from_toml(
+            str(Path(casa.ms).with_suffix("")) + "_selfcal/selfcal.toml"
+        )
+
+        assert written == result
+        assert result.final.index == 3
+
+
+class TestRejection:
+
+    @pytest.fixture
+    def run(self, casa):
+        fake = imager(1.0, 2.0, 1.5, 2.0)
+        result = Selfcal(casa.ms, fake, [Phasecal("inf"), Phasecal("60s"), Phasecal("int")]).run()
+        return SimpleNamespace(result=result, imager=fake)
+
+    def test_a_worse_round_stops_the_run(self, casa, run):
+        assert [record.accepted for record in run.result.rounds] == [True, True, False]
+        assert casa.gaincal.call_count == 2  # Phasecal("int") never ran
+        assert [Path(t.path).name for t in run.result.stack] == ["round1_p.cal"]
+        assert run.result.final.index == 1
+
+    def test_flags_and_calibration_are_restored(self, casa, run):
+        restored = [
+            call.kwargs["versionname"] for call in casa.flagmanager.call_args_list
+            if call.kwargs["mode"] == "restore"
+        ]
+        assert restored == ["snow_selfcal_round1"]
+        assert table_names(casa.workspace_applycal.call_args) == ["round1_p.cal"]
+
+    def test_the_accepted_model_is_imaged_again(self, run):
+        assert [name
+                for name, _ in run.imager.calls] == ["round0", "round1", "round2", "round1_model"]
+
+    def test_the_reasons_are_recorded(self, run):
+        assert "PSNR" in run.result.rounds[2].reasons[0]
+
+
+def test_a_round_without_solutions_stops_the_run(casa):
+    casa.solves = False
+
+    result = Selfcal(casa.ms, imager(1.0), [Phasecal("inf"), Phasecal("60s")]).run()
+
+    assert [record.accepted for record in result.rounds] == [True, False]
+    assert result.rounds[1].reasons == ("gaincal found no solutions", )
+    assert len(result.stack) == 0
+    casa.applycal.assert_not_called()
+
+
+def test_step_imaging_overrides_reach_the_imager(casa):
+    fake = imager(1.0, 2.0, 3.0)
+
+    Selfcal(casa.ms, fake, [Phasecal("inf"), Phasecal("60s", imaging={"niter": 500})]).run()
+
+    assert fake.calls == [("round0", 100), ("round1", 100), ("round2", 500)]
+
+
+def test_the_step_policy_wins_over_the_run_policy(casa):
+    strict = AllOf(PSNRImproves(min_ratio=10.0))
+
+    result = Selfcal(
+        casa.ms,
+        imager(1.0, 2.0, 1.0),
+        [Phasecal("inf", acceptance=strict)],  # 1.0: re-imaged model
+        acceptance=AllOf(PSNRImproves())
+    ).run()
+
+    assert not result.rounds[1].accepted
+
+
+def test_corrected_data_that_differs_from_data_is_reset_with_a_warning(casa, caplog):
+    casa.corrected_matches = False
+
+    with caplog.at_level(logging.WARNING, logger="snow"):
+        Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run()
+
+    assert "differs from DATA" in caplog.text
+    casa.clearcal.assert_called_once()

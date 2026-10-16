@@ -257,3 +257,35 @@ def model_column_problem(ms_name: str, field: str = "", spw: str = "") -> str:
     if not written:
         return "MODEL_DATA is all zeros in the selected rows"
     return ""
+
+
+def solution_summary(caltable: str) -> tuple:
+    """
+    Function that summarises the gain solutions of a calibration table: the fraction flagged, and
+    how many antennas have unflagged solutions in each solution interval (one per time and
+    spectral window)
+
+    Parameters
+    ----------
+    caltable :
+        Path to the calibration table
+
+    Returns
+    -------
+    A tuple with the flagged fraction and a tuple of antenna counts, one per solution interval
+    """
+    with open_table(caltable) as cal_table:
+        if cal_table.nrows() == 0:
+            return 1.0, ()
+        flags = cal_table.getcol("FLAG")  # (polarization, channel, row)
+        times = cal_table.getcol("TIME")
+        spws = cal_table.getcol("SPECTRAL_WINDOW_ID")
+        antennas = cal_table.getcol("ANTENNA1")
+    # An antenna has a solution in an interval if any of its polarizations or channels is unflagged
+    solved = ~np.all(flags, axis=(0, 1))
+    counts = {}
+    for time, spw, antenna, ok in zip(times, spws, antennas, solved):
+        interval = counts.setdefault((float(time), int(spw)), set())
+        if ok:
+            interval.add(int(antenna))
+    return float(np.mean(flags)), tuple(len(counts[key]) for key in sorted(counts))
