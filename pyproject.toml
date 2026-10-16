@@ -50,6 +50,7 @@ dependencies = [
   "astropy>=6.1",
   "casatasks>=6.7",
   "casatools>=6.7",
+  "multimethod>=1.12",
   "numpy>=1.26",
   "tomli-w>=1.0"
 ]
