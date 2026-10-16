@@ -172,3 +172,88 @@ def get_spw_ids(ms_name: str = "", spw: str = "") -> list:
     finally:
         ms_tool.done()
     return sorted(int(spw_id) for spw_id in selection["spw"])
+
+
+def selected_rows(ms_name: str, field: str = "", spw: str = "", samples: int = 100) -> list:
+    """
+    Function that returns row numbers of a measurement set in a field and spectral window
+    selection, sampled evenly so that large datasets are not read
+
+    Parameters
+    ----------
+    ms_name :
+        Measurement set name
+    field :
+        CASA field selection; empty selects every field
+    spw :
+        CASA spectral window selection; empty selects every spectral window
+    samples :
+        Largest number of rows returned
+
+    Returns
+    -------
+    Sorted list of row numbers
+    """
+    ms_tool = ms()
+    try:
+        selection = ms_tool.msseltoindex(vis=ms_name, field=field, spw=spw)
+    finally:
+        ms_tool.done()
+    conditions = [
+        "{0} IN [{1}]".format(column, ",".join(str(int(i)) for i in ids))
+        for column, ids in (("FIELD_ID", selection["field"]), ("DATA_DESC_ID", selection["dd"]))
+        if len(ids)
+    ]
+    with open_table(ms_name) as ms_table:
+        if not conditions:
+            rows = np.arange(ms_table.nrows())
+        else:
+            subtable = ms_table.query(query=" AND ".join(conditions))
+            try:
+                rows = np.asarray(subtable.rownumbers())
+            finally:
+                subtable.close()
+    if len(rows) == 0:
+        return []
+    return [
+        int(rows[i])
+        for i in np.unique(np.linspace(0, len(rows) - 1, min(len(rows), samples), dtype=int))
+    ]
+
+
+def model_column_problem(ms_name: str, field: str = "", spw: str = "") -> str:
+    """
+    Function that checks that MODEL_DATA holds a model for the selected data: the column exists,
+    its cells have the shape of DATA, and it is not all zeros
+
+    Parameters
+    ----------
+    ms_name :
+        Measurement set name
+    field :
+        CASA field selection
+    spw :
+        CASA spectral window selection
+
+    Returns
+    -------
+    A description of what is wrong, or an empty string if the model was written
+    """
+    if not is_column_in_ms(ms_name, "MODEL_DATA"):
+        return "MODEL_DATA does not exist"
+    rows = selected_rows(ms_name, field, spw)
+    if not rows:
+        return "the selection (field={0!r}, spw={1!r}) has no rows".format(field, spw)
+    with open_table(ms_name) as ms_table:
+        written = False
+        for row in rows:
+            model = ms_table.getcell("MODEL_DATA", row)
+            if model.shape != ms_table.getcell("DATA", row).shape:
+                return "MODEL_DATA has shape {0} but DATA has {1} in row {2}".format(
+                    model.shape,
+                    ms_table.getcell("DATA", row).shape, row
+                )
+            written = written or bool(np.any(model != 0))
+    if not written:
+        return "MODEL_DATA is all zeros in the selected rows"
+    return ""

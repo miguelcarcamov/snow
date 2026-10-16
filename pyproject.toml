@@ -78,6 +78,10 @@ readme = "README.md"
 # casatools wheels exist for Python 3.12-3.13 (CASA >= 6.7.2); Pyralysis needs <3.14
 requires-python = ">=3.12, <3.14"
 
+# Imagers built by name from configuration files; third-party packages register theirs here too
+[project.entry-points."snow.imagers"]
+tclean = "snow.imaging.backends.tclean:Tclean"
+
 [project.optional-dependencies]
 # Pyralysis depends on ska-ost-array-config, published on SKA's index, not PyPI:
 # pip install "snow-selfcal[pyralysis]" --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
