@@ -30,8 +30,11 @@
 ### Option 1: From PyPI (Recommended)
 
 ```bash
-pip install snow
+pip install snow-selfcal
 ```
+
+The package is imported as `snow`. (`pip install snow` installs an unrelated project.) Until
+the first release is published, install from GitHub instead.
 
 ### Option 2: From GitHub
 

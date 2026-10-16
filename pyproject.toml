@@ -63,7 +63,8 @@ license = {file = "LICENSE"}
 maintainers = [
   {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
-name = "snow"
+# "snow" on PyPI is another project; the import name stays snow
+name = "snow-selfcal"
 readme = "README.md"
 requires-python = ">=3.10, <3.11"  # Constrained to Python 3.10 for CASA compatibility
 
