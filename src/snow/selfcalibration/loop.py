@@ -39,6 +39,7 @@ from ..utils.selfcal_utils import (
     solution_summary
 )
 from .acceptance import AcceptancePolicy, RoundMetrics
+from .flagging import NoFlagging
 from .caltable import CalStack, CalTable, derive_spwmap
 from .observers import LoggingObserver, SelfcalObserver
 from .result import RoundRecord, SelfcalResult
@@ -199,13 +200,16 @@ class Selfcal:
                 break
             _notify(observers, "on_solved", step, table)
             self._apply(stack, table)
+            # Residuals against the model the gains were solved with; restored if rejected
+            data_flagged = step.flagging.flag(self.ms, self.selection)
             result = self._image(imager, name)
             flagged, antennas = solution_summary(table.path)
             current = RoundMetrics(result.statistics(), step, flagged, antennas)
             decision = step.acceptance_policy(self.acceptance).decide(accepted, current)
             rounds.append(
                 self._record(
-                    index, step, table.path, result, current, decision.accepted, decision.reasons
+                    index, step, table.path, result, current, decision.accepted, decision.reasons,
+                    data_flagged
                 )
             )
             _notify(observers, "on_round", rounds[-1])
@@ -291,8 +295,14 @@ class Selfcal:
 
     @staticmethod
     def _record(
-        index: int, step: Optional[CalibrationStep], caltable: str, result: ImagingResult,
-        metrics: RoundMetrics, accepted: bool, reasons: Sequence[str]
+        index: int,
+        step: Optional[CalibrationStep],
+        caltable: str,
+        result: ImagingResult,
+        metrics: RoundMetrics,
+        accepted: bool,
+        reasons: Sequence[str],
+        data_flagged: Optional[Tuple[float, float]] = None
     ) -> RoundRecord:
         statistics = metrics.statistics
         return RoundRecord(
@@ -308,6 +318,7 @@ class Selfcal:
             flagged_fraction=metrics.flagged_fraction,
             accepted=accepted,
             reasons=tuple(reasons),
+            data_flagged=data_flagged,
         )
 
     @staticmethod
@@ -324,6 +335,7 @@ def _describe(step: Optional[CalibrationStep]) -> str:
     details = [repr(step.solint)]
     details += ["solve={0}".format(dict(step.solve))] if step.solve else []
     details += ["imaging={0}".format(dict(step.imaging))] if step.imaging else []
+    details += ["flagging={0!r}".format(step.flagging)] if step.flagging != NoFlagging() else []
     return "{0}({1})".format(type(step).__name__, ", ".join(details))
 
 

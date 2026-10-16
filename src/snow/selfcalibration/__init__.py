@@ -8,6 +8,7 @@ from .acceptance import (
     FlaggedFractionBelow, FluxNotLost, PSNRImproves, RoundMetrics, solution_snr
 )
 from .caltable import CalStack, CalTable
+from .flagging import Flagging, NoFlagging, ResidualFlagging
 from .loop import Selfcal
 from .observers import GainPlotObserver, LoggingObserver, SelfcalObserver
 from .result import RoundRecord, SelfcalResult

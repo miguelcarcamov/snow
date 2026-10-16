@@ -56,7 +56,7 @@ split(vis=result.ms, outputvis="target_sc/selfcal.ms", datacolumn="corrected")
 | `output_caltables` | `output=...`, a directory for the tables, the images and `selfcal.toml` |
 | `selfcal_output()` | `split(vis=result.ms, outputvis=..., datacolumn="corrected")` |
 | `solnorm` | `Ampcal(..., solnorm=False)`; `True` by default |
-| `flag_dataset=True`, `flag_mode` | **not available yet**: flag before self-calibration, as `main_files/main_eMERLIN.py --flag` does |
+| `flag_dataset=True`, `flag_mode` | a step's `flagging=ResidualFlagging("rflag", timedevscale=3.0, ...)`, with `flagdata`'s names and defaults; it flags the residuals after the step's apply, and a rejected round's flags are rolled back |
 | `subtract_source` | removed; it did nothing |
 
 The measurement set is no longer copied for every round: a rejected round restores the flags and

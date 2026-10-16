@@ -16,7 +16,7 @@ from casatasks import flagdata, flagmanager, mstransform, split
 from snow.config import ApplyOptions, ImageGeometry, Selection, SolveOptions, Weighting
 from snow.imaging import Tclean
 from snow.selfcalibration import (
-    AmpPhasecal, CalStack, CalTable, GainPlotObserver, LoggingObserver, Selfcal
+    AmpPhasecal, CalStack, CalTable, GainPlotObserver, LoggingObserver, ResidualFlagging, Selfcal
 )
 from snow.selfcalibration.caltable import derive_spwmap
 from snow.utils import count_spectral_windows, get_spw_ids
@@ -124,8 +124,19 @@ if __name__ == '__main__':
     )
     phase_table = CalTable(args.phase_caltable, "p", tuple(phase_spwmap))
 
+    # Each round flags residual RFI (CORRECTED_DATA - MODEL_DATA) before imaging, with flagdata's
+    # names; a rejected round's flags are rolled back
+    rflag = ResidualFlagging(
+        "rflag",
+        timedevscale=3.0,
+        freqdevscale=3.0,
+        spectralmax=500,
+        extendflags=False,
+        ntime="scan"
+    )
     steps = [
-        AmpPhasecal(solint, imaging={"nsigma": nsigma}) for solint, nsigma in zip(SOLINTS, NSIGMAS)
+        AmpPhasecal(solint, imaging={"nsigma": nsigma}, flagging=rflag)
+        for solint, nsigma in zip(SOLINTS, NSIGMAS)
     ]
     selfcal = Selfcal(
         selfcal_vis,
