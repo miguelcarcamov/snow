@@ -1,13 +1,15 @@
 import logging
 import os
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 from pathlib import Path
 
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
+import astropy.units as u
 from astropy.stats import sigma_clipped_stats
 from casatasks import exportfits, imstat
+from casatools import image
 
 logger = logging.getLogger(__name__)
 
@@ -295,3 +297,42 @@ def reproject(fits_file_to_resamp: str = "",
                 fits_file_to_resamp, fits_file_model
             )
         )
+
+
+def read_image(path: str) -> Tuple[np.ndarray, Optional[Tuple[float, float, float]]]:
+    """
+    Function that reads the pixels and the restoring beam of a CASA image (a directory) or a FITS
+    file
+
+    Parameters
+    ----------
+    path :
+        Path to the image
+
+    Returns
+    -------
+    The pixel array and the beam as (major, minor) in arcsec and position angle in degrees, or
+    None when the image has no single restoring beam (e.g. a model image)
+    """
+    if os.path.isdir(path):
+        image_tool = image()
+        image_tool.open(path)
+        try:
+            data = image_tool.getchunk()
+            beam = image_tool.restoringbeam()
+        finally:
+            image_tool.close()
+            image_tool.done()
+        if "major" not in beam:  # no beam, or one per plane
+            return data, None
+        return data, (
+            u.Quantity(beam["major"]["value"], beam["major"]["unit"]).to_value(u.arcsec),
+            u.Quantity(beam["minor"]["value"], beam["minor"]["unit"]).to_value(u.arcsec),
+            u.Quantity(beam["positionangle"]["value"],
+                       beam["positionangle"]["unit"]).to_value(u.deg),
+        )
+    with fits.open(path, memmap=False) as hdul:
+        header, data = hdul[0].header, np.array(hdul[0].data)
+    if "BMAJ" not in header or "BMIN" not in header:
+        return data, None
+    return data, (header["BMAJ"] * 3600.0, header["BMIN"] * 3600.0, header.get("BPA", 0.0))
