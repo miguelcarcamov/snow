@@ -35,7 +35,8 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Astronomy",
   # Programming language
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   # License (update if different from LICENSE file)
   "License :: OSI Approved",
   # Operating system
@@ -43,11 +44,17 @@ classifiers = [
   # Additional metadata
   "Natural Language :: English"
 ]
+# Only the packages snow imports, as lower bounds so snow installs next to other packages
+# (e.g. Pyralysis). requirements.txt pins a tested set for CI and Docker.
+dependencies = [
+  "astropy>=6.1",
+  "casatasks>=6.7",
+  "casatools>=6.7",
+  "numpy>=1.26"
+]
 description = "A Python object oriented framework to do radio-interferometric self-calibration"
-# Dynamic fields that are resolved at build time
-# version: Automatically determined from git tags via setuptools-scm
-# dependencies: Read from requirements.txt
-dynamic = ["version", "dependencies"]
+# Resolved at build time: the version comes from git tags via setuptools-scm
+dynamic = ["version"]
 # Keywords for PyPI search
 keywords = [
   "radio astronomy",
@@ -66,7 +73,16 @@ maintainers = [
 # "snow" on PyPI is another project; the import name stays snow
 name = "snow-selfcal"
 readme = "README.md"
-requires-python = ">=3.10, <3.11"  # Constrained to Python 3.10 for CASA compatibility
+# casatools wheels exist for Python 3.12-3.13 (CASA >= 6.7.2); Pyralysis needs <3.14
+requires-python = ">=3.12, <3.14"
+
+[project.optional-dependencies]
+# Pyralysis depends on ska-ost-array-config, published on SKA's index, not PyPI:
+# pip install "snow-selfcal[pyralysis]" --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
+pyralysis = ["pyralysis>=3"]
+# Only snow.utils.reproject() needs it; it pulls in dask, zarr and image libraries
+reproject = ["reproject>=0.14"]
+test = ["pytest>=8", "reproject>=0.14"]
 
 # Project URLs (homepage, repository, documentation, etc.)
 [project.urls]
@@ -74,14 +90,13 @@ Homepage = "https://github.com/miguelcarcamov/snow"
 Repository = "https://github.com/miguelcarcamov/snow"
 Source = "https://github.com/miguelcarcamov/snow"
 
+[tool.pytest]
+
+[tool.pytest.ini_options]
+markers = ["casa: runs real CASA tasks (tests/integration, skipped without CASA)"]
+
 # Setuptools-specific configuration
 [tool.setuptools]
-
-# Dynamic field resolution
-[tool.setuptools.dynamic]
-# Dependencies are read from requirements.txt
-# Version is automatically handled by setuptools-scm (no explicit configuration needed)
-dependencies = {file = "requirements.txt"}
 
 # Package discovery configuration
 [tool.setuptools.packages.find]
@@ -100,5 +115,3 @@ where = ["src"]
 [tool.setuptools_scm]
 # Don't add local version identifier (e.g., +dirty, +local)
 local_scheme = "no-local-version"
-# Write version to this file for runtime access
-write_to = "src/snow/_version.py"

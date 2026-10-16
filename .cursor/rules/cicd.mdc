@@ -22,7 +22,8 @@ alwaysApply: false
 
 - `pyproject.toml` is the single source of metadata and dependencies. Use lower bounds in `dependencies`; put exact pins only in lock/constraint files for CI and Docker.
 - Declare only what is imported. Optional backends go in extras (e.g. `snow[pyralysis]`).
-- Version comes from setuptools-scm (`version_file`); the generated `_version.py` is git-ignored.
+- Version comes from setuptools-scm, read at run time with `importlib.metadata.version("snow-selfcal")`; no version file is written.
+- `requirements.txt` is the pinned set for CI and Docker, generated with `uv pip compile pyproject.toml`.
 
 # Containers
 

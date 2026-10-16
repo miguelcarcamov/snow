@@ -7,7 +7,6 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.stats import sigma_clipped_stats
 from casatasks import exportfits, imstat
-from reproject import reproject_interp
 
 
 def nanrms(x, axis=None) -> Union[np.ndarray, float]:
@@ -263,6 +262,13 @@ def reproject(fits_file_to_resamp: str = "",
         mask_WCS = WCS(header=header_mask).celestial
 
         print("Resampling image...")
+        # Optional dependency (snow-selfcal[reproject]), imported here so the core stays light
+        try:
+            from reproject import reproject_interp
+        except ImportError as error:
+            raise ImportError(
+                "reproject() needs the reproject package: pip install 'snow-selfcal[reproject]'"
+            ) from error
         reprojected_array = reproject_interp(
             (data_mask, mask_WCS),
             model_WCS,
