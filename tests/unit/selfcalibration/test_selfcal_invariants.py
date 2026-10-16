@@ -1,4 +1,5 @@
 """Self-calibration invariants (#27): one selection, a saved model, calibrated DATA, clean flagging."""
+import logging
 import warnings
 
 import numpy as np
@@ -142,11 +143,23 @@ class TestResidualFlagging:
             Phasecal(visfile=ms, imager=imager, solint=["inf"], flag_dataset=True, flag_mode="clip")
 
 
-def test_flagged_fraction_is_reported_before_and_after_each_iteration(casa, ms, imager, capsys):
+def test_flagged_fraction_is_reported_before_and_after_each_iteration(casa, ms, imager, caplog):
     phscal = Phasecal(visfile=ms, imager=imager, solint=["inf", "60s"], spw="0")
-    phscal.run()
+    with caplog.at_level(logging.INFO, logger="snow"):
+        phscal.run()
 
     assert phscal._flagged_history == pytest.approx([0.0, 0.1, 0.2])
     summaries = [c.kwargs for c in casa.flagdata.call_args_list if c.kwargs["mode"] == "summary"]
     assert {(kwargs["field"], kwargs["spw"]) for kwargs in summaries} == {("", "0")}
-    assert "Flagged: 20.00% (+10.00% in this iteration)" in capsys.readouterr().out
+    assert "Flagged: 20.00% (+10.00% in this iteration)" in caplog.messages
+
+
+def test_each_round_metrics_are_logged_at_info(casa, ms, imager, caplog):
+    phscal = Phasecal(visfile=ms, imager=imager, solint=["inf", "60s"])
+    with caplog.at_level(logging.INFO, logger="snow"):
+        phscal.run()
+
+    rounds = [r for r in caplog.records if r.getMessage().startswith(("Original", "Solint"))]
+    assert [r.levelno for r in rounds] == [logging.INFO] * 3
+    assert all(r.name == "snow.selfcalibration.selfcal" for r in rounds)
+    assert all("PSNR" in r.getMessage() for r in rounds)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import logging
 import os
 import shutil
 import warnings
@@ -22,6 +23,8 @@ from .caltable import CalStack, CalTable, derive_spwmap
 SELECTION_PARAMETERS = ("field", "spw")
 # flagdata modes that flag outliers in the residual visibilities
 FLAG_MODES = ("rflag", "tfcrop")
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(init=False, repr=True)
@@ -311,10 +314,9 @@ class Selfcal(metaclass=ABCMeta):
         these flags add up over iterations (#27).
         """
         self._flagged_history.append(self._flagged_fraction())
-        print(
-            "Flagged: {0:0.2%} ({1:+0.2%} in this iteration)".format(
-                self._flagged_history[-1], self._flagged_history[-1] - self._flagged_history[-2]
-            )
+        logger.info(
+            "Flagged: %.2f%% (%+.2f%% in this iteration)", 100 * self._flagged_history[-1],
+            100 * (self._flagged_history[-1] - self._flagged_history[-2])
         )
 
     def _has_phase_solution(self) -> bool:
@@ -541,7 +543,7 @@ class Selfcal(metaclass=ABCMeta):
         caltable :
             The newly solved calibration table
         """
-        print("Applying calibration tables to {0} file".format(self.visfile))
+        logger.info("Applying calibration tables to %s", self.visfile)
         applycal(
             vis=self.visfile,
             field=self.field,
@@ -565,7 +567,7 @@ class Selfcal(metaclass=ABCMeta):
         """
         self._warn_if_corrected_differs_from_data()
         self._flagged_history.append(self._flagged_fraction())
-        print("Flagged before self-calibration: {0:0.2%}".format(self._flagged_history[-1]))
+        logger.info("Flagged before self-calibration: %.2f%%", 100 * self._flagged_history[-1])
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             if self.previous_selfcal is None:
                 # A virtual model left in the dataset (e.g. by setjy or tclean
@@ -574,9 +576,10 @@ class Selfcal(metaclass=ABCMeta):
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
             self._require_model()
-            print("Original: - PSNR: {0:0.3f}".format(self.imager.psnr))
-            print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
-            print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
+            logger.info(
+                "Original - PSNR: %.3f, peak: %.3f mJy/beam, noise: %.3f mJy/beam",
+                self.imager.psnr, self.imager.peak * 1000.0, self.imager.stdv * 1000.0
+            )
             self._psnr_history.append(self.imager.psnr)
 
     def _run_imager(self, current_iteration: int = 0) -> None:
@@ -597,13 +600,11 @@ class Selfcal(metaclass=ABCMeta):
 
         self._psnr_history.append(self.imager.psnr)
 
-        print(
-            "Solint: {0} - PSNR: {1:0.3f}".format(
-                self.solint[current_iteration], self._psnr_history[-1]
-            )
+        logger.info(
+            "Solint %s - PSNR: %.3f, peak: %.3f mJy/beam, noise: %.3f mJy/beam",
+            self.solint[current_iteration], self._psnr_history[-1], self.imager.peak * 1000.0,
+            self.imager.stdv * 1000.0
         )
-        print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
-        print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
 
     def _finish_selfcal_iteration(self, current_iteration: int = 0) -> bool:
         """
@@ -624,16 +625,16 @@ class Selfcal(metaclass=ABCMeta):
         if self.restore_psnr:
             if len(self._psnr_history) > 1:
 
-                print(
-                    "Old PSNR {0:0.3f} vs last PSNR {1:0.3f}".format(
-                        self._psnr_history[-2], self._psnr_history[-1]
-                    )
+                logger.info(
+                    "Old PSNR %.3f vs last PSNR %.3f", self._psnr_history[-2],
+                    self._psnr_history[-1]
                 )
 
                 if self._psnr_history[-1] <= self._psnr_history[-2]:
 
-                    print(
-                        "PSNR decreasing or equal in this solution interval - restoring to last MS and exiting loop..."
+                    logger.info(
+                        "PSNR decreasing or equal in this solution interval - restoring to last MS "
+                        "and exiting loop"
                     )
                     self._restore_selfcal(caltable_version=self._caltables_versions[-1])
                     self._psnr_history.pop()
@@ -643,9 +644,9 @@ class Selfcal(metaclass=ABCMeta):
                     self.imager.inputvis = self._psnr_visfile_backup
                     return True
                 else:
-                    print(
-                        "PSNR improved on iteration {0} - Copying measurement set files...".
-                        format(current_iteration)
+                    logger.info(
+                        "PSNR improved on iteration %d - copying measurement set files",
+                        current_iteration
                     )
 
                     if current_iteration + 1 < self._loops:
@@ -702,7 +703,7 @@ class Selfcal(metaclass=ABCMeta):
                 timecutoff=5.0, freqcutoff=5.0, freqfit='line', flagdimension='freq'
             )
 
-        print("Flagging {0} data column using {1}".format(datacolumn, mode))
+        logger.info("Flagging %s data column using %s", datacolumn, mode)
 
         # The flags of each iteration are saved by _save_selfcal, so no extra flag backup is made
         flagdata(
@@ -760,12 +761,12 @@ class Selfcal(metaclass=ABCMeta):
     ):
         figfile_name = caltable + ".png"
         if want_plot:
-            print("Plot selfcal is trying to plot, but the function is not part of CASA 6 yet")
+            logger.warning("Plotting calibration tables is not available in CASA 6 yet")
             # au.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis, iteration=iteration, gridrows=subplot[0],
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=True)
         else:
-            print("Plot selfcal is trying to plot, but the function is not part of CASA 6 yet")
+            logger.warning("Plotting calibration tables is not available in CASA 6 yet")
             # au.plotms(vis=caltable, xaxis=xaxis, yaxis=yaxis, iteraxis=iteration, gridrows=subplot[0],
             # gridcols=subplot[1], antenna=antenna, timerange=timerange, plotrange=plotrange, plotfile=figfile_name,
             # overwrite=True, showgui=False)

@@ -4,6 +4,7 @@ Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tcle
 Usage: python main_ALMA.py <visfile> <output_prefix> [--plot]
 """
 import argparse
+import logging
 
 from snow.imaging import Tclean
 from snow.selfcalibration import AmpPhasecal, Phasecal
@@ -19,6 +20,8 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
+    # snow logs each self-calibration round's metrics at INFO
+    logging.basicConfig(level=logging.INFO)
 
     # Automasking values for long baselines: https://casaguides.nrao.edu/index.php/Automasking_Guide
     imaging_parameters = dict(

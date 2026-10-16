@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Tuple, Union
 from pathlib import Path
@@ -7,6 +8,8 @@ from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.stats import sigma_clipped_stats
 from casatasks import exportfits, imstat
+
+logger = logging.getLogger(__name__)
 
 
 def nanrms(x, axis=None) -> Union[np.ndarray, float]:
@@ -261,7 +264,7 @@ def reproject(fits_file_to_resamp: str = "",
         model_WCS = WCS(header=header_model).celestial
         mask_WCS = WCS(header=header_mask).celestial
 
-        print("Resampling image...")
+        logger.info("Resampling %s onto the grid of %s", fits_file_to_resamp, fits_file_model)
         # Optional dependency (snow-selfcal[reproject]), imported here so the core stays light
         try:
             from reproject import reproject_interp
@@ -287,6 +290,8 @@ def reproject(fits_file_to_resamp: str = "",
         return resampled_mask_name
 
     else:
-        print("Fits file to reproject: {0}".format(fits_file_to_resamp))
-        print("Fits file model: {0}".format(fits_file_model))
-        raise FileNotFoundError("Either user mask of model input does not exist")
+        raise FileNotFoundError(
+            "Either the FITS file to reproject ({0}) or the model ({1}) does not exist".format(
+                fits_file_to_resamp, fits_file_model
+            )
+        )
