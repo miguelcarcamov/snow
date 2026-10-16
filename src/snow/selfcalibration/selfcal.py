@@ -13,8 +13,15 @@ from casatasks import (
 )
 
 from ..imaging.imager import Imager
-from ..utils.selfcal_utils import count_spectral_windows, get_spw_ids, is_column_in_ms
+from ..utils.selfcal_utils import (
+    columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms
+)
 from .caltable import CalTable, build_gaintable_arguments, derive_spwmap
+
+# Data selection shared by the solve, the apply and the imager (#27)
+SELECTION_PARAMETERS = ("field", "spw")
+# flagdata modes that flag outliers in the residual visibilities
+FLAG_MODES = ("rflag", "tfcrop")
 
 
 @dataclass(init=False, repr=True)
@@ -55,7 +62,12 @@ class Selfcal(metaclass=ABCMeta):
         visfile :
             Input visibility measurement set
         imager :
-            Imager instance to run
+            Imager instance to run. It must write the model to MODEL_DATA; save_model is forced on
+        field :
+            Field selection used to solve, apply and image. An empty selection takes the imager's
+        spw :
+            Spectral window selection used to solve, apply and image. An empty selection takes the
+            imager's
         refant :
             Reference antenna
         spwmap :
@@ -85,9 +97,11 @@ class Selfcal(metaclass=ABCMeta):
         minsnr :
             Reject solutions below this SNR
         applymode :
-            Calibration mode - ””=”calflag”, ”calflagstrict”, ”trial”, ”flagonly”, ”flagonlystrict”, or ”calonly”
+            Calibration mode - ””=”calflag”, ”calflagstrict”, ”trial”, ”flagonly”, ”flagonlystrict”, or ”calonly”.
+            "calflag" flags the data whose solutions fail minsnr, and these flags add up over
+            iterations; "calonly" keeps those data uncalibrated but unflagged
         flag_mode :
-            Flag mode operation. e.g : "manual", "clip", "quack", "shadow", "elevation", "tfcrop", "rflag"
+            Mode used to flag residual outliers: "rflag" or "tfcrop"
         combine :
             Data axes to combine for solving
         flag_dataset :
@@ -170,6 +184,15 @@ class Selfcal(metaclass=ABCMeta):
                     "Error, length of solint and variable that changes through iterations must be the same"
                 )
 
+        self._sync_selection()
+
+        if self.flag_dataset and self.flag_mode not in FLAG_MODES:
+            raise ValueError(
+                "flag_mode '{0}' cannot flag residual outliers; use one of {1}".format(
+                    self.flag_mode, FLAG_MODES
+                )
+            )
+
         if self.subtract_source:
             if self.imager.getPhaseCenter() != "":
                 raise ValueError(
@@ -188,6 +211,13 @@ class Selfcal(metaclass=ABCMeta):
             else:
                 self.__imager = input_imager
                 self.__imager.inputvis = self.visfile
+                # Without a model, gaincal solves against a 1 Jy point source at the phase centre
+                if not input_imager.save_model:
+                    warnings.warn(
+                        "Self-calibration needs the model in MODEL_DATA: setting save_model=True "
+                        "on the imager."
+                    )
+                    self.__imager.save_model = True
                 self._image_name = self.__imager.output
         else:
             self.__imager = None
@@ -213,6 +243,53 @@ class Selfcal(metaclass=ABCMeta):
                 raise ValueError("The input_caltable should be a string")
         else:
             self.__input_caltable = ""
+
+    def _sync_selection(self) -> None:
+        """
+        Protected method that makes solving, applying and imaging use one field and spectral window
+        selection (#27). Otherwise part of the data is calibrated without matching solutions, or
+        solutions are found from data that are never imaged. An empty selection takes the other.
+        """
+        for name in SELECTION_PARAMETERS:
+            own, imager_value = getattr(self, name), getattr(self.imager, name)
+            if own and imager_value and own != imager_value:
+                raise ValueError(
+                    "{0}='{1}' differs from the imager {0}='{2}'. Solving, applying and imaging "
+                    "must use the same selection: set it in one place.".format(
+                        name, own, imager_value
+                    )
+                )
+            setattr(self, name, own or imager_value)
+            setattr(self.imager, name, own or imager_value)
+
+    def _warn_if_corrected_differs_from_data(self) -> None:
+        """
+        Protected method that warns when the input measurement set already holds a calibration in
+        CORRECTED_DATA. The imager images CORRECTED_DATA, but gaincal solves against DATA without
+        that calibration, so the input must be split to put the calibrated data in DATA.
+        """
+        if self.previous_selfcal is not None or self.input_caltable:
+            return
+        if is_column_in_ms(self.visfile, "CORRECTED_DATA"
+                           ) and not columns_match(self.visfile, "DATA", "CORRECTED_DATA"):
+            warnings.warn(
+                "CORRECTED_DATA differs from DATA in {0}. gaincal solves against DATA, without the "
+                "calibration in CORRECTED_DATA: split the calibrated data first "
+                "(split(..., datacolumn='corrected')).".format(self.visfile)
+            )
+
+    def _require_model(self) -> None:
+        """
+        Protected method that raises if the imager did not write MODEL_DATA. Without it gaincal
+        silently solves against a 1 Jy point source at the phase centre.
+        """
+        if not is_column_in_ms(self.visfile, "MODEL_DATA"):
+            raise RuntimeError(
+                "{0} did not write MODEL_DATA in {1}. Self-calibration solves against the model, "
+                "so the imager must save it to the model column.".format(
+                    type(self.imager).__name__, self.visfile
+                )
+            )
 
     def _has_phase_solution(self) -> bool:
         """
@@ -392,8 +469,7 @@ class Selfcal(metaclass=ABCMeta):
         The spectral window map as a tuple
         """
         derived = derive_spwmap(
-            self.combine, get_spw_ids(self.visfile, self.imager.spw),
-            count_spectral_windows(self.visfile)
+            self.combine, get_spw_ids(self.visfile, self.spw), count_spectral_windows(self.visfile)
         )
         if derived and self.spwmap:
             if list(self.spwmap) != derived:
@@ -401,7 +477,7 @@ class Selfcal(metaclass=ABCMeta):
                     "spwmap {0} differs from {1}, derived from combine='{2}' and spw='{3}'. "
                     "Solutions combined over spectral windows are stored under the lowest "
                     "selected spectral window.".format(
-                        list(self.spwmap), derived, self.combine, self.imager.spw
+                        list(self.spwmap), derived, self.combine, self.spw
                     )
                 )
             return tuple(self.spwmap)
@@ -428,8 +504,8 @@ class Selfcal(metaclass=ABCMeta):
         gaincal(
             vis=self.visfile,
             caltable=caltable,
-            field=self.imager.field,
-            spw=self.imager.spw,
+            field=self.field,
+            spw=self.spw,
             uvrange=self.uvrange,
             gaintype=self.gaintype,
             refant=self.refant,
@@ -474,9 +550,11 @@ class Selfcal(metaclass=ABCMeta):
         image_name_string :
             The string of the resulting CASA image name
         """
+        self._warn_if_corrected_differs_from_data()
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
+            self._require_model()
             print("Original: - PSNR: {0:0.3f}".format(self.imager.psnr))
             print("Peak: {0:0.3f} mJy/beam".format(self.imager.peak * 1000.0))
             print("Noise: {0:0.3f} mJy/beam".format(self.imager.stdv * 1000.0))
@@ -494,6 +572,7 @@ class Selfcal(metaclass=ABCMeta):
         imagename = self._image_name + '_' + self._calmode + str(current_iteration)
 
         self.imager.run(imagename)
+        self._require_model()
 
         self._psnr_history.append(self.imager.psnr)
 
@@ -579,11 +658,11 @@ class Selfcal(metaclass=ABCMeta):
         datacolumn :
             The datacolumn to use in order to flag. (See description).
         mode :
-            Flagging mode
+            Flagging mode, one of FLAG_MODES
         timedevscale :
-            For time analysis, flag a point if local RMS around it is larger than timedevscale $x$ timedev.
+            rflag only. For time analysis, flag a point if local RMS around it is larger than timedevscale $x$ timedev.
         freqdevscale :
-            For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$ freqdev.
+            rflag only. For spectral analysis, flag a point if local rms around it is larger than freqdevscale $x$ freqdev.
         """
 
         if datacolumn is None:
@@ -592,30 +671,30 @@ class Selfcal(metaclass=ABCMeta):
             else:
                 datacolumn = "residual_data"
 
+        # Only the parameters of the chosen mode: flagdata ignores the others (#27)
+        if mode == "rflag":
+            mode_parameters = dict(
+                timedevscale=timedevscale, freqdevscale=freqdevscale, spectralmax=500
+            )
+        else:
+            mode_parameters = dict(
+                timecutoff=5.0, freqcutoff=5.0, freqfit='line', flagdimension='freq'
+            )
+
         print("Flagging {0} data column using {1}".format(datacolumn, mode))
 
+        # The flags of each iteration are saved by _save_selfcal, so no extra flag backup is made
         flagdata(
             vis=self.visfile,
             mode=mode,
             datacolumn=datacolumn,
             field=self.field,
-            timecutoff=5.0,
-            freqcutoff=5.0,
-            freqfit='line',
-            flagdimension='freq',
+            spw=self.spw,
             extendflags=False,
-            timedevscale=timedevscale,
-            freqdevscale=freqdevscale,
-            spectralmax=500,
-            extendpols=False,
-            growaround=False,
-            flagneartime=False,
-            flagnearfreq=False,
             ntime="scan",
             action='apply',
-            flagbackup=True,
-            overwrite=True,
-            writeflags=True
+            flagbackup=False,
+            **mode_parameters
         )
 
     def _ismodel_in_dataset(self) -> bool:
@@ -638,13 +717,12 @@ class Selfcal(metaclass=ABCMeta):
         current_iteration :
             Current iteration in the self-calibration loop
         """
-        if self.varchange_imager is not None:
-            for key in self.varchange_imager.keys():
-                setattr(self.imager, key, self.varchange_imager[key][current_iteration])
-
-        if self.varchange_selfcal is not None:
-            for key in self.varchange_selfcal.keys():
-                setattr(self, key, self.varchange_selfcal[key][current_iteration])
+        changes = ((self.imager, self.varchange_imager), (self, self.varchange_selfcal))
+        for target, varchange in changes:
+            for key, values in (varchange or {}).items():
+                # A selection change applies to the solve, the apply and the imager alike
+                for changed in (self, self.imager) if key in SELECTION_PARAMETERS else (target, ):
+                    setattr(changed, key, values[current_iteration])
 
     def _plot_selfcal(
         self,

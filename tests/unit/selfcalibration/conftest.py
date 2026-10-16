@@ -12,5 +12,5 @@ def ms(tmp_path) -> str:
 
 
 @pytest.fixture
-def imager(tmp_path) -> FakeImager:
-    return FakeImager(output=str(tmp_path / "out_"))
+def imager(tmp_path, casa) -> FakeImager:
+    return FakeImager(output=str(tmp_path / "out_"), write_model=casa.write_model)
