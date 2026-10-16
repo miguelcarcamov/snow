@@ -1,4 +1,5 @@
 """CASA tables must always be closed, also when a call fails (#29)."""
+import numpy as np
 import pytest
 
 from snow.utils import selfcal_utils
@@ -105,3 +106,37 @@ def test_calculate_number_antennas_closes_table_and_query(monkeypatch, ms):
     assert ("open", ms + "/ANTENNA") in fake.calls
     assert ("query", "!FLAG_ROW") in fake.calls
     assert fake.closed and fake.queries[0].closed
+
+
+class TestColumnsMatch:
+
+    @pytest.fixture
+    def table_with(self, monkeypatch):
+
+        def make(corrected_scale, nrows=1000):
+            fake = FakeTable(nrows=nrows)
+            fake.rows_read = []
+
+            def getcell(column, row):
+                fake.rows_read.append(row)
+                return np.ones(3) * (corrected_scale if column == "CORRECTED_DATA" else 1.0)
+
+            fake.getcell = getcell
+            return use_table(monkeypatch, fake)
+
+        return make
+
+    @pytest.mark.parametrize("scale, expected", [(1.0, True), (2.0, False)])
+    def test_compares_the_columns(self, table_with, ms, scale, expected):
+        fake = table_with(scale)
+
+        assert selfcal_utils.columns_match(ms, "DATA", "CORRECTED_DATA") is expected
+        assert fake.closed
+
+    def test_reads_only_a_sample_of_rows_spread_over_the_table(self, table_with, ms):
+        fake = table_with(1.0, nrows=1000)
+
+        selfcal_utils.columns_match(ms, "DATA", "CORRECTED_DATA", samples=10)
+
+        rows = sorted(set(fake.rows_read))
+        assert len(rows) == 10 and rows[0] == 0 and rows[-1] == 999
