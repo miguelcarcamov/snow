@@ -1,21 +1,23 @@
 """The single self-calibration loop (#22c), with CASA replaced by mocks."""
 import dataclasses
-import itertools
 import logging
 import os
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+import numpy as np
 import pytest
 
-from snow.config import ApplyOptions, Selection, SolveOptions
+from snow.config import Selection, SolveOptions
 from snow.imaging import contract
 from snow.imaging.contract import Imager, ImagingResult
 from snow.imaging.statistics import ImageStatistics
-from snow.selfcalibration import loop, workspace
+from snow.selfcalibration import loop, observers, workspace
 from snow.selfcalibration.acceptance import AllOf, PSNRImproves
+from snow.selfcalibration.caltable import CalTable
 from snow.selfcalibration.loop import Selfcal
+from snow.selfcalibration.observers import GainPlotObserver, SelfcalObserver
 from snow.selfcalibration.result import SelfcalResult
 from snow.selfcalibration.schedule import ScheduleError
 from snow.selfcalibration.steps import AmpPhasecal, Ampcal, Phasecal
@@ -235,3 +237,137 @@ def test_corrected_data_that_differs_from_data_is_reset_with_a_warning(casa, cap
 
     assert "differs from DATA" in caplog.text
     casa.clearcal.assert_called_once()
+
+
+class Recorder(SelfcalObserver):
+    """Records every hook call."""
+
+    def __init__(self):
+        self.events = []
+
+    def on_start(self, selfcal):
+        self.events.append(("start", len(selfcal.steps)))
+
+    def on_solved(self, step, table):
+        self.events.append(("solved", Path(table.path).name))
+
+    def on_round(self, record):
+        self.events.append(("round", record.index, record.accepted))
+
+    def on_finished(self, result):
+        self.events.append(("finished", len(result.stack)))
+
+
+class TestObservers:
+
+    def test_every_hook_is_called_in_order(self, casa):
+        recorder = Recorder()
+
+        Selfcal(casa.ms, imager(1.0, 2.0, 1.0, 2.0),
+                [Phasecal("inf"), Phasecal("60s")]).run(observers=[recorder])
+
+        assert recorder.events == [
+            ("start", 2), ("round", 0, True), ("solved", "round1_p.cal"), ("round", 1, True),
+            ("solved", "round2_p.cal"), ("round", 2, False), ("finished", 1)
+        ]
+
+    def test_logging_is_the_default(self, casa, caplog):
+        with caplog.at_level(logging.INFO, logger="snow"):
+            Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run()
+
+        assert "Round 1 Phasecal('inf') - PSNR: 2000.000" in caplog.text
+        assert "1 of 1 steps accepted" in caplog.text
+
+    def test_no_observers_means_no_logging(self, casa, caplog):
+        with caplog.at_level(logging.INFO, logger="snow.selfcalibration.observers"):
+            Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
+
+        assert caplog.records == []
+
+
+class TestResume:
+
+    @pytest.fixture
+    def first(self, casa):
+        return Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
+
+    @pytest.fixture
+    def tables_from(self, monkeypatch):
+        """The tables of the initial stack exist and were solved on the measurement set given."""
+
+        def use(ms_name):
+            keywords = mock.MagicMock()
+            keywords.__enter__.return_value.getkeywords.return_value = {"MSName": ms_name}
+            monkeypatch.setattr(loop, "open_table", lambda path: keywords)
+
+        return use
+
+    def test_continues_with_the_accepted_stack(self, casa, first, tables_from):
+        tables_from("target.ms")
+        casa.gaincal.reset_mock()
+
+        result = Selfcal.resume(first, imager(2.0, 3.0), [Ampcal("1h")]).run(observers=())
+
+        assert table_names(casa.gaincal.call_args) == ["round1_p.cal"]
+        assert table_names(casa.workspace_applycal.call_args) == ["round1_p.cal"]  # not clearcal
+        assert [Path(t.path).name for t in result.stack] == ["round1_p.cal", "round1_a.cal"]
+
+    def test_the_schedule_is_validated_against_the_earlier_stack(self, casa, first):
+        """An amplitude step may come first only because the earlier run solved phases."""
+        Selfcal.resume(first, imager(), [Ampcal("1h")])
+        with pytest.raises(ScheduleError):
+            Selfcal(casa.ms, imager(), [Ampcal("1h")])
+
+    def test_writes_to_a_new_directory(self, casa, first, tmp_path):
+        assert Selfcal.resume(first, imager(),
+                              [Phasecal("60s")]).output == str(tmp_path / "target_selfcal_2")
+
+    def test_from_the_result_file_or_its_directory(self, casa, first, tmp_path):
+        directory = tmp_path / "target_selfcal"
+
+        for source in (directory, directory / "selfcal.toml", str(directory)):
+            assert Selfcal.resume(source, imager(), [Phasecal("60s")]).initial_stack == first.stack
+
+    def test_measurement_set_and_stack_come_from_the_result(self, first):
+        with pytest.raises(TypeError, match="from the result"):
+            Selfcal.resume(first, imager(), [Phasecal("60s")], ms="other.ms")
+
+    def test_tables_solved_on_another_measurement_set_raise(self, casa, first, tables_from):
+        tables_from("other.ms")
+        casa.flagmanager.reset_mock()
+
+        with pytest.raises(ScheduleError, match="other.ms"):
+            Selfcal.resume(first, imager(1.0), [Phasecal("60s")]).run(observers=())
+        casa.flagmanager.assert_not_called()  # nothing touched the measurement set
+
+    def test_missing_tables_raise(self, casa, first):
+        for table in first.stack:
+            os.rmdir(table.path)
+
+        with pytest.raises(ScheduleError, match="does not exist"):
+            Selfcal.resume(first, imager(1.0), [Phasecal("60s")]).run(observers=())
+
+
+def test_an_existing_run_is_not_overwritten(casa):
+    run = Selfcal(casa.ms, imager(1.0, 2.0, 1.0), [Phasecal("inf")])
+    run.run(observers=())
+
+    with pytest.raises(FileExistsError, match="resume"):
+        run.run(observers=())
+
+
+def test_gain_plots(monkeypatch, tmp_path):
+    rows = 6
+    tables = mock.MagicMock()
+    tables.__enter__.return_value.getcol.side_effect = lambda column: {
+        "CPARAM": np.exp(1j * np.linspace(0, 1, 2 * rows)).reshape(2, 1, rows),
+        "FLAG": np.zeros((2, 1, rows), dtype=bool),
+        "TIME": np.repeat([0.0, 60.0, 120.0], 2),
+        "ANTENNA1": np.tile([0, 1], 3),
+    }[column]
+    monkeypatch.setattr(observers, "open_table", lambda path: tables)
+    table = CalTable(str(tmp_path / "round1_p.cal"), "p")
+
+    GainPlotObserver().on_solved(Phasecal("60s"), table)
+
+    assert (tmp_path / "round1_p.cal.png").stat().st_size > 0

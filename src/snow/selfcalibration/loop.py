@@ -27,23 +27,42 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence, Tuple, Union
 
 from casatasks import applycal, gaincal
+from multimethod import multimethod
 
 from ..config import ApplyOptions, Selection, SolveOptions
 from ..imaging.contract import Imager, ImagingRequest, ImagingResult
 from ..utils.selfcal_utils import (
-    columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms, solution_summary
+    columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms, open_table,
+    solution_summary
 )
 from .acceptance import AcceptancePolicy, RoundMetrics
 from .caltable import CalStack, CalTable, derive_spwmap
+from .observers import LoggingObserver, SelfcalObserver
 from .result import RoundRecord, SelfcalResult
-from .schedule import validate_schedule
+from .schedule import ScheduleError, validate_schedule
 from .steps import CalibrationStep
 from .workspace import MSWorkspace
 
 logger = logging.getLogger(__name__)
+
+RESULT_FILE = "selfcal.toml"
+
+
+@multimethod
+def as_result(result: SelfcalResult) -> SelfcalResult:
+    """
+    A result to resume from: a SelfcalResult, or the path to its selfcal.toml or its directory
+    """
+    return result
+
+
+@as_result.register
+def _(result: Union[str, os.PathLike]) -> SelfcalResult:
+    path = Path(result)
+    return SelfcalResult.from_toml(str(path / RESULT_FILE if path.is_dir() else path))
 
 
 @dataclass(frozen=True)
@@ -81,8 +100,41 @@ class Selfcal:
     apply: ApplyOptions = ApplyOptions()
     acceptance: Optional[AcceptancePolicy] = None
     output: str = ""
-    # Tables accepted before this run, e.g. by an earlier run (set by resume, #22c)
+    # Tables accepted before this run, set by resume()
     initial_stack: CalStack = field(default=CalStack(), repr=False)
+
+    @classmethod
+    def resume(
+        cls, result: Union[SelfcalResult, str, os.PathLike], imager: Imager,
+        steps: Sequence[CalibrationStep], **options
+    ) -> Selfcal:
+        """
+        Continues an earlier run: the same measurement set, with that run's accepted tables applied
+        before every new solve. The schedule is validated against them, so e.g. an amplitude step
+        may come first if the earlier run solved phases.
+
+        Parameters
+        ----------
+        result :
+            The earlier run's SelfcalResult, or the path to its selfcal.toml or its output
+        imager, steps :
+            As for Selfcal
+        options :
+            selection, solve, apply, acceptance or output, as for Selfcal. By default the output is
+            a new directory next to the earlier one
+
+        Raises
+        ------
+        TypeError
+            If options set ms or initial_stack, which come from the result
+        """
+        previous = as_result(result)
+        fixed = sorted({"ms", "initial_stack"} & set(options))
+        if fixed:
+            raise TypeError("resume() takes {0} from the result".format(fixed))
+        if not options.get("output"):
+            options["output"] = _next_free(str(Path(previous.ms).with_suffix("")) + "_selfcal")
+        return cls(previous.ms, imager, steps, initial_stack=previous.stack, **options)
 
     def __post_init__(self):
         if not isinstance(self.imager, Imager):
@@ -95,10 +147,31 @@ class Selfcal:
         if not self.output:
             object.__setattr__(self, "output", str(Path(self.ms).with_suffix("")) + "_selfcal")
 
-    def run(self) -> SelfcalResult:
+    def run(self, observers: Sequence[SelfcalObserver] = (LoggingObserver(), )) -> SelfcalResult:
         """
         Runs the self-calibration and writes the result record to <output>/selfcal.toml
+
+        Parameters
+        ----------
+        observers :
+            Watch the run, e.g. LoggingObserver() (the default) and GainPlotObserver()
+
+        Raises
+        ------
+        FileExistsError
+            If output already holds a run; resume() or a new output continues it
+        ScheduleError
+            If a table of the initial stack is missing or was solved on another measurement set
         """
+        record_path = os.path.join(self.output, RESULT_FILE)
+        if os.path.exists(record_path):
+            raise FileExistsError(
+                "{0} already holds a self-calibration run: continue it with Selfcal.resume() or "
+                "choose another output".format(self.output)
+            )
+        self._check_initial_stack()
+        for observer in observers:
+            observer.on_start(self)
         os.makedirs(self.output, exist_ok=True)
         workspace = MSWorkspace(self.ms, self.selection, self.apply)
         self._reset_corrected(workspace)
@@ -107,7 +180,7 @@ class Selfcal:
         result = self._image(self.imager, "round0")
         accepted = RoundMetrics(result.statistics())
         rounds = [self._record(0, None, "", result, accepted, True, ("initial image", ))]
-        logger.info("Round 0 - PSNR: %.3f", accepted.statistics.psnr)
+        _notify(observers, "on_round", rounds[-1])
         workspace.snapshot("round0")
         snapshots = ["round0"]
         accepted_imager, accepted_name = self.imager, "round0"
@@ -119,7 +192,9 @@ class Selfcal:
             if table is None:
                 # Nothing was applied or imaged, so there is nothing to restore
                 rounds.append(self._failed_record(index, step, "gaincal found no solutions"))
+                _notify(observers, "on_round", rounds[-1])
                 break
+            _notify(observers, "on_solved", step, table)
             self._apply(stack, table)
             result = self._image(imager, name)
             flagged, antennas = solution_summary(table.path)
@@ -130,10 +205,7 @@ class Selfcal:
                     index, step, table.path, result, current, decision.accepted, decision.reasons
                 )
             )
-            logger.info(
-                "Round %d %r - PSNR: %.3f, %s: %s", index, step.solint, current.statistics.psnr,
-                "accepted" if decision.accepted else "rejected", "; ".join(decision.reasons)
-            )
+            _notify(observers, "on_round", rounds[-1])
             if not decision.accepted:
                 workspace.restore(snapshots[-1], stack)
                 # MODEL_DATA must hold the accepted model again
@@ -146,8 +218,27 @@ class Selfcal:
 
         workspace.discard(*snapshots)
         selfcal_result = SelfcalResult(self.ms, stack, rounds)
-        selfcal_result.to_toml(os.path.join(self.output, "selfcal.toml"))
+        selfcal_result.to_toml(record_path)
+        _notify(observers, "on_finished", selfcal_result)
         return selfcal_result
+
+    def _check_initial_stack(self) -> None:
+        """
+        The tables to continue from must exist and have been solved on this measurement set
+        """
+        for table in self.initial_stack:
+            if not os.path.isdir(table.path):
+                raise ScheduleError(
+                    "The table {0} to continue from does not exist".format(table.path)
+                )
+            with open_table(table.path) as cal_table:
+                solved_on = cal_table.getkeywords().get("MSName", "")
+            if solved_on and Path(solved_on).name != Path(self.ms).name:
+                raise ScheduleError(
+                    "The table {0} was solved on {1}, not on {2}".format(
+                        table.path, solved_on, self.ms
+                    )
+                )
 
     def _reset_corrected(self, workspace: MSWorkspace) -> None:
         """
@@ -224,7 +315,6 @@ class Selfcal:
 
     @staticmethod
     def _failed_record(index: int, step: CalibrationStep, reason: str) -> RoundRecord:
-        logger.info("Round %d %r - rejected: %s", index, step.solint, reason)
         nan = float("nan")
         return RoundRecord(
             index, _describe(step), "", "", nan, nan, nan, nan, None, 1.0, False, (reason, )
@@ -238,3 +328,18 @@ def _describe(step: Optional[CalibrationStep]) -> str:
     details += ["solve={0}".format(dict(step.solve))] if step.solve else []
     details += ["imaging={0}".format(dict(step.imaging))] if step.imaging else []
     return "{0}({1})".format(type(step).__name__, ", ".join(details))
+
+
+def _notify(observers: Sequence[SelfcalObserver], hook: str, *arguments) -> None:
+    for observer in observers:
+        getattr(observer, hook)(*arguments)
+
+
+def _next_free(base: str) -> str:
+    """
+    The first of base_2, base_3, ... that doesn't exist yet
+    """
+    number = 2
+    while os.path.exists("{0}_{1}".format(base, number)):
+        number += 1
+    return "{0}_{1}".format(base, number)
