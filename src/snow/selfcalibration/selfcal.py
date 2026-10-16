@@ -158,6 +158,8 @@ class Selfcal(metaclass=ABCMeta):
         self._caltable_stack = []
         self._caltables_versions = []
         self._psnr_history = []
+        # Fraction of the selected data flagged before self-calibration and after each iteration
+        self._flagged_history = []
         self._calmode = ""
         self._loops = 0
         self._psnr_visfile_backup = self.visfile
@@ -290,6 +292,30 @@ class Selfcal(metaclass=ABCMeta):
                     type(self.imager).__name__, self.visfile
                 )
             )
+
+    def _flagged_fraction(self) -> float:
+        """
+        Protected method that returns the fraction of the selected data that is flagged
+
+        Returns
+        -------
+        The flagged fraction, between 0 and 1
+        """
+        summary = flagdata(vis=self.visfile, mode="summary", field=self.field, spw=self.spw)
+        return summary["flagged"] / summary["total"] if summary["total"] else 0.0
+
+    def _report_flagged_fraction(self) -> None:
+        """
+        Protected method that records and prints the flagged fraction after applying an iteration's
+        solutions. With applymode="calflag" the data whose solutions fail minsnr are flagged, and
+        these flags add up over iterations (#27).
+        """
+        self._flagged_history.append(self._flagged_fraction())
+        print(
+            "Flagged: {0:0.2%} ({1:+0.2%} in this iteration)".format(
+                self._flagged_history[-1], self._flagged_history[-1] - self._flagged_history[-2]
+            )
+        )
 
     def _has_phase_solution(self) -> bool:
         """
@@ -551,7 +577,13 @@ class Selfcal(metaclass=ABCMeta):
             The string of the resulting CASA image name
         """
         self._warn_if_corrected_differs_from_data()
+        self._flagged_history.append(self._flagged_fraction())
+        print("Flagged before self-calibration: {0:0.2%}".format(self._flagged_history[-1]))
         if not self._ismodel_in_dataset() or self.previous_selfcal is None:
+            if self.previous_selfcal is None:
+                # A virtual model left in the dataset (e.g. by setjy or tclean
+                # savemodel="virtual") would compete with the model column the imager writes
+                delmod(vis=self.visfile, otf=True, scr=False)
             imagename = self._image_name + image_name_string
             self.imager.run(imagename)
             self._require_model()
@@ -569,6 +601,8 @@ class Selfcal(metaclass=ABCMeta):
         iter :
             Iteration number during the loop
         """
+        self._report_flagged_fraction()
+
         imagename = self._image_name + '_' + self._calmode + str(current_iteration)
 
         self.imager.run(imagename)
