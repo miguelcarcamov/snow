@@ -12,4 +12,4 @@ RUN python3 -m pip install --no-cache-dir /tmp/dist/*.whl && \
     python3 -c "import snow.imaging, snow.selfcalibration; print('snow', snow.__version__)"
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
 LABEL org.opencontainers.image.description="Container image for SNOW"
-LABEL org.opencontainers.image.licenses=GPL3
+LABEL org.opencontainers.image.licenses=GPL-3.0-or-later
