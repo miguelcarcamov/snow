@@ -8,8 +8,13 @@ from snow.imaging import Tclean
 from snow.selfcalibration import AmpPhasecal, Phasecal
 
 
+def calls(task) -> list:
+    """The calls of a task, without the flagdata summaries that report the flagged fraction."""
+    return [call for call in task.call_args_list if call.kwargs.get("mode") != "summary"]
+
+
 def selections(task) -> list:
-    return [(call.kwargs["field"], call.kwargs["spw"]) for call in task.call_args_list]
+    return [(call.kwargs["field"], call.kwargs["spw"]) for call in calls(task)]
 
 
 class TestOneSelection:
@@ -67,6 +72,20 @@ class TestModel:
 
         assert {call.kwargs["savemodel"] for call in casa.tclean.call_args_list} == {"modelcolumn"}
 
+    def test_fresh_run_removes_virtual_models_before_imaging(self, casa, ms, imager):
+        casa.delmod.side_effect = lambda **kwargs: casa.events.append("delmod")
+        casa.events = []
+        imager.write_model = lambda: (casa.write_model(), casa.events.append("image"))
+
+        Phasecal(visfile=ms, imager=imager, solint=["inf"]).run()
+
+        assert casa.events[:2] == ["delmod", "image"]
+        assert casa.delmod.call_args_list[0].kwargs == {
+            "vis": imager.inputvis,
+            "otf": True,
+            "scr": False
+        }
+
     def test_imager_that_writes_no_model_raises_before_solving(self, casa, ms, imager):
         imager.write_model = None
 
@@ -113,7 +132,7 @@ class TestResidualFlagging:
     def test_only_parameters_of_the_mode_are_passed(self, casa, ms, imager, mode, used, unused):
         Phasecal(visfile=ms, imager=imager, solint=["inf"], flag_dataset=True, flag_mode=mode).run()
 
-        kwargs = casa.flagdata.call_args.kwargs
+        kwargs = calls(casa.flagdata)[-1].kwargs
         assert kwargs["mode"] == mode
         assert used in kwargs and unused not in kwargs
         assert kwargs["flagbackup"] is False
@@ -121,3 +140,13 @@ class TestResidualFlagging:
     def test_mode_that_cannot_flag_residuals_raises_at_creation(self, casa, ms, imager):
         with pytest.raises(ValueError, match="flag_mode"):
             Phasecal(visfile=ms, imager=imager, solint=["inf"], flag_dataset=True, flag_mode="clip")
+
+
+def test_flagged_fraction_is_reported_before_and_after_each_iteration(casa, ms, imager, capsys):
+    phscal = Phasecal(visfile=ms, imager=imager, solint=["inf", "60s"], spw="0")
+    phscal.run()
+
+    assert phscal._flagged_history == pytest.approx([0.0, 0.1, 0.2])
+    summaries = [c.kwargs for c in casa.flagdata.call_args_list if c.kwargs["mode"] == "summary"]
+    assert {(kwargs["field"], kwargs["spw"]) for kwargs in summaries} == {("", "0")}
+    assert "Flagged: 20.00% (+10.00% in this iteration)" in capsys.readouterr().out

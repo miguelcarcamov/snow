@@ -37,7 +37,8 @@ def casa(monkeypatch) -> SimpleNamespace:
     Replace every CASA task and tool used by snow with mocks, so whole self-calibration runs
     execute without CASA. Set ``spw_ids``/``nspw`` to describe the measurement set and
     ``columns`` for its data columns; ``write_model()`` adds MODEL_DATA like an imager does, and
-    ``getcell`` returns the same values for every column. Image statistics report a peak that grows
+    ``getcell`` returns the same values for every column; ``flagdata(mode="summary")`` reports a
+    flagged fraction that grows by 10% on every call. Image statistics report a peak that grows
     on every call, so each iteration improves the PSNR.
     """
     mocks = SimpleNamespace(spw_ids=[0, 1, 2, 3], nspw=4, tb=mock.MagicMock(name="table"))
@@ -56,12 +57,18 @@ def casa(monkeypatch) -> SimpleNamespace:
             mocks.columns.append("MODEL_DATA")
 
     def delete_model(**kwargs):
-        if "MODEL_DATA" in mocks.columns:
+        if kwargs.get("scr") and "MODEL_DATA" in mocks.columns:
             mocks.columns.remove("MODEL_DATA")
 
     mocks.write_model = write_model
     mocks.tclean.side_effect = write_model
     mocks.delmod.side_effect = delete_model
+    # flagdata(mode="summary") reports a flagged fraction that grows by 10% on every call
+    flagged = itertools.count(0)
+    mocks.flagdata.side_effect = lambda **kwargs: {
+        "flagged": next(flagged),
+        "total": 10
+    } if kwargs.get("mode") == "summary" else None
     peaks = itertools.count(1.0)
     mocks.imstat.side_effect = lambda *args, **kwargs: {"max": [next(peaks)], "rms": [0.1]}
     for module in CASA_MODULES:
