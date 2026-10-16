@@ -7,8 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 import astropy.units as u
-from astropy.stats import sigma_clipped_stats
-from casatasks import exportfits, imstat
+from casatasks import exportfits
 from casatools import image
 
 logger = logging.getLogger(__name__)
@@ -156,83 +155,6 @@ def export_ms_to_fits(msname: str = "") -> str:
     fitsfile_name = msname + ".fits"
     exportfits(msname, fitsfile_name)
     return fitsfile_name
-
-
-def calculate_psnr_fits(
-    signal_fits_name: str = "",
-    residual_fits_name: str = "",
-    pixels: int = None,
-    sigma: float = 5,
-    use_sigma_clipped_stats: bool = True,
-) -> Tuple[float, float, float]:
-    """
-    Function that calculates the peak signal-to-noise ratio of a reconstruction with images resulting in FITS files.
-    The peak is calculated from the restored image, the RMS is calculated in area of the residual image.
-
-    Parameters
-    ----------
-    signal_fits_name :
-        The absolute path to the restored image
-    residual_fits_name :
-        The absolute path to the residual image
-    pixels :
-        Number of pixels on where to calculate the RMS
-    sigma:
-        Number of sigma noise values to calculate the noise in the residual image
-    use_sigma_clipped_stats:
-        Whether to use astropy sigma_clipped_stats to calculate the mad_std of the residual image
-
-    Returns
-    -------
-    tuple:
-        A tuple with the peak signal-to-noise, the peak and the RMS
-    """
-    signal_data = get_data(signal_fits_name)
-    res_data = get_data(residual_fits_name)
-
-    if use_sigma_clipped_stats:
-        _, _, noise = sigma_clipped_stats(
-            data=res_data[0:pixels, 0:pixels], sigma=sigma, stdfunc="mad_std"
-        )
-    else:
-        noise = nanrms(res_data[0:pixels, 0:pixels])
-    peak = np.nanmax(signal_data)
-    peak_signal_to_noise = peak / noise
-
-    return peak_signal_to_noise, peak, noise
-
-
-def calculate_psnr_ms(signal_ms_name: str = "",
-                      residual_ms_name: str = "",
-                      pixels: int = None) -> Tuple[float, float, float]:
-    """
-    Function that calculates the peak signal-to-noise ratio of a reconstruction with images resulting in CASA files.
-    The peak is calculated from the restored image, the RMS is calculated in area of the residual image.
-
-    Parameters
-    ----------
-    signal_ms_name :
-        The absolute path to the restored image
-    residual_ms_name :
-        The absolute path to the residual image
-    pixels :
-        Number of pixels on where to calculate the RMS
-
-    Returns
-    -------
-    tuple:
-        A tuple with the peak signal-to-noise, the peak and the RMS
-    """
-    box = ""
-    if pixels is not None:
-        box = "0,0," + str(pixels - 1) + "," + str(pixels - 1)
-
-    stats_signal = imstat(signal_ms_name, box=box)
-    stats_residuals = imstat(residual_ms_name, box=box)
-    peak = stats_signal["max"][0]
-    stdv = stats_residuals["rms"][0]
-    psnr = peak / stdv
-    return psnr, peak, stdv
 
 
 def reproject(fits_file_to_resamp: str = "",

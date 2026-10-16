@@ -15,7 +15,7 @@ from snow.imaging.contract import Imager, ImagingResult
 from snow.imaging.statistics import ImageStatistics
 from snow.selfcalibration import loop, observers, workspace
 from snow.selfcalibration.acceptance import AllOf, PSNRImproves
-from snow.selfcalibration.caltable import CalTable
+from snow.selfcalibration.caltable import CalStack, CalTable
 from snow.selfcalibration.loop import Selfcal
 from snow.selfcalibration.observers import GainPlotObserver, SelfcalObserver
 from snow.selfcalibration.result import SelfcalResult
@@ -208,6 +208,22 @@ def test_a_round_without_solutions_stops_the_run(casa):
     casa.applycal.assert_not_called()
 
 
+@pytest.mark.parametrize("combine, spwmap", [("spw", (1, 1, 1, 1)), ("", ())])
+def test_each_table_gets_its_own_spwmap(casa, monkeypatch, combine, spwmap):
+    """Solutions combined over spws are stored under the lowest selected one (#26)."""
+    monkeypatch.setattr(loop, "get_spw_ids", lambda ms, spw: [1, 2, 3])
+    monkeypatch.setattr(loop, "count_spectral_windows", lambda ms: 4)
+
+    result = Selfcal(
+        casa.ms, imager(1.0, 2.0, 3.0),
+        [Phasecal("inf", solve={"combine": combine}),
+         AmpPhasecal("inf")]
+    ).run(observers=())
+
+    assert [table.spwmap for table in result.stack] == [spwmap, ()]
+    assert casa.applycal.call_args.kwargs["spwmap"] == [list(spwmap), []]
+
+
 def test_step_imaging_overrides_reach_the_imager(casa):
     fake = imager(1.0, 2.0, 3.0)
 
@@ -291,15 +307,16 @@ class TestResume:
     def first(self, casa):
         return Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def tables_from(self, monkeypatch):
-        """The tables of the initial stack exist and were solved on the measurement set given."""
+        """The result's tables were solved on the measurement set given (target.ms by default)."""
 
         def use(ms_name):
             keywords = mock.MagicMock()
             keywords.__enter__.return_value.getkeywords.return_value = {"MSName": ms_name}
             monkeypatch.setattr(loop, "open_table", lambda path: keywords)
 
+        use("target.ms")
         return use
 
     def test_continues_with_the_accepted_stack(self, casa, first, tables_from):
@@ -332,20 +349,39 @@ class TestResume:
         with pytest.raises(TypeError, match="from the result"):
             Selfcal.resume(first, imager(), [Phasecal("60s")], ms="other.ms")
 
-    def test_tables_solved_on_another_measurement_set_raise(self, casa, first, tables_from):
+    def test_tables_solved_on_another_measurement_set_raise(self, first, tables_from):
         tables_from("other.ms")
-        casa.flagmanager.reset_mock()
 
         with pytest.raises(ScheduleError, match="other.ms"):
-            Selfcal.resume(first, imager(1.0), [Phasecal("60s")]).run(observers=())
-        casa.flagmanager.assert_not_called()  # nothing touched the measurement set
+            Selfcal.resume(first, imager(1.0), [Phasecal("60s")])
 
-    def test_missing_tables_raise(self, casa, first):
+    def test_your_own_tables_may_come_from_another_measurement_set(
+        self, casa, tables_from, tmp_path
+    ):
+        """E.g. a phase table solved on the measurement set this one was split from."""
+        tables_from("parent.ms")
+        (tmp_path / "pcal").mkdir()
+        stack = CalStack([CalTable(str(tmp_path / "pcal"), "p")])
+
+        result = Selfcal(casa.ms, imager(1.0, 2.0), [Ampcal("1h")],
+                         initial_stack=stack).run(observers=())
+
+        assert table_names(casa.gaincal.call_args) == ["pcal"]
+        assert len(result.stack) == 2
+
+    def test_missing_tables_raise(self, casa, first, tmp_path):
         for table in first.stack:
             os.rmdir(table.path)
 
         with pytest.raises(ScheduleError, match="does not exist"):
-            Selfcal.resume(first, imager(1.0), [Phasecal("60s")]).run(observers=())
+            Selfcal.resume(first, imager(1.0), [Phasecal("60s")])
+        with pytest.raises(ScheduleError, match="does not exist"):
+            Selfcal(
+                casa.ms,
+                imager(1.0), [Phasecal("60s")],
+                output=str(tmp_path / "again"),
+                initial_stack=first.stack
+            ).run(observers=())
 
 
 def test_an_existing_run_is_not_overwritten(casa):

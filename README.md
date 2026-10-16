@@ -107,19 +107,22 @@ Phase, then amplitude-phase self-calibration of an ALMA dataset. This is
 """
 Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tclean.
 
-Usage: python main_ALMA.py <visfile> <output_prefix> [--plot]
+Usage: python main_ALMA.py <visfile> <output_directory> [--plot]
 """
 import argparse
 import logging
 
+from casatasks import split
+
+from snow.config import ImageGeometry, SolveOptions, Weighting
 from snow.imaging import Tclean
-from snow.selfcalibration import AmpPhasecal, Phasecal
+from snow.selfcalibration import AmpPhasecal, GainPlotObserver, LoggingObserver, Phasecal, Selfcal
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("visfile", help="Measurement set with the calibrated data in DATA")
-    parser.add_argument("output", help="Prefix of the output images and calibration tables")
+    parser.add_argument("output", help="Directory for the images, tables and the result record")
     parser.add_argument("--plot", action="store_true", help="Plot the gain solutions")
     return parser.parse_args()
 
@@ -129,58 +132,44 @@ if __name__ == '__main__':
     # snow logs each self-calibration round's metrics at INFO
     logging.basicConfig(level=logging.INFO)
 
-    # Automasking values for long baselines: https://casaguides.nrao.edu/index.php/Automasking_Guide
-    imaging_parameters = dict(
-        inputvis=args.visfile,
-        output=args.output,
+    # tclean's own parameter names. Automasking values for long baselines:
+    # https://casaguides.nrao.edu/index.php/Automasking_Guide
+    imager = Tclean(
+        ImageGeometry(imsize=1024, cell="0.005arcsec"),
+        Weighting("briggs", robust=0.5),
         niter=100,
-        M=1024,
-        N=1024,
-        cell="0.005arcsec",
-        stokes="I",
-        data_column="corrected",
-        robust=0.5,
+        threshold="0.1mJy",
         specmode="mfs",
         deconvolver="hogbom",
         gridder="standard",
-        save_model=True,
-        use_mask="auto-multithresh",
-        sidelobe_threshold=3.0,
-        noise_threshold=5.0,
-        min_beam_frac=0.3,
-        low_noise_threshold=1.5,
-        negative_threshold=0.0,
+        usemask="auto-multithresh",
+        sidelobethreshold=3.0,
+        noisethreshold=5.0,
+        minbeamfrac=0.3,
+        lownoisethreshold=1.5,
+        negativethreshold=0.0,
         interactive=False  # True to edit the masks by hand
     )
-    clean_imager_phs = Tclean(threshold="0.1mJy", **imaging_parameters)
-    clean_imager_ampphs = Tclean(threshold="0.025mJy", **imaging_parameters)
 
-    # Parameters shared by every self-calibration step. spwmap is derived from combine.
-    shared_parameters = dict(
-        minsnr=3.0, minblperant=6, refant="DA51", gaintype="T", want_plot=args.plot
+    # Phases combined over spectral windows, then amplitudes and phases per spectral window,
+    # cleaned deeper. Each spwmap is derived from combine.
+    steps = [
+        Phasecal("inf", solve={"combine": "spw"}),
+        Phasecal("600s", solve={"combine": "spw"}),
+        AmpPhasecal("inf", imaging={"threshold": "0.025mJy"}),
+    ]
+    selfcal = Selfcal(
+        args.visfile,
+        imager,
+        steps,
+        solve=SolveOptions(refant="DA51", minblperant=6, minsnr=3.0, gaintype="T"),
+        output=args.output,
     )
+    observers = [LoggingObserver()] + ([GainPlotObserver()] if args.plot else [])
+    result = selfcal.run(observers)
 
-    phscal = Phasecal(
-        visfile=args.visfile,
-        imager=clean_imager_phs,
-        solint=["inf", "600s"],
-        combine="spw",
-        **shared_parameters
-    )
-    phscal.run()
-
-    # Continues from the phase self-calibration (its measurement set, model and tables), so it is
-    # created after phscal.run()
-    apcal = AmpPhasecal(
-        previous_selfcal=phscal,
-        imager=clean_imager_ampphs,
-        solint=["inf"],
-        combine="",
-        **shared_parameters
-    )
-    apcal.run()
-
-    apcal.selfcal_output(overwrite=True)
+    # The self-calibrated data, for final imaging
+    split(vis=result.ms, outputvis=args.output + "/selfcal.ms", datacolumn="corrected")
 ```
 
 Run the script:
@@ -189,66 +178,79 @@ Run the script:
 python main_files/main_ALMA.py target.ms target_selfcal
 ```
 
-How the steps fit together:
+How a run is described:
 
-- Each self-calibration step continues from the previous one with `previous_selfcal=...`: it
-  uses that step's measurement set, model and accepted calibration tables, which stay applied.
-  Create it after the previous step's `run()`.
-- Amplitude steps (`Ampcal`, `AmpPhasecal`) need phase solutions first; an order that would
-  discard or skip them raises a `ValueError` before any data is touched.
-- `spwmap` is derived per calibration table from `combine`, so it rarely needs to be set.
+- **One `Selfcal`, a list of steps.** Each step is one round: `Phasecal`, `Ampcal` or
+  `AmpPhasecal` with its solution interval. A step can override the run's solve options
+  (`solve={"minsnr": 5.0}`), the imager's options (`imaging={"nsigma": 2.0}`) or the acceptance
+  policy (`acceptance=...`).
+- **Invalid schedules fail before any I/O.** An amplitude step needs a phase solution before it,
+  in the schedule or in `initial_stack`; otherwise `Selfcal(...)` raises `ScheduleError`.
+- **Every accepted table stays applied.** Each solve pre-applies all accepted tables, each with
+  its own `spwmap` (derived from `combine`) and `interp`.
+- **A round is kept only if it improves the image.** By default the PSNR must rise and every
+  solution interval must keep enough antennas (3 for phases, 4 for amplitudes), and amplitude
+  rounds must not lose model flux. A rejected round is rolled back and stops the run.
+- **Continue later** with `Selfcal.resume(result_or_output_directory, imager, more_steps)`, or
+  start from tables of your own with `initial_stack=CalStack([CalTable("pcal", "p")])`.
+- **`result.final`** is the last accepted round; every round's metrics, decision and reasons
+  are in `result.rounds` and in `<output>/selfcal.toml`.
 
 What the input must look like:
 
 - **Calibrated data in `DATA`.** `gaincal` solves against `DATA`, while the imager images
   `CORRECTED_DATA`. Split the calibrated target first
-  (`split(vis=..., outputvis=..., datacolumn="corrected")`). snow warns when `CORRECTED_DATA`
-  already differs from `DATA`.
-- **A model in `MODEL_DATA`.** Without one, `gaincal` silently solves against a 1 Jy point
-  source. snow turns the imager's `save_model` on and raises if no `MODEL_DATA` was written.
-  A fresh run first removes any virtual model, so only the imager's model column is used.
-- **One selection.** `field` and `spw` are shared by the solve, the apply and the imager. Set
-  them on either the self-calibration or the imager; different values raise a `ValueError`.
-- **`applymode`.** The default `"calflag"` flags data whose solutions fail `minsnr`, and these
-  flags add up over iterations. `"calonly"` leaves those data uncalibrated but unflagged.
-  snow prints the flagged fraction of the selection after each iteration.
+  (`split(vis=..., outputvis=..., datacolumn="corrected")`). A run resets `CORRECTED_DATA` to
+  `DATA` (plus `initial_stack`) and warns if it held something else.
+- **One selection.** `Selection(field=..., spw=..., uvrange=...)` is used by the solve, the
+  apply and the imager.
+- **`applymode`.** The default `ApplyOptions(applymode="calflag")` flags data whose solutions fail
+  `minsnr`. `"calonly"` leaves those data uncalibrated but unflagged.
 
-More examples for VLA and e-MERLIN are in [`main_files/`](main_files/).
+More examples for VLA and e-MERLIN are in [`main_files/`](main_files/). Code written for snow
+< 1.0 raises an error that shows the new call; see the [migration guide](docs/migration.md).
 
 ## API Overview
 
-### Imaging Classes
+### Self-calibration (`snow.selfcalibration`)
 
-SNOW supports multiple imaging backends:
+- **`Selfcal`**: the self-calibration loop; `run()` returns a `SelfcalResult`, and `resume()`
+  continues one.
+- **`Phasecal`, `Ampcal`, `AmpPhasecal`**: calibration steps.
+- **Acceptance policies**: `PSNRImproves`, `EnoughAntennas`, `FluxNotLost`, `BeamStable`,
+  `FlaggedFractionBelow`, `Check(name, predicate)` for your own, combined with `AllOf`/`AnyOf`.
+- **Observers**: `LoggingObserver` (the default) and `GainPlotObserver`, passed to `run()`.
 
-- **`Tclean`**: CASA tclean task wrapper for standard imaging
-- **`WSClean`**: placeholder, not implemented yet
-- **`Imager`**: Base class for custom imagers
+### Configuration (`snow.config`)
 
-### Self-Calibration Classes
+Frozen objects with CASA's parameter names: `Selection`, `SolveOptions`, `ApplyOptions`,
+`ImageGeometry` and `Weighting` (natural by default).
 
-- **`Phasecal`**: Phase-only self-calibration
-- **`Ampcal`**: Amplitude-only self-calibration
-- **`AmpPhasecal`**: Combined amplitude-phase self-calibration
-- **`Selfcal`**: Base class for self-calibration algorithms
+### Imaging (`snow.imaging`)
 
-### Utility Modules
+An imager images `CORRECTED_DATA` and writes its model to `MODEL_DATA`; `Imager.image()` enforces
+both and raises `ImagerContractError` otherwise.
 
-- **`snow.utils.image_utils`**: Image processing utilities
-- **`snow.utils.selfcal_utils`**: Self-calibration helper functions
+- **`Tclean(geometry, weighting, **tclean_options)`**: CASA tclean, with tclean's own parameter
+  names.
+- **Your own imager**: subclass `Imager` and implement `_reconstruct`, wrap a function in
+  `CallableImager`, or register it under the `snow.imagers` entry point to build it by name.
+  `snow.testing.ImagerContractSuite` checks that it follows the contract.
 
 ## Project Structure
 
 ```
 snow/
 ├── src/snow/
-│   ├── imaging/          # Imaging backends (tclean; wsclean planned)
-│   ├── selfcalibration/  # Self-calibration algorithms
+│   ├── config.py         # Selection, SolveOptions, ApplyOptions, ImageGeometry, Weighting
+│   ├── imaging/          # Imager contract, tclean backend, image statistics
+│   ├── selfcalibration/  # The Selfcal loop, steps, schedule rules, acceptance, observers
+│   ├── testing.py        # Simulated data and the imager contract suite
 │   └── utils/            # Utility functions
 ├── main_files/           # Example scripts for different telescopes
-├── requirements.txt      # Python dependencies
-├── environment.yml       # Conda environment specification
-└── pyproject.toml       # Project metadata and build configuration
+├── docs/                 # Migration guide
+├── requirements.txt      # Pinned dependencies tested in CI
+└── pyproject.toml        # Project metadata and build configuration
 ```
 
 ## Contributing

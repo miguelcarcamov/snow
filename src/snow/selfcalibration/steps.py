@@ -21,6 +21,16 @@ from multimethod import multimethod
 from ..config import Selection, SolveOptions
 from .acceptance import AcceptancePolicy, AllOf, EnoughAntennas, FluxNotLost, PSNRImproves
 
+# Constructor arguments of the classes before snow 1.0, which now belong to Selfcal or its options
+LEGACY_ARGUMENTS = frozenset(
+    {
+        "visfile", "imager", "previous_selfcal", "input_caltable", "refant", "spwmap",
+        "minblperant", "want_plot", "interp", "gaintype", "uvrange", "field", "spw",
+        "varchange_imager", "varchange_selfcal", "output_caltables", "minsnr", "applymode",
+        "flag_mode", "combine", "flag_dataset", "restore_psnr", "subtract_source", "incremental"
+    }
+)
+
 # Units of a CASA solution interval, in seconds
 SOLINT_UNITS = {"s": 1.0, "sec": 1.0, "min": 60.0, "m": 60.0, "h": 3600.0, "hr": 3600.0}
 SOLINT_PATTERN = re.compile(r"^\s*(\d+(?:\.\d*)?|\.\d+)\s*([a-z]*)\s*$")
@@ -108,6 +118,20 @@ class CalibrationStep(ABC):
     solve: Mapping = field(default_factory=dict, hash=False)
     imaging: Mapping = field(default_factory=dict, hash=False)
     acceptance: Optional[AcceptancePolicy] = None
+
+    def __new__(cls, *args, **kwargs):
+        legacy = sorted(set(kwargs) & LEGACY_ARGUMENTS)
+        if legacy or (args and isinstance(args[0], (list, tuple))):
+            raise TypeError(
+                "{0} is a calibration step since snow 1.0; {1} belong to the run. One step per "
+                "solution interval, run by Selfcal:\n"
+                "    Selfcal(ms, imager, [Phasecal(\"inf\"), Phasecal(\"60s\"), AmpPhasecal(\"inf\")],\n"
+                "            solve=SolveOptions(refant=...)).run()\n"
+                "See docs/migration.md".format(
+                    cls.__name__, legacy or "lists of solution intervals"
+                )
+            )
+        return super().__new__(cls)
 
     def __post_init__(self):
         if not hasattr(type(self), "calmode"):

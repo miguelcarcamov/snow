@@ -129,3 +129,18 @@ class TestStepChecks:
     )
     def test_other_steps_have_no_findings(self, step):
         assert step.check() == []
+
+
+class TestLegacyCalls:
+    """Code written for snow < 1.0 gets a TypeError that shows the new call."""
+
+    @pytest.mark.parametrize(
+        "build", [
+            lambda: Phasecal(visfile="target.ms", imager=None, solint=["inf", "60s"]),
+            lambda: AmpPhasecal(previous_selfcal=None, solint=["inf"]),
+            lambda: Ampcal(["inf"]),
+        ]
+    )
+    def test_legacy_arguments_show_the_new_call(self, build):
+        with pytest.raises(TypeError, match=r"Selfcal\(ms, imager, \[Phasecal"):
+            build()

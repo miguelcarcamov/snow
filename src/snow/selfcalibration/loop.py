@@ -127,11 +127,14 @@ class Selfcal:
         ------
         TypeError
             If options set ms or initial_stack, which come from the result
+        ScheduleError
+            If a table of the result is missing or was solved on another measurement set
         """
         previous = as_result(result)
         fixed = sorted({"ms", "initial_stack"} & set(options))
         if fixed:
             raise TypeError("resume() takes {0} from the result".format(fixed))
+        _check_solved_on(previous)
         if not options.get("output"):
             options["output"] = _next_free(str(Path(previous.ms).with_suffix("")) + "_selfcal")
         return cls(previous.ms, imager, steps, initial_stack=previous.stack, **options)
@@ -161,7 +164,7 @@ class Selfcal:
         FileExistsError
             If output already holds a run; resume() or a new output continues it
         ScheduleError
-            If a table of the initial stack is missing or was solved on another measurement set
+            If a table of the initial stack is missing
         """
         record_path = os.path.join(self.output, RESULT_FILE)
         if os.path.exists(record_path):
@@ -224,20 +227,14 @@ class Selfcal:
 
     def _check_initial_stack(self) -> None:
         """
-        The tables to continue from must exist and have been solved on this measurement set
+        The tables to continue from must exist. Tables of your own may come from another
+        measurement set, e.g. the one this was split from; resume() checks that a result's tables
+        belong to its measurement set
         """
         for table in self.initial_stack:
             if not os.path.isdir(table.path):
                 raise ScheduleError(
                     "The table {0} to continue from does not exist".format(table.path)
-                )
-            with open_table(table.path) as cal_table:
-                solved_on = cal_table.getkeywords().get("MSName", "")
-            if solved_on and Path(solved_on).name != Path(self.ms).name:
-                raise ScheduleError(
-                    "The table {0} was solved on {1}, not on {2}".format(
-                        table.path, solved_on, self.ms
-                    )
                 )
 
     def _reset_corrected(self, workspace: MSWorkspace) -> None:
@@ -328,6 +325,23 @@ def _describe(step: Optional[CalibrationStep]) -> str:
     details += ["solve={0}".format(dict(step.solve))] if step.solve else []
     details += ["imaging={0}".format(dict(step.imaging))] if step.imaging else []
     return "{0}({1})".format(type(step).__name__, ", ".join(details))
+
+
+def _check_solved_on(result: SelfcalResult) -> None:
+    """
+    A result's tables must exist and have been solved on its measurement set
+    """
+    for table in result.stack:
+        if not os.path.isdir(table.path):
+            raise ScheduleError("The table {0} to continue from does not exist".format(table.path))
+        with open_table(table.path) as cal_table:
+            solved_on = cal_table.getkeywords().get("MSName", "")
+        if solved_on and Path(solved_on).name != Path(result.ms).name:
+            raise ScheduleError(
+                "The table {0} was solved on {1}, not on {2}".format(
+                    table.path, solved_on, result.ms
+                )
+            )
 
 
 def _notify(observers: Sequence[SelfcalObserver], hook: str, *arguments) -> None:

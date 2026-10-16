@@ -128,3 +128,36 @@ class TestReconstruct:
 
         with pytest.raises(RuntimeError, match="did not write"):
             Tclean(GEOMETRY)._reconstruct(ImagingRequest("target.ms", str(tmp_path / "out")))
+
+
+class TestLegacyOptions:
+    """Tclean calls written for snow < 1.0 are told where each option went."""
+
+    @pytest.mark.parametrize(
+        "options, hint", [
+            (
+                {
+                    "inputvis": "target.ms",
+                    "M": 1024,
+                    "N": 1024
+                }, r"M -> ImageGeometry\(imsize=\(M, N\)\)"
+            ),
+            ({
+                "use_mask": "auto-multithresh"
+            }, "use_mask -> usemask"),
+            ({
+                "sidelobe_threshold": 3.0
+            }, "sidelobe_threshold -> sidelobethreshold"),
+            ({
+                "save_model": True
+            }, "MODEL_DATA is always written"),
+        ]
+    )
+    def test_legacy_options_name_their_replacement(self, options, hint):
+        with pytest.raises(TypeError, match=hint):
+            Tclean(**options)
+
+    def test_tclean_stand_ins_without_a_signature_skip_the_name_check(self, monkeypatch):
+        monkeypatch.setattr(backend, "_tclean_parameters", lambda: None)
+
+        assert Tclean(GEOMETRY, anything=1).options["anything"] == 1
