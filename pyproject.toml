@@ -13,7 +13,7 @@
 build-backend = "setuptools.build_meta"
 # Build dependencies required to build this package
 requires = [
-  "setuptools>=70.0.0",  # Package building and distribution
+  "setuptools>=77",  # Package building; SPDX license expressions (PEP 639)
   "setuptools-scm>=8",  # Automatic version management from git tags
   "wheel"  # Built distribution format
 ]
@@ -37,8 +37,6 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  # License (update if different from LICENSE file)
-  "License :: OSI Approved",
   # Operating system
   "Operating System :: OS Independent",
   # Additional metadata
@@ -66,7 +64,8 @@ keywords = [
   "imaging",
   "calibration"
 ]
-license = {file = "LICENSE"}
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 maintainers = [
   {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
