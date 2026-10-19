@@ -21,7 +21,9 @@ pytestmark = pytest.mark.skipif(
     importlib.util.find_spec("pyralysis") is None, reason="Pyralysis isn't installed"
 )
 
-GEOMETRY = ImageGeometry(imsize=128, cell="2arcsec")
+# Nyquist sampling: the longest baselines (~59 klambda) need cells of 1.74 arcsec or less. With
+# coarser cells they fall outside the uv grid, which Pyralysis's fit doesn't represent
+GEOMETRY = ImageGeometry(imsize=128, cell="1arcsec")
 
 
 def pyralysis_imager(**options) -> Pyralysis:
@@ -54,6 +56,15 @@ def box_mask(path) -> str:
     mask[60:69, 60:69] = 1
     fits.PrimaryHDU(mask).writeto(path)
     return str(path)
+
+
+def test_the_masked_model_holds_the_source_flux(tmp_path):
+    ms = simulate_point_source_ms(str(tmp_path / "target.ms"), phase_errors_in=("DATA", ))
+    imager = pyralysis_imager(mask_mode="file", mask_path=box_mask(tmp_path / "mask.fits"))
+
+    statistics = imager.image(ImagingRequest(ms, str(tmp_path / "masked"))).statistics()
+
+    assert statistics.model_flux == pytest.approx(1.0, rel=0.05)
 
 
 def test_a_measurement_set_read_in_several_chunks(tmp_path):
