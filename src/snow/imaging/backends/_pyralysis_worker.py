@@ -75,6 +75,21 @@ def parse(options: dict, extra: list) -> argparse.Namespace:
             raise ValueError(lines[-1] if lines else "invalid Pyralysis options") from None
 
 
+def check_corrected(dataset) -> None:
+    """
+    Pyralysis fits DATA when CORRECTED_DATA wasn't loaded; self-calibration must fit the latter
+    """
+    missing = [
+        index for index, subms in enumerate(dataset.ms_list)
+        if "CORRECTED_DATA" not in subms.visibilities.dataset
+    ]
+    if missing:
+        raise ValueError(
+            "CORRECTED_DATA wasn't loaded for partitions {0}; the fit would use DATA".
+            format(missing)
+        )
+
+
 def run(request: dict) -> None:
     from pyralysis.cli.optimization import (
         build_optimizer, build_pipeline_imager_config, checkpoint_final_model_residuals,
@@ -105,16 +120,21 @@ def run(request: dict) -> None:
     dask_options = normalize_dask_runtime_for_gpu(parse_dask_runtime_options(args))
     config = build_pipeline_imager_config(args, dask_options.to_pipeline_config())
 
-    # LoadData can't load CORRECTED_DATA or select data yet (pyralysis#358)
+    # LoadData, with CORRECTED_DATA and the selection, which it can't load yet (pyralysis#358)
     @dataclass
     class LoadCorrectedData(Step[ImagerContext]):
 
         def execute(self, context):
-            context.dataset = DaskMS(input_name=ms).read(
+            read_kwargs = {
+                "array_backend": context.config["array_backend"]
+            } if "array_backend" in context.config else {}
+            context.dataset = DaskMS(input_name=ms, chunks=context.config.get("chunks")).read(
                 columns=["CORRECTED_DATA"],
                 taql_query=request.get("taql") or None,
-                calculate_psf=True
+                calculate_psf=True,
+                **read_kwargs
             )
+            check_corrected(context.dataset)
             return context
 
     @dataclass
