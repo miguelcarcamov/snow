@@ -50,7 +50,7 @@ dependencies = [
   "astropy>=6.1",
   "casatasks>=6.7",
   "casatools>=6.7",
-  "multimethod>=1.12",
+  "multimethod>=1.11",  # Pyralysis 3.0 pins 1.11.2
   "numpy>=1.26",
   "tomli-w>=1.0"
 ]
@@ -80,13 +80,16 @@ requires-python = ">=3.12, <3.14"
 
 # Imagers built by name from configuration files; third-party packages register theirs here too
 [project.entry-points."snow.imagers"]
+pyralysis = "snow.imaging.backends.pyralysis:Pyralysis"
 tclean = "snow.imaging.backends.tclean:Tclean"
 
 [project.optional-dependencies]
 # Only snow.selfcalibration.observers.GainPlotObserver needs it
 plots = ["matplotlib>=3.8"]
-# Pyralysis depends on ska-ost-array-config, published on SKA's index, not PyPI:
-# pip install "snow-selfcal[pyralysis]" --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
+# Pyralysis 3 isn't on PyPI yet, so install it from its release tag; it depends on
+# ska-ost-array-config, published on SKA's index:
+# pip install "snow-selfcal[pyralysis]" "pyralysis @ git+https://gitlab.com/clirai/pyralysis.git@v3.0.0" \
+# --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
 pyralysis = ["pyralysis>=3"]
 # Only snow.utils.reproject() needs it; it pulls in dask, zarr and image libraries
 reproject = ["reproject>=0.14"]
