@@ -86,10 +86,10 @@ tclean = "snow.imaging.backends.tclean:Tclean"
 [project.optional-dependencies]
 # Only snow.selfcalibration.observers.GainPlotObserver needs it
 plots = ["matplotlib>=3.8"]
-# Pyralysis 3.0.0's fit reads DATA, not CORRECTED_DATA (fixed after it), and no later version is
-# released yet: install one from a development commit, as the README shows. It depends on
+# Pyralysis 3.0.0's fit reads DATA, not CORRECTED_DATA (fixed in 3.1.0). PyPI only has older
+# versions: install it from its release tag, as the README shows. It depends on
 # ska-ost-array-config, published on SKA's index.
-pyralysis = ["pyralysis>3.0.0"]
+pyralysis = ["pyralysis>=3.1.0"]
 # Only snow.utils.reproject() needs it; it pulls in dask, zarr and image libraries
 reproject = ["reproject>=0.14"]
 test = ["matplotlib>=3.8", "pytest>=8", "reproject>=0.14"]

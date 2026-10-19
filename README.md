@@ -240,11 +240,11 @@ both and raises `ImagerContractError` otherwise.
   and options (`max_iter`, `mask_mode`, ...). Each reconstruction runs in a separate process,
   since Pyralysis's casacore and CASA's can't share one. **Give it a mask** (`mask_mode="file"`,
   `mask_path=...`): a model free in every pixel can absorb the gain errors self-calibration
-  should solve for. snow needs a Pyralysis newer than 3.0.0, whose fit reads `DATA` instead of
-  `CORRECTED_DATA`; until one is released, install it from a development commit:
+  should solve for. snow needs Pyralysis 3.1.0 or later (3.0.0's fit reads `DATA` instead of
+  `CORRECTED_DATA`); PyPI only has older versions, so install it from its release tag:
 
   ```bash
-  pip install "snow-selfcal[pyralysis]" "pyralysis @ git+https://gitlab.com/clirai/pyralysis.git@cdd4ce65ddf7" \
+  pip install "snow-selfcal[pyralysis]" "pyralysis @ git+https://gitlab.com/clirai/pyralysis.git@v3.1.0" \
     --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
   ```
 

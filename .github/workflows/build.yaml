@@ -110,14 +110,14 @@ jobs:
     - name: Run tests
       run: pytest tests -q
 
-  # Pyralysis (#24) is optional and heavy, so its tests run in a job of their own. snow needs a
-  # Pyralysis newer than 3.0.0 (whose fit reads DATA, not CORRECTED_DATA), which isn't released
-  # yet: it comes from a development commit, with ska-ost-array-config from SKA's index.
+  # Pyralysis (#24) is optional and heavy, so its tests run in a job of their own. snow needs
+  # Pyralysis 3.1.0 or later (3.0.0's fit reads DATA, not CORRECTED_DATA), which isn't on PyPI: it
+  # comes from its release tag, with ska-ost-array-config from SKA's index.
   test-pyralysis:
     runs-on: ubuntu-latest
     needs: build
     env:
-      PYRALYSIS: pyralysis @ git+https://gitlab.com/clirai/pyralysis.git@cdd4ce65ddf76e5d8a740f16a35a49818cb27e64
+      PYRALYSIS: pyralysis @ git+https://gitlab.com/clirai/pyralysis.git@v3.1.0
       SKA_INDEX: https://artefact.skao.int/repository/pypi-internal/simple
     steps:
     - uses: actions/checkout@v4
