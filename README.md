@@ -248,6 +248,9 @@ both and raises `ImagerContractError` otherwise.
     --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
   ```
 
+  Numba needs OpenMP's runtime (`libgomp1`, present on most systems and in snow's images) or TBB
+  for Pyralysis's parallel kernels; snow checks for it when the imager is created.
+
 - **Your own imager**: subclass `Imager` and implement `_reconstruct`, wrap a function in
   `CallableImager`, or register it under the `snow.imagers` entry point to build it by name.
   `snow.testing.ImagerContractSuite` checks that it follows the contract.

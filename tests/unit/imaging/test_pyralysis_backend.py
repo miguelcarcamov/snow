@@ -162,6 +162,15 @@ class TestReconstruct:
         with pytest.raises(ImportError, match=r"snow-selfcal\[pyralysis\]"):
             imager()
 
+    def test_a_missing_numba_threading_layer_says_what_to_install(self, worker):
+        worker.reply, worker.returncode = {
+            "error": "ThreadingLayerError: Pyralysis needs Numba's OpenMP or TBB threading layer "
+            "(...). Install OpenMP's runtime (e.g. apt install libgomp1)"
+        }, 1
+
+        with pytest.raises(RuntimeError, match="^Pyralysis needs.*libgomp1"):
+            imager()
+
     def test_uvrange_selection_is_not_supported_yet(self):
         with pytest.raises(ValueError, match="uvrange"):
             backend._taql("target.ms", Selection(uvrange=">10klambda"))

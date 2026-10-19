@@ -194,9 +194,46 @@ def run(request: dict) -> None:
         TeardownDaskCluster().execute(context)
 
 
+class ThreadingLayerError(RuntimeError):
+    pass
+
+
+def require_thread_safe_numba() -> None:
+    """
+    Dask runs Pyralysis's parallel Numba kernels from several threads, one per chunk. Only Numba's
+    TBB and OpenMP layers allow that; without their libraries Numba falls back to workqueue, which
+    aborts the process when a measurement set is read in more than one chunk.
+    """
+    import numba
+
+    if "NUMBA_THREADING_LAYER" not in os.environ:
+        numba.config.THREADING_LAYER = "threadsafe"
+
+    @numba.njit(parallel=True, cache=False)
+    def probe(n):
+        total = 0
+        for i in numba.prange(n):
+            total += i
+        return total
+
+    try:
+        probe(2)
+        layer = numba.threading_layer()
+    except ValueError as error:  # no layer could be loaded
+        layer, reason = None, str(error).strip().splitlines()[0]
+    else:
+        reason = "Numba uses the {0} layer".format(layer)
+    if layer not in ("tbb", "omp"):
+        raise ThreadingLayerError(
+            "Pyralysis needs Numba's OpenMP or TBB threading layer ({0}). Install OpenMP's "
+            "runtime (e.g. apt install libgomp1), or TBB (e.g. conda install tbb)".format(reason)
+        )
+
+
 def main() -> int:
     request = json.load(sys.stdin)
     try:
+        require_thread_safe_numba()
         if request.get("check"):
             parse(request["options"], ["--input-path", "check.ms"])
         else:

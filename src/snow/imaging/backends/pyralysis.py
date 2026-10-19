@@ -221,6 +221,8 @@ def _run(request: dict, cwd: str = None) -> None:
             format(reply["error"])
         )
     message = reply.get("error") or process.stderr.strip()[-2000:]
+    if reply.get("error", "").startswith("ThreadingLayerError"):
+        raise RuntimeError(message.split(": ", 1)[1])
     if request.get("check"):
         raise TypeError("Invalid Pyralysis options: {0}".format(message))
     raise RuntimeError("Pyralysis failed (exit code {0}): {1}".format(process.returncode, message))

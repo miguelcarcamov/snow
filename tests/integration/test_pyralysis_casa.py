@@ -12,6 +12,7 @@ from astropy.io import fits
 
 from snow.config import ImageGeometry, SolveOptions
 from snow.imaging import Pyralysis
+from snow.imaging.contract import ImagingRequest
 from snow.selfcalibration import Phasecal, Selfcal
 from snow.testing import ImagerContractSuite, simulate_point_source_ms
 from snow.utils.selfcal_utils import open_table
@@ -47,13 +48,34 @@ def test_settings_snow_controls_are_rejected():
         pyralysis_imager(imsize=256)
 
 
-def test_self_calibration_with_pyralysis(tmp_path):
-    ms = simulate_point_source_ms(str(tmp_path / "target.ms"))
-    # A box around the source, as for CLEAN: a model free in every pixel absorbs the gain errors
+def box_mask(path) -> str:
+    """A box around the source, as for CLEAN: a model free in every pixel absorbs the gain errors"""
     mask = np.zeros((128, 128), dtype=np.int16)
     mask[60:69, 60:69] = 1
-    fits.PrimaryHDU(mask).writeto(tmp_path / "mask.fits")
-    imager = pyralysis_imager(mask_mode="file", mask_path=str(tmp_path / "mask.fits"))
+    fits.PrimaryHDU(mask).writeto(path)
+    return str(path)
+
+
+def test_a_measurement_set_read_in_several_chunks(tmp_path):
+    """Dask runs the chunks in parallel threads, which Numba allows with OpenMP or TBB only"""
+    ms = simulate_point_source_ms(str(tmp_path / "target.ms"), phase_errors_in=("DATA", ))
+    mask = box_mask(tmp_path / "mask.fits")
+
+    whole, chunked = (
+        pyralysis_imager(mask_mode="file", mask_path=mask,
+                         **options).image(ImagingRequest(ms, str(tmp_path / name))).statistics()
+        for name, options in (("whole", {}), ("chunked", {
+            "row_chunks": 37
+        }))
+    )
+
+    assert chunked.peak == pytest.approx(whole.peak, rel=0.01)
+    assert chunked.model_flux == pytest.approx(whole.model_flux, rel=0.01)
+
+
+def test_self_calibration_with_pyralysis(tmp_path):
+    ms = simulate_point_source_ms(str(tmp_path / "target.ms"))
+    imager = pyralysis_imager(mask_mode="file", mask_path=box_mask(tmp_path / "mask.fits"))
 
     result = Selfcal(
         ms,
