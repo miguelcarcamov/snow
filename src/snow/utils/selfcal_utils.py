@@ -1,8 +1,12 @@
 import os
 from contextlib import contextmanager
+from typing import Tuple
 
 import numpy as np
 from casatools import ms, table
+
+# m/s
+SPEED_OF_LIGHT = 299792458.0
 
 
 @contextmanager
@@ -219,6 +223,61 @@ def selected_rows(ms_name: str, field: str = "", spw: str = "", samples: int = 1
         int(rows[i])
         for i in np.unique(np.linspace(0, len(rows) - 1, min(len(rows), samples), dtype=int))
     ]
+
+
+def uv_extent(ms_name: str,
+              field: str = "",
+              spw: str = "",
+              uvrange: str = "") -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Function that returns, for each unflagged row of a selection, the larger of |u| and |v| in
+    metres and the highest selected frequency of the row's spectral window. Their product over the
+    speed of light is how far out the uv plane, in wavelengths, an image of the selection reaches
+
+    Parameters
+    ----------
+    ms_name :
+        Measurement set name
+    field :
+        CASA field selection; empty selects every field
+    spw :
+        CASA spectral window selection, channels included; empty selects every spectral window
+    uvrange :
+        CASA uv-range selection; empty selects every baseline
+
+    Returns
+    -------
+    The extents in metres and the frequencies in Hz, one per selected row; empty if the selection
+    has no rows
+    """
+    with open_table(os.path.join(ms_name, "SPECTRAL_WINDOW")) as spw_table:
+        frequencies = [
+            np.abs(spw_table.getcell("CHAN_FREQ", spw_id)) for spw_id in range(spw_table.nrows())
+        ]
+    with open_table(os.path.join(ms_name, "DATA_DESCRIPTION")) as dd_table:
+        dd_spw = np.asarray(dd_table.getcol("SPECTRAL_WINDOW_ID"))
+    ms_tool = ms()
+    try:
+        if spw in ("", "*"):
+            highest = np.array([channels.max() for channels in frequencies])
+        else:
+            highest = np.zeros(len(frequencies))
+            for spw_id, start, end, step in ms_tool.msseltoindex(vis=ms_name, spw=spw)["channel"]:
+                highest[spw_id] = max(
+                    highest[spw_id], frequencies[spw_id][start:end + 1:step].max()
+                )
+        ms_tool.open(ms_name)
+        items = {"field": field, "spw": spw, "uvdist": uvrange}
+        items = {name: value for name, value in items.items() if value}
+        # msselect returns False for an empty selection, and also when there is nothing to select
+        if items and not ms_tool.msselect(items):
+            return np.zeros(0), np.zeros(0)
+        data = ms_tool.getdata(["u", "v", "flag_row", "data_desc_id"])
+    finally:
+        ms_tool.done()
+    keep = ~data["flag_row"]
+    metres = np.maximum(np.abs(data["u"]), np.abs(data["v"]))[keep]
+    return metres, highest[dd_spw[data["data_desc_id"][keep]]]
 
 
 def model_column_problem(ms_name: str, field: str = "", spw: str = "") -> str:

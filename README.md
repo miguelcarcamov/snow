@@ -230,7 +230,11 @@ Frozen objects with CASA's parameter names: `Selection`, `SolveOptions`, `ApplyO
 ### Imaging (`snow.imaging`)
 
 An imager images `CORRECTED_DATA` and writes its model to `MODEL_DATA`; `Imager.image()` enforces
-both and raises `ImagerContractError` otherwise.
+both and raises `ImagerContractError` otherwise. It also raises `ValueError`, before imaging, when
+the cell is coarser than the Nyquist cell of the selected data: the image grid can't hold the
+longest baselines, so the model written for them would mislead the next solve. The message gives
+the largest cell that works, and the `Selection(uvrange=...)` that leaves those baselines out of
+the solve, the apply and the image alike.
 
 - **`Tclean(geometry, weighting, **tclean_options)`**: CASA tclean, with tclean's own parameter
   names.

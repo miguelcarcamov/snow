@@ -95,7 +95,7 @@ Follow the Pyralysis "Policies" convention ([`.cursor/rules/design.mdc` in Pyral
 
 ## Imagers (plug-ins)
 
-- The contract: image `CORRECTED_DATA` and write `MODEL_DATA` to the MS given in the request. `Imager.image()` invalidates the model first and verifies it afterwards, raising `ImagerContractError` if it wasn't written.
+- The contract: image `CORRECTED_DATA` and write `MODEL_DATA` to the MS given in the request. `Imager.image()` invalidates the model first and verifies it afterwards, raising `ImagerContractError` if it wasn't written. It also refuses an imager whose `geometry.cell` is coarser than the Nyquist cell of the selected data (#60): visibilities beyond the grid can't be modelled. The opt-out is an explicit `Selection(uvrange=...)`, never a silent drop.
 - Imagers are stateless with respect to the MS (it arrives in every `ImagingRequest`).
 - Backend options pass through using the backend's own names (`tclean`'s `usemask`). Validate them against the backend's signature.
 - Every imager, including users' own, should pass `snow.testing.ImagerContractSuite`.
