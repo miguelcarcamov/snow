@@ -24,6 +24,7 @@ import math
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from importlib.metadata import PackageNotFoundError, packages_distributions, version
 from types import MappingProxyType
 from typing import Callable, Mapping, Optional
 
@@ -135,6 +136,21 @@ class Imager(ABC):
                 "{0} is not a dataclass: implement with_overrides()".format(type(self).__name__)
             )
         return dataclasses.replace(self, **overrides)
+
+    def provenance(self) -> dict:
+        """
+        Versions of the software the imager runs, by distribution name, for the run record (#36):
+        by default the distribution the imager's class comes from. Override it to add the
+        programs it runs, e.g. a reconstruction package
+        """
+        package = type(self).__module__.split(".")[0]
+        versions = {}
+        for distribution in packages_distributions().get(package, []):
+            try:
+                versions[distribution] = version(distribution)
+            except PackageNotFoundError:
+                pass
+        return versions
 
     def image(self, request: ImagingRequest) -> ImagingResult:
         """

@@ -1,3 +1,4 @@
+import hashlib
 import os
 from contextlib import contextmanager
 from typing import Tuple
@@ -278,6 +279,46 @@ def uv_extent(ms_name: str,
     keep = ~data["flag_row"]
     metres = np.maximum(np.abs(data["u"]), np.abs(data["v"]))[keep]
     return metres, highest[dd_spw[data["data_desc_id"][keep]]]
+
+
+def ms_fingerprint(ms_name: str, samples: int = 100) -> str:
+    """
+    Function that returns a fingerprint of a measurement set's data, to tell later whether a run
+    used the same data: a hash of its size, time range, antennas, fields and frequencies, and of
+    DATA and FLAG in rows sampled evenly through the table, so large datasets are not read
+
+    Parameters
+    ----------
+    ms_name :
+        Measurement set name
+    samples :
+        Number of rows whose DATA and FLAG are hashed
+
+    Returns
+    -------
+    "sha256:" followed by the hex digest
+    """
+    digest = hashlib.sha256()
+
+    def add(value) -> None:
+        digest.update(np.ascontiguousarray(value).tobytes())
+
+    with open_table(ms_name) as ms_table:
+        nrows = ms_table.nrows()
+        add(np.array([nrows], dtype=np.int64))
+        if nrows:
+            times = ms_table.getcol("TIME")
+            add(np.array([times.min(), times.max()]))
+            for row in np.unique(np.linspace(0, nrows - 1, min(nrows, samples), dtype=int)):
+                add(ms_table.getcell("DATA", int(row)))
+                add(ms_table.getcell("FLAG", int(row)))
+    for subtable, column in (("ANTENNA", "NAME"), ("FIELD", "NAME")):
+        with open_table(os.path.join(ms_name, subtable)) as table_tool:
+            digest.update("\n".join(table_tool.getcol(column)).encode())
+    with open_table(os.path.join(ms_name, "SPECTRAL_WINDOW")) as spw_table:
+        for spw_id in range(spw_table.nrows()):
+            add(spw_table.getcell("CHAN_FREQ", spw_id))
+    return "sha256:" + digest.hexdigest()
 
 
 def model_column_problem(ms_name: str, field: str = "", spw: str = "") -> str:

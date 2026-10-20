@@ -25,6 +25,9 @@ from __future__ import annotations
 
 import logging
 import os
+import platform
+from datetime import datetime, timezone
+from importlib import metadata
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping, Optional, Sequence, Tuple, Union
@@ -37,7 +40,7 @@ from .. import recipe
 from ..config import ApplyOptions, Selection, SolveOptions
 from ..imaging.contract import Imager, ImagingRequest, ImagingResult
 from ..utils.selfcal_utils import (
-    columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms, open_table,
+    columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms, ms_fingerprint, open_table,
     solution_summary
 )
 from . import preflight
@@ -53,6 +56,8 @@ from .workspace import MSWorkspace
 logger = logging.getLogger(__name__)
 
 RESULT_FILE = "selfcal.toml"
+# The run as a resolved recipe: `snow run <output>/recipe.toml --output <new>` reruns it
+RECIPE_FILE = "recipe.toml"
 
 
 @multimethod
@@ -249,6 +254,7 @@ class Selfcal:
         for observer in observers:
             observer.on_start(self)
         os.makedirs(self.output, exist_ok=True)
+        provenance = self._provenance()
         workspace = MSWorkspace(self.ms, self.selection, self.apply)
         self._reset_corrected(workspace)
         stack = self.initial_stack
@@ -299,10 +305,38 @@ class Selfcal:
             accepted, accepted_imager, accepted_name = current, imager, name
 
         workspace.discard(*snapshots)
-        selfcal_result = SelfcalResult(self.ms, stack, rounds)
+        selfcal_result = SelfcalResult(self.ms, stack, rounds, provenance)
         selfcal_result.to_toml(record_path)
         _notify(observers, "on_finished", selfcal_result)
         return selfcal_result
+
+    def _provenance(self) -> dict:
+        """
+        Writes the run as a resolved recipe, every value included, to <output>/recipe.toml before
+        anything runs, and returns what the result records to reproduce it
+        """
+        recipe_path = os.path.join(self.output, RECIPE_FILE)
+        try:
+            table = self.to_recipe(relative_to=self.output, defaults=True)
+        except recipe.RecipeError as error:
+            logger.warning("The run can't be written as a recipe, so it isn't recorded: %s", error)
+            recipe_path = ""
+        else:
+            with open(recipe_path, "wb") as file:
+                tomli_w.dump(table, file)
+        versions = {"python": platform.python_version()}
+        for distribution in ("snow-selfcal", "casatools", "casatasks", "numpy", "astropy"):
+            try:
+                versions[distribution] = metadata.version(distribution)
+            except metadata.PackageNotFoundError:
+                pass
+        versions.update(self.imager.provenance())
+        return {
+            "started": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "recipe": os.path.basename(recipe_path),
+            "ms_fingerprint": ms_fingerprint(self.ms),
+            "versions": versions,
+        }
 
     def _check_initial_stack(self) -> None:
         """
