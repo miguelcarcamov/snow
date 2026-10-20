@@ -7,8 +7,9 @@ import numpy as np
 import pytest
 from astropy.io import fits
 
-from snow.config import Selection
+from snow.config import ImageGeometry, Selection
 from snow.imaging import contract
+from snow.utils.selfcal_utils import SPEED_OF_LIGHT
 from snow.imaging.contract import (
     CallableImager, Imager, ImagerContractError, ImagingRequest, ImagingResult
 )
@@ -100,6 +101,72 @@ class TestImageEnforcesTheContract:
 
                 def _reconstruct(self, request):
                     return RESULT
+
+
+ARCSEC = np.pi / (180 * 3600)
+
+
+@dataclasses.dataclass(frozen=True)
+class GriddedImager(FakeImager):
+    geometry: ImageGeometry = ImageGeometry(imsize=128, cell="2arcsec")
+
+
+class TestTheCellMustSampleTheData:
+    """A 2 arcsec grid holds |u|, |v| up to 1 / (2 * 2 arcsec) = 51.6 klambda (#60)."""
+
+    LIMIT = 1 / (4 * ARCSEC)
+
+    @pytest.fixture
+    def uv(self, ms, monkeypatch):
+        """Rows at 1 GHz, so an extent of x klambda is 0.3 x km"""
+        state = SimpleNamespace(klambda=[10.0, 40.0], selections=[])
+
+        def uv_extent(ms_name, field, spw, uvrange):
+            state.selections.append((field, spw, uvrange))
+            metres = np.array(state.klambda) * 1e3 * SPEED_OF_LIGHT / 1e9
+            return metres, np.full(len(metres), 1e9)
+
+        monkeypatch.setattr(contract, "uv_extent", uv_extent)
+        monkeypatch.setattr(contract, "_radians", lambda cell: float(cell[:-6]) * ARCSEC)
+        return state
+
+    def test_a_grid_that_holds_every_row_images(self, ms, uv):
+        assert GriddedImager(state=ms).image(request()) is RESULT
+
+    def test_a_coarser_cell_raises_before_any_model_is_touched(self, ms, uv):
+        uv.klambda = [10.0, 40.0, 59.1, 60.0]
+
+        with pytest.raises(ValueError) as error:
+            GriddedImager(state=ms).image(request())
+
+        assert ms.calls == []
+        message = str(error.value)
+        assert "Nyquist cell of the selected data, 1.719arcsec" in message
+        assert "2 of 4 rows" in message
+        assert "at most 1.71arcsec" in message
+        # 51.6 klambda at 1 GHz is 15.4 km
+        assert 'Selection(uvrange="<15400m")' in message
+
+    def test_the_check_uses_the_request_selection(self, ms, uv):
+        GriddedImager(state=ms).image(request(Selection("target", "1~3", "<50klambda")))
+
+        assert uv.selections == [("target", "1~3", "<50klambda")]
+
+    def test_a_row_on_the_grid_edge_is_held(self, ms, uv):
+        uv.klambda = [self.LIMIT / 1e3]
+
+        assert GriddedImager(state=ms).image(request()) is RESULT
+
+    def test_an_empty_selection_is_left_to_the_model_check(self, ms, uv):
+        uv.klambda = []
+
+        with pytest.raises(ImagerContractError, match="MODEL_DATA"):
+            GriddedImager(writes_model=False, state=ms).image(request())
+
+    def test_imagers_without_a_grid_are_not_checked(self, ms, uv):
+        FakeImager(state=ms).image(request())
+
+        assert uv.selections == []
 
 
 def test_requests_always_image_corrected_data():

@@ -6,6 +6,9 @@ user's own, as long as it:
 2. writes the model visibilities of its reconstruction to MODEL_DATA of the measurement set it was
    given, because the next gaincal solves against that column.
 
+Imager.image() also refuses an image grid whose cell is coarser than the Nyquist cell of the
+selected data (#60): the grid can't hold the longest baselines, so their model would be wrong.
+
 Imager.image() enforces the second point around every call: it removes any model left from before,
 runs the imager, and checks that a model was written for the selected data. The first point can't
 be observed cheaply, so snow.testing.ImagerContractSuite proves it on simulated data where only
@@ -17,17 +20,20 @@ CallableImager, or by name through the "snow.imagers" entry point (snow.imaging.
 from __future__ import annotations
 
 import dataclasses
+import math
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Callable, Mapping, Optional
 
+import numpy as np
 from casatasks import delmod
+from casatools import quanta
 
-from ..config import Selection
+from ..config import ImageGeometry, Selection
 from ..utils.image_utils import read_image
-from ..utils.selfcal_utils import is_column_in_ms, model_column_problem
+from ..utils.selfcal_utils import SPEED_OF_LIGHT, is_column_in_ms, model_column_problem, uv_extent
 from .statistics import ImageStatistics
 
 
@@ -101,6 +107,8 @@ class Imager(ABC):
     Base class of the imagers. Subclasses implement _reconstruct; image() is final, so the contract
     is always enforced.
     """
+    # The image grid, checked against the data's Nyquist cell; None if the imager chooses its own
+    geometry: Optional[ImageGeometry] = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -136,6 +144,8 @@ class Imager(ABC):
         ------
         ImagerContractError
             If the measurement set has no CORRECTED_DATA, or the imager didn't write MODEL_DATA
+        ValueError
+            If the cell is coarser than the Nyquist cell of the selected data
         """
         if not is_column_in_ms(request.ms, request.data_column):
             raise ImagerContractError(
@@ -143,6 +153,10 @@ class Imager(ABC):
                     request.ms, request.data_column
                 )
             )
+        if self.geometry is not None and self.geometry.cell:
+            problem = undersampling_problem(request, self.geometry.cell)
+            if problem:
+                raise ValueError(problem)
         # A model left from an earlier round, real or virtual, can't pass the check below
         delmod(vis=request.ms, otf=True, scr=True)
         result = self._reconstruct(request)
@@ -155,6 +169,51 @@ class Imager(ABC):
                 )
             )
         return result
+
+
+def _radians(cell: str) -> float:
+    quantity = quanta().quantity(cell)
+    if not quantity["unit"]:  # tclean reads a bare number as arcseconds
+        quantity["unit"] = "arcsec"
+    return quanta().convert(quantity, "rad")["value"]
+
+
+def _round_down(value: float, digits: int = 3) -> float:
+    scale = 10**(digits - 1 - math.floor(math.log10(value)))
+    return math.floor(value * scale) / scale
+
+
+def undersampling_problem(request: ImagingRequest, cell: str) -> str:
+    """
+    Checks that a grid with this cell holds every selected visibility. A grid of cell Δ holds
+    |u|, |v| up to 1/(2Δ) wavelengths; the visibilities beyond it can't be modelled, and the model
+    written for them would mislead the next gaincal.
+
+    Returns
+    -------
+    A description of the problem and how to solve it, or an empty string if the cell is fine
+    """
+    selection = request.selection
+    metres, frequency = uv_extent(request.ms, selection.field, selection.spw, selection.uvrange)
+    if len(metres) == 0:
+        return ""
+    extent = metres * frequency / SPEED_OF_LIGHT
+    limit = 1 / (2 * _radians(cell))
+    outside = int(np.count_nonzero(extent > limit * (1 + 1e-9)))
+    if not outside:
+        return ""
+    nyquist = math.degrees(1 / (2 * extent.max())) * 3600
+    # A uvrange in metres holds at every frequency: |u|, |v| <= sqrt(u² + v²)
+    metres = limit * SPEED_OF_LIGHT / frequency.max()
+    return (
+        "The cell {0} is coarser than the Nyquist cell of the selected data, {1:.4g}arcsec: "
+        "{2} of {3} rows have |u| or |v| beyond the {4:.4g} klambda the image grid holds, so "
+        "their model would be wrong. Use a cell of at most {5:g}arcsec, or leave those baselines "
+        "out of the self-calibration with Selection(uvrange=\"<{6:g}m\")".format(
+            cell, nyquist, outside, len(extent), limit / 1e3, _round_down(nyquist),
+            _round_down(metres)
+        )
+    )
 
 
 @dataclass(frozen=True)
