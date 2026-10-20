@@ -45,12 +45,14 @@ classmethod from_recipe(table) instead.
 """
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import dataclasses
 import importlib
 import os
 import tomllib
 from importlib.metadata import entry_points
-from typing import Any, Mapping, Optional
+from typing import Any, Iterator, Mapping, Optional
 
 # Built-in names of each family's classes, imported when needed (the classes import this module)
 FAMILIES = {
@@ -81,6 +83,29 @@ BASES = {
     "flagging": "snow.selfcalibration.flagging:Flagging",
     "imager": "snow.imaging.contract:Imager",
 }
+
+# Whether encode() writes the values that equal their defaults too
+_WITH_DEFAULTS = contextvars.ContextVar("with_defaults", default=False)
+
+
+@contextlib.contextmanager
+def with_defaults() -> Iterator[None]:
+    """
+    Within it, encode() also writes the values that equal their defaults: the fully resolved
+    recipe, e.g. for `snow show --defaults` or a run record
+    """
+    token = _WITH_DEFAULTS.set(True)
+    try:
+        yield
+    finally:
+        _WITH_DEFAULTS.reset(token)
+
+
+def writes_defaults() -> bool:
+    """
+    Whether values equal to their defaults are written; for to_recipe() hooks
+    """
+    return _WITH_DEFAULTS.get()
 
 
 class RecipeError(ValueError):
@@ -183,12 +208,13 @@ def encode(value: Any) -> Any:
 
 def fields_table(config: Any) -> dict:
     """
-    The dataclass fields of an object that differ from their defaults, encoded
+    The dataclass fields of an object that differ from their defaults (all of them within
+    with_defaults()), encoded
     """
     table = {}
     for item in dataclasses.fields(config):
         value = getattr(config, item.name)
-        if not item.init or value is None or value == _default(item):
+        if not item.init or value is None or (not writes_defaults() and value == _default(item)):
             continue
         table[item.name] = encode(value)
     return table
@@ -238,7 +264,7 @@ def grid_tables(imager: Any, **fields: Any) -> dict:
     from .config import Weighting
 
     table = {"geometry": encode(imager.geometry), **encode(fields)}
-    if imager.weighting != Weighting():
+    if writes_defaults() or imager.weighting != Weighting():
         table["weighting"] = encode(imager.weighting)
     return {**table, **encode(dict(imager.options))}
 

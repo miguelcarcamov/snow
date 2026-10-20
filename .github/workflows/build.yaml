@@ -106,7 +106,9 @@ jobs:
         mkdir -p ~/.casa
         printf '%s\n' 'measures_auto_update = False' 'data_auto_update = False' > ~/.casa/config.py
     - name: Import snow with CASA
-      run: python -c "import snow, snow.imaging, snow.selfcalibration; print(snow.__version__)"
+      run: |
+        python -c "import snow, snow.imaging, snow.selfcalibration; print(snow.__version__)"
+        snow --version  # the wheel installs the command
     - name: Run tests
       run: pytest tests -q
 

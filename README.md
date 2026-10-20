@@ -222,6 +222,19 @@ selfcal = Selfcal.from_toml("recipe.toml")  # an ordinary Selfcal: inspect it, c
 selfcal.to_toml("copy.toml")                # and back; values equal to the defaults are left out
 ```
 
+Or from the command line:
+
+```bash
+snow init > recipe.toml                 # a generic recipe to start from
+snow validate recipe.toml               # builds the run and checks it, without touching the data
+snow show --defaults recipe.toml        # the resolved recipe: presets laid in, every value shown
+snow run recipe.toml --plots            # runs it, plotting the gain solutions
+snow run recipe.toml --ms other.ms      # the same procedure on another dataset
+```
+
+Errors are the same as from Python, e.g. a misspelt `refant` or an amplitude step before any
+phase step, and `snow` exits with status 1.
+
 `preset = "group.toml"` lays a recipe over another TOML file, e.g. the solve options and imager
 settings your group shares: tables merge key by key and the recipe wins. snow ships no presets,
 since its defaults come from theory or the data rather than from an instrument. A class of your
