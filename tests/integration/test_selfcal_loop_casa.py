@@ -17,7 +17,7 @@ from snow.selfcalibration.steps import AmpPhasecal, Phasecal
 from snow.testing import simulate_point_source_ms
 from snow.utils.selfcal_utils import model_column_problem, open_table
 
-IMAGER = Tclean(ImageGeometry(imsize=128, cell="2arcsec"), niter=200, nsigma=3.0)
+IMAGER = Tclean(ImageGeometry(imsize=128, cell="1arcsec"), niter=200, nsigma=3.0)
 SOLVE = SolveOptions(refant="A0", minblperant=3)
 
 

@@ -8,7 +8,7 @@ from snow.testing import ImagerContractSuite, simulate_point_source_ms
 
 
 class TestTcleanContract(ImagerContractSuite):
-    imager = Tclean(ImageGeometry(imsize=128, cell="2arcsec"), niter=200, nsigma=3.0)
+    imager = Tclean(ImageGeometry(imsize=128, cell="1arcsec"), niter=200, nsigma=3.0)
 
 
 def test_an_imager_that_writes_no_model_is_caught(tmp_path):

@@ -59,6 +59,12 @@ ENV PIP_NO_CACHE_DIR=1 \
     PATH=/opt/venv/bin:$PATH \
     VIRTUAL_ENV=/opt/venv
 
+# OpenMP's runtime: Numba's thread-safe threading layer, which Pyralysis (#24) needs to run its
+# parallel kernels from several Dask threads (without it, Numba's fallback aborts the process)
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends libgomp1 && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /opt/venv /opt/venv
 # Auto updates are off, so every container of an image uses the same data. The directory is
 # readable by any user (e.g. under Apptainer/Singularity).

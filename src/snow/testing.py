@@ -133,16 +133,18 @@ class ImagerContractSuite:
     imager; pytest then runs every test below for that imager.
 
     The imager images a simulated 1 Jy point source whose DATA has phase errors and whose
-    CORRECTED_DATA is clean, so an imager that reads DATA fails. The tests check that:
+    CORRECTED_DATA is clean. The tests check what the contract says, in the visibility domain, so
+    they don't depend on how well an imager deconvolves:
 
-    - the reconstruction recovers the source from CORRECTED_DATA;
-    - MODEL_DATA is written and agrees with the true visibilities;
+    - MODEL_DATA holds the true visibilities. An imager that reads DATA instead of CORRECTED_DATA
+      fits a decorrelated source and fails;
+    - the result images can be measured by ImageStatistics;
     - nothing is left in the working directory.
 
-    Override imager_name or the tolerances if your imager needs it.
+    Override the tolerances if your imager needs it.
     """
     imager: Optional[Imager] = None
-    # Recovered peak, in Jy/beam, and MODEL_DATA amplitude, in Jy, of the 1 Jy source
+    # Largest allowed error of the median MODEL_DATA amplitude, in Jy, of the 1 Jy source
     flux_tolerance: float = 0.15
     # Largest allowed median phase of MODEL_DATA, in degrees (the source is at the phase center)
     max_model_phase: float = 5.0
@@ -165,21 +167,21 @@ class ImagerContractSuite:
             os.chdir(previous_cwd)
         return SimpleNamespace(ms=ms, result=result, workdir=workdir)
 
-    def test_reconstruction_uses_corrected_data(self, contract_run):
-        statistics = contract_run.result.statistics()
-
-        assert statistics.peak == pytest.approx(1.0, abs=self.flux_tolerance), (
-            "The restored peak should be the 1 Jy source of CORRECTED_DATA; DATA has phase errors "
-            "that lower it"
-        )
-
-    def test_model_data_holds_the_true_visibilities(self, contract_run):
+    def test_model_data_fits_the_corrected_data(self, contract_run):
         rows = selected_rows(contract_run.ms)
         with open_table(contract_run.ms) as ms_table:
             model = np.concatenate([ms_table.getcell("MODEL_DATA", row).ravel() for row in rows])
 
-        assert np.median(np.abs(model)) == pytest.approx(1.0, abs=self.flux_tolerance)
+        assert np.median(np.abs(model)) == pytest.approx(1.0, abs=self.flux_tolerance), (
+            "MODEL_DATA should hold the 1 Jy source of CORRECTED_DATA; DATA has phase errors "
+            "that decorrelate it"
+        )
         assert np.degrees(np.median(np.abs(np.angle(model)))) < self.max_model_phase
+
+    def test_result_images_can_be_measured(self, contract_run):
+        statistics = contract_run.result.statistics()
+
+        assert np.isfinite(statistics.psnr) and statistics.peak > 0
 
     def test_nothing_is_left_in_the_working_directory(self, contract_run):
         left = [

@@ -7,7 +7,7 @@
 ### Features
 
 - **Object-oriented design**: Clean, modular architecture for easy customization
-- **Multiple imagers supported**: CASA tclean, or your own; Pyralysis (GPU) and WSClean are planned
+- **Multiple imagers supported**: CASA tclean, Pyralysis, or your own
 - **Flexible self-calibration**: Phase-only, amplitude-only, or combined amplitude-phase calibration
 - **CASA integration**: Built on CASA (Common Astronomy Software Applications) for radio astronomy data processing
 - **Reproducible workflows**: Version-controlled calibration pipelines
@@ -234,6 +234,23 @@ both and raises `ImagerContractError` otherwise.
 
 - **`Tclean(geometry, weighting, **tclean_options)`**: CASA tclean, with tclean's own parameter
   names.
+- **`Pyralysis(geometry, weighting, terms=[...], optimizer=..., **pyralysis_options)`**:
+  optimization-based reconstruction with [Pyralysis](https://gitlab.com/clirai/pyralysis), with
+  its own names for terms (`"chi_squared"`, `"l1norm:1e-3"`), the optimizer (`"lbfgsb"`, `"fista"`)
+  and options (`max_iter`, `mask_mode`, ...). Each reconstruction runs in a separate process,
+  since Pyralysis's casacore and CASA's can't share one. **Give it a mask** (`mask_mode="file"`,
+  `mask_path=...`): a model free in every pixel can absorb the gain errors self-calibration
+  should solve for. snow needs Pyralysis 3.1.0 or later (3.0.0's fit reads `DATA` instead of
+  `CORRECTED_DATA`); PyPI only has older versions, so install it from its release tag:
+
+  ```bash
+  pip install "snow-selfcal[pyralysis]" "pyralysis @ git+https://gitlab.com/clirai/pyralysis.git@v3.1.0" \
+    --extra-index-url https://artefact.skao.int/repository/pypi-internal/simple
+  ```
+
+  Numba needs OpenMP's runtime (`libgomp1`, present on most systems and in snow's images) or TBB
+  for Pyralysis's parallel kernels; snow checks for it when the imager is created.
+
 - **Your own imager**: subclass `Imager` and implement `_reconstruct`, wrap a function in
   `CallableImager`, or register it under the `snow.imagers` entry point to build it by name.
   `snow.testing.ImagerContractSuite` checks that it follows the contract.
