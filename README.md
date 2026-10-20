@@ -235,6 +235,23 @@ snow run recipe.toml --ms other.ms      # the same procedure on another dataset
 Errors are the same as from Python, e.g. a misspelt `refant` or an amplitude step before any
 phase step, and `snow` exits with status 1.
 
+### Reproducing a run
+
+Every run records how to repeat it in its output directory:
+
+- **`recipe.toml`**: the run as a resolved recipe, written before anything runs, with presets laid
+  in and every default written out, so later changes to snow's defaults can't change it.
+- **`selfcal.toml`**: the rounds and accepted tables, plus a `[provenance]` table with the start
+  time, a fingerprint of the input measurement set (a hash of its metadata and of sampled `DATA`
+  and `FLAG` rows) and the versions of Python, snow, CASA and the imager's packages.
+
+```bash
+snow run target_selfcal/recipe.toml --ms fresh_copy.ms --output rerun
+```
+
+reruns it on a fresh copy of the input. A run snow can't write as a recipe, e.g. one with a
+`Check(name, lambda ...)` policy, still runs; it logs a warning and records no recipe.
+
 `preset = "group.toml"` lays a recipe over another TOML file, e.g. the solve options and imager
 settings your group shares: tables merge key by key and the recipe wins. snow ships no presets,
 since its defaults come from theory or the data rather than from an instrument. A class of your

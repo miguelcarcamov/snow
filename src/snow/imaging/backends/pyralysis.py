@@ -27,6 +27,7 @@ import subprocess
 import sys
 import warnings
 from dataclasses import dataclass, field
+from importlib import metadata
 from types import MappingProxyType
 from typing import Mapping, Sequence, Tuple
 
@@ -152,6 +153,14 @@ class Pyralysis(Imager):
                 **overrides
             }
         )
+
+    def provenance(self) -> dict:
+        versions = super().provenance()
+        try:
+            versions["pyralysis"] = metadata.version("pyralysis")
+        except metadata.PackageNotFoundError:
+            pass
+        return versions
 
     def to_recipe(self) -> dict:
         return grid_tables(self, terms=list(self.terms), optimizer=self.optimizer)

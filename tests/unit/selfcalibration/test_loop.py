@@ -71,6 +71,7 @@ def casa(monkeypatch, tmp_path):
     monkeypatch.setattr(loop, "solution_summary", lambda table: (0.05, (8, 8, 8)))
     monkeypatch.setattr(loop.preflight, "read_sample", lambda ms, selection: mocks.sample)
     monkeypatch.setattr(loop, "get_spw_ids", lambda ms, spw: [0])
+    monkeypatch.setattr(loop, "ms_fingerprint", lambda ms: "sha256:input")
     monkeypatch.setattr(loop, "count_spectral_windows", lambda ms: 1)
     monkeypatch.setattr(loop, "is_column_in_ms", lambda ms, column: True)
     monkeypatch.setattr(loop, "columns_match", lambda ms, a, b: mocks.corrected_matches)
@@ -301,7 +302,7 @@ class TestObservers:
         with caplog.at_level(logging.INFO, logger="snow.selfcalibration.observers"):
             Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
 
-        assert caplog.records == []
+        assert [r for r in caplog.records if r.name == "snow.selfcalibration.observers"] == []
 
 
 class TestResume:
@@ -493,3 +494,55 @@ class TestPredictedSolutionSNR:
         result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("int")]).run(observers=())
 
         assert result.rounds[1].predicted_snr is None
+
+
+@dataclasses.dataclass(frozen=True)
+class RecordableImager(Imager):
+    """A fake imager a recipe can hold: the n-th call returns the n-th peak"""
+    peaks: tuple = (1.0, 2.0, 3.0)
+    calls: list = dataclasses.field(default_factory=list, hash=False, compare=False)
+
+    def __post_init__(self):
+        object.__setattr__(self, "peaks", tuple(self.peaks))
+
+    def _reconstruct(self, request):
+        self.calls.append(request.name)
+        return FakeResult(request.name + ".image", "", "", peak=self.peaks[len(self.calls) - 1])
+
+
+class TestTheRunIsRecorded:
+    """#36: the resolved recipe and the provenance are written for every run."""
+
+    def test_the_resolved_recipe_rebuilds_the_run(self, casa):
+        selfcal = Selfcal(
+            casa.ms,
+            RecordableImager(), [Phasecal("inf"), Phasecal("60s")],
+            solve=SolveOptions(refant="A0")
+        )
+
+        result = selfcal.run(observers=())
+
+        recipe_path = os.path.join(selfcal.output, "recipe.toml")
+        assert result.provenance["recipe"] == "recipe.toml"
+        assert Selfcal.from_toml(recipe_path) == selfcal
+        with open(recipe_path) as file:
+            assert "minblperant = 4" in file.read()  # defaults are written out
+
+    def test_the_provenance_is_in_the_result(self, casa):
+        result = Selfcal(casa.ms, RecordableImager(), [Phasecal("inf")]).run(observers=())
+
+        provenance = result.provenance
+        assert provenance["ms_fingerprint"] == "sha256:input"
+        assert {"python", "numpy"} <= set(provenance["versions"])
+        assert provenance["started"].endswith("+00:00")
+        assert SelfcalResult.from_toml(
+            str(Path(casa.ms).with_suffix("")) + "_selfcal/selfcal.toml"
+        ) == result
+
+    def test_a_run_a_recipe_cannot_hold_still_runs(self, casa, caplog):
+        with caplog.at_level(logging.WARNING):
+            result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
+
+        assert "can't be written as a recipe" in caplog.text
+        assert result.provenance["recipe"] == ""
+        assert not os.path.exists(str(Path(casa.ms).with_suffix("")) + "_selfcal/recipe.toml")

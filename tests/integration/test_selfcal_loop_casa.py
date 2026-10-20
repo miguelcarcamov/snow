@@ -144,3 +144,42 @@ def test_the_solution_snr_sample_reads_the_simulated_noise(tmp_path):
 def test_each_round_records_its_predicted_snr(accepted):
     assert accepted.rounds[0].predicted_snr is None
     assert all(record.predicted_snr > 3.0 for record in accepted.rounds[1:])
+
+
+def test_the_recorded_recipe_reproduces_the_run(accepted, tmp_path):
+    """#36: snow run <output>/recipe.toml on the same input data gives the same rounds."""
+    from snow import cli
+    from snow.utils.selfcal_utils import ms_fingerprint
+
+    output = os.path.dirname(accepted.final.image)
+    fresh = simulate_point_source_ms(str(tmp_path / "fresh.ms"))
+    assert ms_fingerprint(fresh) == accepted.provenance["ms_fingerprint"]
+
+    status = cli.main(
+        [
+            "run", "--quiet",
+            os.path.join(output, accepted.provenance["recipe"]), "--ms", fresh, "--output",
+            str(tmp_path / "rerun")
+        ]
+    )
+
+    rerun = SelfcalResult.from_toml(str(tmp_path / "rerun" / "selfcal.toml"))
+    assert status == 0
+    assert [r.psnr
+            for r in rerun.rounds] == pytest.approx([r.psnr for r in accepted.rounds], rel=1e-6)
+    assert [r.accepted for r in rerun.rounds] == [r.accepted for r in accepted.rounds]
+
+
+def test_the_fingerprint_changes_with_the_data(tmp_path):
+    from snow.utils.selfcal_utils import ms_fingerprint
+
+    ms = simulate_point_source_ms(str(tmp_path / "target.ms"))
+    before = ms_fingerprint(ms)
+    tb = table()
+    tb.open(ms, nomodify=False)
+    try:
+        tb.putcell("DATA", 0, tb.getcell("DATA", 0) * 2)
+    finally:
+        tb.close()
+
+    assert ms_fingerprint(ms) != before

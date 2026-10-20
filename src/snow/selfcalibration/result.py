@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 import tomllib
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
+from typing import Mapping, Optional, Tuple
 
 import tomli_w
 
@@ -82,10 +82,14 @@ class SelfcalResult:
         The accepted calibration tables, in application order
     rounds :
         Every round, accepted or not, in the order they ran
+    provenance :
+        How the run can be reproduced (#36): when it started, the recipe written next to the
+        result, a fingerprint of the input data (ms_fingerprint) and the software versions
     """
     ms: str
     stack: CalStack
     rounds: Tuple[RoundRecord, ...] = field(default=())
+    provenance: Mapping = field(default_factory=dict, hash=False)
 
     def __post_init__(self):
         object.__setattr__(self, "rounds", tuple(self.rounds))
@@ -138,6 +142,8 @@ class SelfcalResult:
             "stack": self.stack.to_dict(relative_to=base),
             "rounds": rounds
         }
+        if self.provenance:
+            data["provenance"] = dict(self.provenance)
         with open(path, "wb") as file:
             tomli_w.dump(data, file)
 
@@ -162,5 +168,8 @@ class SelfcalResult:
             ) for entry in data.get("rounds", [])
         ]
         return cls(
-            absolute(data["ms"]), CalStack.from_dict(data["stack"], relative_to=base), rounds
+            absolute(data["ms"]),
+            CalStack.from_dict(data["stack"], relative_to=base),
+            rounds,
+            data.get("provenance", {}),
         )
