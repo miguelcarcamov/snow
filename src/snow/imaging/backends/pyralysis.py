@@ -32,7 +32,9 @@ from typing import Mapping, Sequence, Tuple
 
 from casatools import ms, table
 
-from ...config import ImageGeometry, Selection, Weighting
+from ... import recipe
+from ...config import ImageGeometry, Selection, Weighting, updated
+from ...recipe import grid_tables
 from ..contract import Imager, ImagingRequest, ImagingResult
 
 logger = logging.getLogger(__name__)
@@ -141,8 +143,8 @@ class Pyralysis(Imager):
         imager's, any other name is a Pyralysis option
         """
         return Pyralysis(
-            overrides.pop("geometry", self.geometry),
-            overrides.pop("weighting", self.weighting),
+            updated(self.geometry, overrides.pop("geometry", self.geometry)),
+            updated(self.weighting, overrides.pop("weighting", self.weighting)),
             terms=overrides.pop("terms", self.terms),
             optimizer=overrides.pop("optimizer", self.optimizer),
             **{
@@ -150,6 +152,13 @@ class Pyralysis(Imager):
                 **overrides
             }
         )
+
+    def to_recipe(self) -> dict:
+        return grid_tables(self, terms=list(self.terms), optimizer=self.optimizer)
+
+    @classmethod
+    def from_recipe(cls, table: Mapping) -> Pyralysis:
+        return cls(**recipe.decode_configs(table, geometry=ImageGeometry, weighting=Weighting))
 
     def _cli_options(self) -> dict:
         """

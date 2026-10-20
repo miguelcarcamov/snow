@@ -178,6 +178,56 @@ Run the script:
 python main_files/main_ALMA.py target.ms target_selfcal
 ```
 
+### The same run as a TOML recipe
+
+A recipe is the same objects written as TOML: each table is a constructor and its keys are that
+class's arguments, so a recipe and a script build equal objects and raise the same errors. The
+imager, the steps, the acceptance policies and the flagging name their class with `type`.
+
+```toml
+ms = "target.ms"           # paths are relative to the recipe
+output = "target_selfcal"
+
+[solve]
+refant = "DA51"
+minblperant = 6
+
+[imager]
+type = "tclean"
+niter = 100
+threshold = "0.1mJy"
+deconvolver = "hogbom"
+usemask = "auto-multithresh"
+geometry = { imsize = 1024, cell = "0.005arcsec" }
+weighting = { weighting = "briggs", robust = 0.5 }
+
+[[steps]]
+type = "phase"             # Phasecal; "amp" is Ampcal, "ampphase" AmpPhasecal
+solint = "inf"
+solve = { combine = "spw" }
+
+[[steps]]
+type = "phase"
+solint = "600s"
+solve = { combine = "spw" }
+
+[[steps]]
+type = "ampphase"
+solint = "inf"
+imaging = { threshold = "0.025mJy" }
+```
+
+```python
+selfcal = Selfcal.from_toml("recipe.toml")  # an ordinary Selfcal: inspect it, change it, run it
+selfcal.to_toml("copy.toml")                # and back; values equal to the defaults are left out
+```
+
+`preset = "group.toml"` lays a recipe over another TOML file, e.g. the solve options and imager
+settings your group shares: tables merge key by key and the recipe wins. snow ships no presets,
+since its defaults come from theory or the data rather than from an instrument. A class of your
+own, e.g. an acceptance policy, is named as `type = "package.module:Class"`. Policies built with
+`Check(name, function)` can't be written to a recipe; make them a class.
+
 How a run is described:
 
 - **One `Selfcal`, a list of steps.** Each step is one round: `Phasecal`, `Ampcal` or

@@ -18,6 +18,7 @@ from typing import ClassVar, Mapping, Optional, Union
 
 from multimethod import multimethod
 
+from .. import recipe
 from ..config import Selection, SolveOptions
 from .acceptance import AcceptancePolicy, AllOf, EnoughAntennas, FluxNotLost, PSNRImproves
 from .flagging import Flagging, NoFlagging
@@ -163,6 +164,19 @@ class CalibrationStep(ABC):
             )
         object.__setattr__(self, "solve", MappingProxyType(dict(self.solve)))
         object.__setattr__(self, "imaging", MappingProxyType(dict(self.imaging)))
+
+    @classmethod
+    def from_recipe(cls, table: Mapping) -> CalibrationStep:
+        """
+        Builds the step from its recipe table (snow.recipe), whose acceptance and flagging are
+        typed tables
+        """
+        table = dict(table)
+        if "acceptance" in table:
+            table["acceptance"] = recipe.decode("acceptance", table["acceptance"])
+        if "flagging" in table:
+            table["flagging"] = recipe.decode("flagging", table["flagging"])
+        return cls(**table)
 
     @property
     def solint_seconds(self) -> float:

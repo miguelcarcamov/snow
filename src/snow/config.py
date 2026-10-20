@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass
-from typing import Tuple, Union
+from typing import Mapping, Tuple, Union
 
 # applycal applymode values
 APPLY_MODES = ("calflag", "calflagstrict", "trial", "flagonly", "flagonlystrict", "calonly")
@@ -35,6 +35,16 @@ def to_dict(config: object) -> dict:
         name: list(value) if isinstance(value, tuple) else value
         for name, value in dataclasses.asdict(config).items() if value is not None
     }
+
+
+def updated(current: object, value: object) -> object:
+    """
+    A config object changed by an override: a mapping changes some of its fields, e.g.
+    updated(geometry, {"cell": "0.5arcsec"}); any other value replaces it
+    """
+    if isinstance(value, Mapping):
+        return dataclasses.replace(current, **value)
+    return value
 
 
 @dataclass(frozen=True)

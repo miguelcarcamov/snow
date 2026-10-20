@@ -14,7 +14,9 @@ from typing import Mapping, Optional
 
 from casatasks import tclean
 
-from ...config import ImageGeometry, Weighting
+from ... import recipe
+from ...config import ImageGeometry, Weighting, updated
+from ...recipe import grid_tables
 from ..contract import Imager, ImagingRequest, ImagingResult
 
 # tclean parameters set by snow, and where each comes from
@@ -110,9 +112,16 @@ class Tclean(Imager):
         A copy with some options changed: geometry and weighting replace the config objects, any
         other name is a tclean parameter
         """
-        geometry = overrides.pop("geometry", self.geometry)
-        weighting = overrides.pop("weighting", self.weighting)
+        geometry = updated(self.geometry, overrides.pop("geometry", self.geometry))
+        weighting = updated(self.weighting, overrides.pop("weighting", self.weighting))
         return Tclean(geometry, weighting, **{**self.options, **overrides})
+
+    def to_recipe(self) -> dict:
+        return grid_tables(self)
+
+    @classmethod
+    def from_recipe(cls, table: Mapping) -> Tclean:
+        return cls(**recipe.decode_configs(table, geometry=ImageGeometry, weighting=Weighting))
 
     def _image_suffix(self) -> str:
         # Multi-term deconvolution writes one image per Taylor term; the zeroth is the intensity

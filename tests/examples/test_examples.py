@@ -159,3 +159,19 @@ class TestEmerlinExample:
         assert selfcal.selection.uvrange == ">60klambda"
         assert selfcal.apply.applymode == "calonly"
         assert selfcal.solve.combine == "spw" and selfcal.solve.gaintype == "G"
+
+
+def test_the_readme_recipe_builds_the_readme_schedule(tmp_path):
+    readme = (ROOT / "README.md").read_text()
+    section = readme[readme.index("### The same run as a TOML recipe"):]
+    (tmp_path /
+     "recipe.toml").write_text(re.search(r"```toml\n(.*?)```", section, re.DOTALL).group(1))
+
+    selfcal = Selfcal.from_toml(tmp_path / "recipe.toml")
+
+    assert selfcal.steps == (
+        Phasecal("inf", solve={"combine": "spw"}),
+        Phasecal("600s", solve={"combine": "spw"}),
+        AmpPhasecal("inf", imaging={"threshold": "0.025mJy"}),
+    )
+    assert selfcal.output == str(tmp_path / "target_selfcal")

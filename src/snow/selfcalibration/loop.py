@@ -27,11 +27,13 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Sequence, Tuple, Union
+from typing import Mapping, Optional, Sequence, Tuple, Union
 
+import tomli_w
 from casatasks import applycal, gaincal
 from multimethod import multimethod
 
+from .. import recipe
 from ..config import ApplyOptions, Selection, SolveOptions
 from ..imaging.contract import Imager, ImagingRequest, ImagingResult
 from ..utils.selfcal_utils import (
@@ -140,6 +142,70 @@ class Selfcal:
             options["output"] = _next_free(str(Path(previous.ms).with_suffix("")) + "_selfcal")
         return cls(previous.ms, imager, steps, initial_stack=previous.stack, **options)
 
+    @classmethod
+    def from_recipe(cls, table: Mapping) -> Selfcal:
+        """
+        Builds a run from a recipe table (snow.recipe) whose paths are absolute or relative to the
+        working directory
+        """
+        table = recipe.decode_configs(
+            table, selection=Selection, solve=SolveOptions, apply=ApplyOptions
+        )
+        for name in ("imager", "steps"):
+            if name not in table:
+                raise recipe.RecipeError("A recipe needs {0}".format(name))
+        table["imager"] = recipe.decode("imager", table["imager"])
+        table["steps"] = [recipe.decode("step", step) for step in table["steps"]]
+        if "acceptance" in table:
+            table["acceptance"] = recipe.decode("acceptance", table["acceptance"])
+        if "initial_stack" in table:
+            table["initial_stack"] = CalStack.from_dict(table["initial_stack"])
+        return cls(**table)
+
+    @classmethod
+    def from_toml(cls, path: Union[str, os.PathLike]) -> Selfcal:
+        """
+        Builds a run from a TOML recipe and its presets; see snow.recipe. Paths in the recipe are
+        relative to its directory
+        """
+        return cls.from_recipe(recipe.read(os.fspath(path)))
+
+    def to_recipe(self, relative_to: Optional[str] = None) -> dict:
+        """
+        The recipe table of the run, leaving out the defaults
+
+        Parameters
+        ----------
+        relative_to :
+            Directory the paths are written relative to; absolute paths when None
+        """
+
+        def path(target: str) -> str:
+            target = os.path.abspath(target)
+            return target if relative_to is None else os.path.relpath(target, relative_to)
+
+        fields = recipe.fields_table(self)
+        table = {"ms": path(self.ms)}
+        if self.output != _default_output(self.ms):
+            table["output"] = path(self.output)
+        # The order a reader expects: what data, how to solve, how to image, then the steps
+        for name in ("selection", "solve", "apply", "acceptance", "imager", "steps"):
+            if name in fields:
+                table[name] = fields[name]
+        if len(self.initial_stack):
+            table["initial_stack"] = self.initial_stack.to_dict(relative_to=relative_to)
+        return table
+
+    def to_toml(self, path: Union[str, os.PathLike]) -> None:
+        """
+        Writes the run as a TOML recipe that from_toml() builds back, with paths relative to the
+        recipe's directory
+        """
+        path = os.path.abspath(os.fspath(path))
+        table = self.to_recipe(relative_to=os.path.dirname(path))
+        with open(path, "wb") as file:
+            tomli_w.dump(table, file)
+
     def __post_init__(self):
         if not isinstance(self.imager, Imager):
             raise TypeError("imager must be an Imager, not {0!r}".format(self.imager))
@@ -149,7 +215,7 @@ class Selfcal:
             # Unknown imaging overrides raise here, before anything runs
             self.imager.with_overrides(**step.imaging)
         if not self.output:
-            object.__setattr__(self, "output", str(Path(self.ms).with_suffix("")) + "_selfcal")
+            object.__setattr__(self, "output", _default_output(self.ms))
 
     def run(self, observers: Sequence[SelfcalObserver] = (LoggingObserver(), )) -> SelfcalResult:
         """
@@ -327,6 +393,10 @@ class Selfcal:
         return RoundRecord(
             index, _describe(step), "", "", nan, nan, nan, nan, None, 1.0, False, (reason, )
         )
+
+
+def _default_output(ms: str) -> str:
+    return str(Path(ms).with_suffix("")) + "_selfcal"
 
 
 def _describe(step: Optional[CalibrationStep]) -> str:

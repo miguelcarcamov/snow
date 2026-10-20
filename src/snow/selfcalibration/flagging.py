@@ -20,6 +20,7 @@ from typing import Mapping, Optional, Tuple
 
 from casatasks import flagdata
 
+from .. import recipe
 from ..config import Selection
 
 logger = logging.getLogger(__name__)
@@ -89,6 +90,9 @@ class ResidualFlagging(Flagging):
         _check_options(flagdata_options)
         object.__setattr__(self, "mode", mode)
         object.__setattr__(self, "options", MappingProxyType(dict(flagdata_options)))
+
+    def to_recipe(self) -> dict:
+        return {"mode": self.mode, **recipe.encode(dict(self.options))}
 
     def __repr__(self) -> str:
         options = ", ".join("{0}={1!r}".format(name, value) for name, value in self.options.items())

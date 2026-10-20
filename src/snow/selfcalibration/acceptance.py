@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Callable, Mapping, Optional, Tuple
 
+from .. import recipe
 from ..imaging.statistics import ImageStatistics
 
 if TYPE_CHECKING:
@@ -254,6 +255,10 @@ class AllOf(AcceptancePolicy):
             raise ValueError("AllOf needs at least one policy")
         object.__setattr__(self, "policies", policies)
 
+    @classmethod
+    def from_recipe(cls, table: Mapping) -> AllOf:
+        return cls(*(recipe.decode("acceptance", policy) for policy in table["policies"]))
+
     def decide(self, previous: RoundMetrics, current: RoundMetrics) -> Decision:
         decisions = [policy.decide(previous, current) for policy in self.policies]
         return Decision(
@@ -274,6 +279,10 @@ class AnyOf(AcceptancePolicy):
         if not policies:
             raise ValueError("AnyOf needs at least one policy")
         object.__setattr__(self, "policies", policies)
+
+    @classmethod
+    def from_recipe(cls, table: Mapping) -> AnyOf:
+        return cls(*(recipe.decode("acceptance", policy) for policy in table["policies"]))
 
     def decide(self, previous: RoundMetrics, current: RoundMetrics) -> Decision:
         decisions = [policy.decide(previous, current) for policy in self.policies]
