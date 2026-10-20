@@ -93,6 +93,9 @@ pyralysis = ["pyralysis>=3.1.0"]
 reproject = ["reproject>=0.14"]
 test = ["matplotlib>=3.8", "pytest>=8", "reproject>=0.14"]
 
+[project.scripts]
+snow = "snow.cli:main"
+
 # Project URLs (homepage, repository, documentation, etc.)
 [project.urls]
 Homepage = "https://github.com/miguelcarcamov/snow"

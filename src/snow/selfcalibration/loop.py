@@ -171,15 +171,20 @@ class Selfcal:
         """
         return cls.from_recipe(recipe.read(os.fspath(path)))
 
-    def to_recipe(self, relative_to: Optional[str] = None) -> dict:
+    def to_recipe(self, relative_to: Optional[str] = None, defaults: bool = False) -> dict:
         """
-        The recipe table of the run, leaving out the defaults
+        The recipe table of the run, leaving out the defaults unless asked for them
 
         Parameters
         ----------
         relative_to :
             Directory the paths are written relative to; absolute paths when None
+        defaults :
+            Also write the values that equal their defaults: the fully resolved run
         """
+        if defaults and not recipe.writes_defaults():
+            with recipe.with_defaults():
+                return self.to_recipe(relative_to)
 
         def path(target: str) -> str:
             target = os.path.abspath(target)
@@ -187,7 +192,7 @@ class Selfcal:
 
         fields = recipe.fields_table(self)
         table = {"ms": path(self.ms)}
-        if self.output != _default_output(self.ms):
+        if recipe.writes_defaults() or self.output != _default_output(self.ms):
             table["output"] = path(self.output)
         # The order a reader expects: what data, how to solve, how to image, then the steps
         for name in ("selection", "solve", "apply", "acceptance", "imager", "steps"):
