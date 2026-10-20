@@ -158,4 +158,4 @@ jobs:
         mkdir -p ~/.casa
         printf '%s\n' 'measures_auto_update = False' 'data_auto_update = False' > ~/.casa/config.py
     - name: Run the Pyralysis tests
-      run: pytest tests/integration/test_pyralysis_casa.py tests/unit/imaging/test_pyralysis_backend.py -q
+      run: pytest tests/integration/test_pyralysis_casa.py tests/integration/test_selfcal_recovers_gains_casa.py tests/unit/imaging/test_pyralysis_backend.py -q

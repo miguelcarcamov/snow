@@ -14,7 +14,7 @@ from __future__ import annotations
 import fnmatch
 import os
 from types import SimpleNamespace
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Tuple
 
 import numpy as np
 import pytest
@@ -100,6 +100,40 @@ def simulate_point_source_ms(
     return path
 
 
+def injected_phases(path: str, seed: int = 1) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    The antenna phase errors that simulate_point_source_ms(path, seed) injected, to compare
+    self-calibration solutions with. Antenna A0, the reference, has none.
+
+    Returns
+    -------
+    The integration times (the measurement set's TIME, in s), and the phase of each antenna at
+    those times in radians, shaped (antenna, time)
+    """
+    rng = np.random.default_rng(seed)
+    rng.uniform(-2000, 2000, NANTENNAS), rng.uniform(-2000, 2000, NANTENNAS)  # the positions
+    with open_table(path) as ms_table:
+        times = np.unique(ms_table.getcol("TIME"))
+    return times, _phases(_phase_model(rng), times - times.min())
+
+
+def _phase_model(rng: np.random.Generator) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Each antenna's phase error: an offset, plus a drift of some amplitude and period in hours
+    """
+    offset = rng.uniform(-np.pi / 3, np.pi / 3, NANTENNAS)
+    drift, period = rng.uniform(-np.pi / 9, np.pi / 9, NANTENNAS), rng.uniform(1.0, 3.0, NANTENNAS)
+    return offset, drift, period
+
+
+def _phases(model: Tuple[np.ndarray, np.ndarray, np.ndarray], seconds: np.ndarray) -> np.ndarray:
+    offset, drift, period = model
+    hours = seconds / 3600.0
+    phase = offset[:, None] + drift[:, None] * np.sin(2 * np.pi * hours / period[:, None])
+    phase[0] = 0.0  # the reference antenna
+    return phase
+
+
 def _corrupt(
     path: str, rng: np.random.Generator, phase_errors_in: Sequence[str], noise: float
 ) -> None:
@@ -112,13 +146,9 @@ def _corrupt(
     try:
         true = tb.getcol("DATA")  # (correlation, channel, row)
         antenna1, antenna2 = tb.getcol("ANTENNA1"), tb.getcol("ANTENNA2")
-        hours = (tb.getcol("TIME") - tb.getcol("TIME").min()) / 3600.0
-        offset = rng.uniform(-np.pi / 3, np.pi / 3, NANTENNAS)
-        drift, period = rng.uniform(-np.pi / 9, np.pi / 9,
-                                    NANTENNAS), rng.uniform(1.0, 3.0, NANTENNAS)
-        phase = offset[:, None] + drift[:, None] * np.sin(2 * np.pi * hours / period[:, None])
-        phase[0] = 0.0  # the reference antenna
-        rows = np.arange(len(hours))
+        times = tb.getcol("TIME")
+        phase = _phases(_phase_model(rng), times - times.min())
+        rows = np.arange(len(times))
         gains = np.exp(1j * (phase[antenna1, rows] - phase[antenna2, rows]))
         thermal = noise * (rng.standard_normal(true.shape) + 1j * rng.standard_normal(true.shape))
         for column in ("DATA", "CORRECTED_DATA"):
