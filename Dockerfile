@@ -76,4 +76,4 @@ me = casatools.measures(); assert all(me.observatory(t) for t in ('VLA', 'ALMA')
 
 LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
 LABEL org.opencontainers.image.description="Container image for SNOW"
-LABEL org.opencontainers.image.licenses=GPL3
+LABEL org.opencontainers.image.licenses=GPL-3.0-or-later
