@@ -192,6 +192,11 @@ How a run is described:
 - **A round is kept only if it improves the image.** By default the PSNR must rise and every
   solution interval must keep enough antennas (3 for phases, 4 for amplitudes), and amplitude
   rounds must not lose model flux. A rejected round is rolled back and stops the run.
+- **Each solve is checked first.** Before `gaincal`, snow predicts a solution's S/N for the
+  step's solint and combine from the data: the median model amplitude over the noise of one
+  visibility, times √(N_ant − 1) · √(n_int · n_chan · n_pol). It warns when the prediction is
+  below `minsnr`, giving the shortest solint that would reach it, and records it as
+  `predicted_snr`.
 - **Continue later** with `Selfcal.resume(result_or_output_directory, imager, more_steps)`, or
   start from tables of your own with `initial_stack=CalStack([CalTable("pcal", "p")])`.
 - **`result.final`** is the last accepted round; every round's metrics, decision and reasons

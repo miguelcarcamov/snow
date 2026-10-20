@@ -55,6 +55,7 @@ def casa(monkeypatch, tmp_path):
         flagmanager=mock.Mock(),
         solves=True,
         corrected_matches=True,
+        sample=None,
     )
 
     def gaincal(**kwargs):
@@ -68,6 +69,7 @@ def casa(monkeypatch, tmp_path):
     monkeypatch.setattr(workspace, "clearcal", mocks.clearcal)
     monkeypatch.setattr(workspace, "flagmanager", mocks.flagmanager)
     monkeypatch.setattr(loop, "solution_summary", lambda table: (0.05, (8, 8, 8)))
+    monkeypatch.setattr(loop.preflight, "read_sample", lambda ms, selection: mocks.sample)
     monkeypatch.setattr(loop, "get_spw_ids", lambda ms, spw: [0])
     monkeypatch.setattr(loop, "count_spectral_windows", lambda ms: 1)
     monkeypatch.setattr(loop, "is_column_in_ms", lambda ms, column: True)
@@ -456,3 +458,38 @@ class TestResidualFlagging:
         result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
 
         assert result.rounds[1].data_flagged is None
+
+
+class TestPredictedSolutionSNR:
+    """The pre-flight S/N estimate (#28): warned about when below minsnr, and recorded."""
+
+    @staticmethod
+    def sample(noise):
+        from snow.selfcalibration.preflight import VisibilitySample
+        return VisibilitySample(1.0, noise, 8, 60.0, 7200.0, 7200.0, (1, ), 2)
+
+    def test_is_recorded_for_each_step(self, casa):
+        casa.sample = self.sample(0.05)
+
+        result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("int")]).run(observers=())
+
+        assert result.rounds[0].predicted_snr is None
+        assert result.rounds[1].predicted_snr == pytest.approx(20 * np.sqrt(7) * np.sqrt(2))
+        assert SelfcalResult.from_toml(
+            str(Path(casa.ms).with_suffix("")) + "_selfcal/selfcal.toml"
+        ) == result
+
+    def test_a_low_estimate_warns_and_the_step_still_runs(self, casa, caplog):
+        casa.sample = self.sample(2.0)
+
+        with caplog.at_level(logging.WARNING):
+            result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("int")]).run(observers=())
+
+        assert "predicted solution S/N 1.9 is below minsnr 3" in caplog.text
+        assert "a solint of 180s or longer would reach it" in caplog.text
+        assert result.rounds[1].accepted
+
+    def test_no_estimate_without_a_sample(self, casa):
+        result = Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("int")]).run(observers=())
+
+        assert result.rounds[1].predicted_snr is None

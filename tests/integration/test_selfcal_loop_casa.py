@@ -121,3 +121,26 @@ def test_residual_flagging(tmp_path, policy, kept):
     assert result.rounds[1].accepted is kept
     # Kept: the interference stays flagged. Rejected: the round's flags are rolled back
     assert flagged_rows(ms) == [kept] * len(OUTLIER_ROWS)
+
+
+def test_the_solution_snr_sample_reads_the_simulated_noise(tmp_path):
+    """0.05 Jy noise on a 1 Jy source, 8 antennas, 60 s integrations over 2 h, RR and LL"""
+    from snow.imaging.contract import ImagingRequest
+    from snow.selfcalibration.preflight import read_sample
+    from snow.config import Selection
+
+    ms = simulate_point_source_ms(str(tmp_path / "target.ms"), phase_errors_in=())
+    IMAGER.image(ImagingRequest(ms, str(tmp_path / "model")))
+
+    sample = read_sample(ms, Selection())
+
+    assert sample.noise == pytest.approx(0.05, rel=0.1)
+    assert sample.signal == pytest.approx(1.0, rel=0.1)
+    assert (sample.nantennas, sample.interval, sample.channels, sample.parallel_hands) == \
+        (8, 60.0, (1, ), 2)
+    assert sample.span == pytest.approx(7200.0, abs=60.0)
+
+
+def test_each_round_records_its_predicted_snr(accepted):
+    assert accepted.rounds[0].predicted_snr is None
+    assert all(record.predicted_snr > 3.0 for record in accepted.rounds[1:])

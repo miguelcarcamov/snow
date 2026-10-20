@@ -38,6 +38,7 @@ from ..utils.selfcal_utils import (
     columns_match, count_spectral_windows, get_spw_ids, is_column_in_ms, open_table,
     solution_summary
 )
+from . import preflight
 from .acceptance import AcceptancePolicy, RoundMetrics
 from .flagging import NoFlagging
 from .caltable import CalStack, CalTable, derive_spwmap
@@ -192,10 +193,13 @@ class Selfcal:
         for index, step in enumerate(self.steps, start=1):
             name = "round{0}".format(index)
             imager = self.imager.with_overrides(**step.imaging)
+            predicted = self._predict_snr(step)
             table = self._solve(step, stack, name)
             if table is None:
                 # Nothing was applied or imaged, so there is nothing to restore
-                rounds.append(self._failed_record(index, step, "gaincal found no solutions"))
+                rounds.append(
+                    self._failed_record(index, step, "gaincal found no solutions", predicted)
+                )
                 _notify(observers, "on_round", rounds[-1])
                 break
             _notify(observers, "on_solved", step, table)
@@ -209,7 +213,7 @@ class Selfcal:
             rounds.append(
                 self._record(
                     index, step, table.path, result, current, decision.accepted, decision.reasons,
-                    data_flagged
+                    data_flagged, predicted
                 )
             )
             _notify(observers, "on_round", rounds[-1])
@@ -260,6 +264,24 @@ class Selfcal:
             ImagingRequest(self.ms, os.path.join(self.output, name), self.selection)
         )
 
+    def _predict_snr(self, step: CalibrationStep) -> Optional[float]:
+        """
+        The step's solution S/N predicted from the data, against the accepted model in
+        MODEL_DATA; warns when it is below minsnr. None if the data can't support an estimate
+        """
+        sample = preflight.read_sample(self.ms, self.selection)
+        if sample is None:
+            logger.debug("No solution S/N estimate for %s", _describe(step))
+            return None
+        prediction = preflight.predict(sample, step, self.solve)
+        if not prediction.enough:
+            logger.warning(
+                "%s: predicted solution S/N %.1f is below minsnr %g, so gaincal may flag most "
+                "solutions; %s", _describe(step), prediction.snr, prediction.minsnr,
+                prediction.advice
+            )
+        return prediction.snr
+
     def _solve(self, step: CalibrationStep, stack: CalStack, name: str) -> Optional[CalTable]:
         """
         Solves the step's gains against DATA with the accepted stack pre-applied. Returns None if
@@ -302,7 +324,8 @@ class Selfcal:
         metrics: RoundMetrics,
         accepted: bool,
         reasons: Sequence[str],
-        data_flagged: Optional[Tuple[float, float]] = None
+        data_flagged: Optional[Tuple[float, float]] = None,
+        predicted_snr: Optional[float] = None
     ) -> RoundRecord:
         statistics = metrics.statistics
         return RoundRecord(
@@ -319,13 +342,30 @@ class Selfcal:
             accepted=accepted,
             reasons=tuple(reasons),
             data_flagged=data_flagged,
+            predicted_snr=predicted_snr,
         )
 
     @staticmethod
-    def _failed_record(index: int, step: CalibrationStep, reason: str) -> RoundRecord:
+    def _failed_record(
+        index: int,
+        step: CalibrationStep,
+        reason: str,
+        predicted_snr: Optional[float] = None
+    ) -> RoundRecord:
         nan = float("nan")
         return RoundRecord(
-            index, _describe(step), "", "", nan, nan, nan, nan, None, 1.0, False, (reason, )
+            index,
+            _describe(step),
+            "",
+            "",
+            nan,
+            nan,
+            nan,
+            nan,
+            None,
+            1.0,
+            False, (reason, ),
+            predicted_snr=predicted_snr
         )
 
 

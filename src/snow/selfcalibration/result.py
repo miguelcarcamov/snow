@@ -42,6 +42,8 @@ class RoundRecord:
     data_flagged :
         Flagged fraction of the selected data before and after the step's residual flagging, if
         it flagged
+    predicted_snr :
+        The step's solution S/N predicted from the data before solving (#28), if it could be
     """
     index: int
     step: str
@@ -56,6 +58,7 @@ class RoundRecord:
     accepted: bool = True
     reasons: Tuple[str, ...] = ()
     data_flagged: Optional[Tuple[float, float]] = None
+    predicted_snr: Optional[float] = None
 
     def __post_init__(self):
         if self.beam is not None:
@@ -127,6 +130,8 @@ class SelfcalResult:
                 entry["beam"] = list(record.beam)
             if record.data_flagged is not None:
                 entry["data_flagged"] = list(record.data_flagged)
+            if record.predicted_snr is not None:
+                entry["predicted_snr"] = record.predicted_snr
             rounds.append(entry)
         data = {
             "ms": relative(self.ms),
