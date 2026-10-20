@@ -2,7 +2,7 @@
 Amplitude-phase self-calibration of an e-MERLIN target, on top of existing phase solutions, imaged
 with multiscale tclean. Optionally flags residual RFI before self-calibrating.
 
-Usage: python main_eMERLIN.py <visfile> <output_directory> <field> [--phase-caltable pcal]
+Usage: python selfcal.py <visfile> <output_directory> <field> [--phase-caltable pcal]
        [--phase-caltable-per-spw] [--mask MASK] [--uvrange UVRANGE] [--refant REFANT]
        [--flag [--rflag-spw SPW ...]] [--plot]
 """

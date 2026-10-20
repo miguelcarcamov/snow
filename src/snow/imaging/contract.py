@@ -202,7 +202,7 @@ def _round_down(value: float, digits: int = 3) -> float:
 def undersampling_problem(request: ImagingRequest, cell: str) -> str:
     """
     Checks that a grid with this cell holds every selected visibility. A grid of cell Δ holds
-    |u|, |v| up to 1/(2Δ) wavelengths; the visibilities beyond it can't be modelled, and the model
+    ``|u|``, ``|v|`` up to 1/(2Δ) wavelengths; the visibilities beyond it can't be modelled, and the model
     written for them would mislead the next gaincal.
 
     Returns
@@ -235,8 +235,8 @@ def undersampling_problem(request: ImagingRequest, cell: str) -> str:
 @dataclass(frozen=True)
 class CallableImager(Imager):
     """
-    Wraps a function as an imager: function(request, **options) images the request and returns an
-    ImagingResult. The contract is enforced as for any imager.
+    Wraps a function as an imager: ``function(request, **options)`` images the request and returns
+    an ImagingResult. The contract is enforced as for any imager.
 
     Parameters
     ----------

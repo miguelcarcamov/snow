@@ -205,9 +205,10 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 
 ## User documentation
 
-- The README and every example (`main_files/`, future example configs) **must run against the current API**. When you change a public API, update them in the same PR. CI smoke-tests the examples.
+- The README and every example (`examples/<name>/recipe.toml` and `selfcal.py`) **must run against the current API**. When you change a public API, update them in the same PR. CI smoke-tests the examples.
 - Examples should be recipes a user can copy: a config file plus one command, not a script that parses `sys.argv` with `eval`.
-- Document every preset: what it sets and why (with links to CASA guides where relevant).
+- Each example is a recipe a user can copy plus the Python script that builds the same run; a test keeps them equal.
+- snow ships no instrument presets. Instrument-specific values in examples are marked as the example's, with links to CASA guides where relevant.
 
 ---
 

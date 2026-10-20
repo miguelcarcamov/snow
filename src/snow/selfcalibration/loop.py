@@ -1,7 +1,7 @@
 """
 The self-calibration loop (#22): the only one in snow. Steps provide data and hooks, the imager
 follows the contract of snow.imaging.contract, the acceptance policies decide, and CalStack builds
-every table list.
+every table list::
 
     result = Selfcal(
         ms="target.ms",
@@ -10,7 +10,7 @@ every table list.
         solve=SolveOptions(refant="DA51"),
     ).run()
 
-The loop:
+The loop::
 
     validate the schedule                         (construction, before any I/O)
     CORRECTED_DATA = DATA, image round 0
