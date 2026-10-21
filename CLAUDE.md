@@ -8,6 +8,15 @@ snow is a Python framework for radio-interferometric **self-calibration** on top
 
 Source lives in `src/snow/`: `selfcalibration/` (self-cal loop), `imaging/` (imager backends) and `utils/`. Examples are in `examples/<name>/`: a `recipe.toml` and a `selfcal.py` that build the same run.
 
+## Agents, skills and hooks
+
+`AGENTS.md` is the guide for every agent tool: the workflow, labels, environment and gotchas.
+Skills live in `.cursor/skills/` and are linked from `.claude/skills/`, so Claude Code and Cursor
+read the same files (`feature-dev`, `bug-fix`, `pr-review`, `convention-review`, `verify-ab`,
+`staged-feature`, `qa-explorer`, `docs-maintainer`, `estimate-effort`). A `PreToolUse` hook in
+`.claude/settings.json` (`tools/hooks/block-protected-push.sh`) blocks pushes to `development` and
+`master`.
+
 ## Canonical conventions — read these first
 
 The conventions live in **`.cursor/rules/*.mdc`** (see `.cursor/rules/README.md`) and are mirrored in **`CONVENTIONS.md`**. This file doesn't repeat them; it only adds operational notes. If the two disagree, the `.mdc` files win; regenerate the mirror with `python tools/sync_conventions.py`.
@@ -66,17 +75,17 @@ pre-commit install
 ## Tests and linting
 
 ```bash
-pytest tests/unit/                     # CASA-free unit tests (suite being built, #32)
+pytest tests/unit/ tests/examples/     # CASA-free
 pytest -m casa tests/integration/      # needs CASA
 pre-commit run --all-files             # yapf, YAML/TOML formatting, markdownlint, workflow schema
 python tools/sync_conventions.py --check
 ```
 
-No suite exists yet (#32). When you add behaviour, add the test under `tests/unit/` mirroring `src/snow/`.
+When you add behaviour, add the test under `tests/unit/` mirroring `src/snow/`; anything that needs CASA goes in `tests/integration/` on `snow.testing`'s simulated data. Run CASA tests in the Docker image where `casatools` can't import natively (`AGENTS.md`).
 
 ## Commits and branches
 
 - `development` is the integration branch; `master` is the release branch.
-- Work on `feature/<topic>` or `fix/<topic>` branches with PRs into `development`.
+- Work on `chg/<issue>-<slug>` or `fix/<issue>-<slug>` branches from `development`, with PRs into `development`. Never base a PR on another open PR.
 - Commit prefixes: `CHG:` and `FIX:`.
 - Don't push to `development` or `master` directly unless asked.

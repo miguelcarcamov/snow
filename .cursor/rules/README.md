@@ -8,13 +8,14 @@ Conventions for snow contributors and AI agents. Cursor loads every `.mdc` file 
 | [`design.mdc`](design.mdc) | Parameter budget, config objects, rounds, policies, backends |
 | [`selfcal-domain.mdc`](selfcal-domain.mdc) | Self-calibration theory invariants |
 | [`casa-io.mdc`](casa-io.mdc) | CASA tools, Measurement Sets, files, subprocesses, FITS |
+| [`implementation.mdc`](implementation.mdc) | Clear purpose, explicit code, known types, reading data in samples |
 | [`naming.mdc`](naming.mdc) | Naming and method order |
 | [`documentation.mdc`](documentation.mdc) | Docstrings, comments, README/examples |
 | [`error-handling.mdc`](error-handling.mdc) | Validation, exceptions, logging |
 | [`testing.mdc`](testing.mdc) | pytest layout, CASA-free unit tests, simulated end-to-end tests |
 | [`cicd.mdc`](cicd.mdc) | GitHub Actions, packaging, containers, branches/commits |
 
-Naming, OOP and policy conventions follow [Pyralysis](https://gitlab.com/clirai/pyralysis) so the two projects read the same.
+Naming, OOP and policy conventions follow [Pyralysis](https://gitlab.com/clirai/pyralysis) so the two projects read the same. Pyralysis's array-backend, precision and UML rules have no counterpart here. How agents use these rules, with skills and hooks, is in [`AGENTS.md`](../../AGENTS.md).
 
 ## Keeping `CONVENTIONS.md` in sync
 

@@ -134,3 +134,6 @@ src/snow/_version.py
 # Sphinx output and the API pages autoapi generates
 docs/_build/
 docs/api/
+
+# Personal agent settings
+.claude/settings.local.json
