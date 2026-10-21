@@ -10,8 +10,8 @@ OUTPUT = ROOT / "CONVENTIONS.md"
 
 # Reading order for humans; any rule file not listed is appended alphabetically.
 ORDER = [
-    "general", "design", "selfcal-domain", "casa-io", "naming", "documentation", "error-handling",
-    "testing", "cicd"
+    "general", "design", "selfcal-domain", "casa-io", "implementation", "naming", "documentation",
+    "error-handling", "testing", "cicd"
 ]
 
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)

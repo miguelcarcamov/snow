@@ -12,17 +12,17 @@ snow (ca**S**a pytho**N** self-calibrati**O**n frame**W**ork) exists so radio as
 
 Judge every change against that goal:
 
-- Does it make the user's procedure **shorter or clearer**? Prefer presets, defaults and values derived from the data over new user-facing parameters.
+- Does it make the user's procedure **shorter or clearer**? Prefer defaults derived from theory or the data over new user-facing parameters. snow ships **no instrument presets**: users keep their own shared settings as TOML files (`preset = "group.toml"`), and limits that depend on an instrument or the science are opt-in, with no default value.
 - Does it keep runs **reproducible**? Same config + same input data + same versions must give the same result, and a run must record what it did.
 - Is it **correct by radio-interferometry theory**? See `selfcal-domain.mdc`. A convenient API that gives wrong calibration is worse than no API.
 
 Layers, from the user inward:
 
-1. **Recipe / config file** (TOML or YAML) + telescope presets — what most users touch.
+1. **TOML recipe** (`snow run recipe.toml`) — what most users touch. A recipe is a serialisation of the Python objects, not a second API (`snow.recipe`).
 2. **Python API** (`Selfcal`, the `Phasecal`/`Ampcal`/`AmpPhasecal` steps, config objects) — for power users and scripting.
-3. **Backends** — CASA tasks (`gaincal`, `applycal`, `tclean`) and Pyralysis (replaces the deprecated GPUvmem).
+3. **Backends** — CASA tasks (`gaincal`, `applycal`, `tclean`) and imagers (`Tclean`, `Pyralysis`, or a user's own through the `snow.imagers` entry point).
 
-The target design is tracked in GitHub issue #22 (milestone "v1.0 redesign"). The end goal is self-cal with the Pyralysis imager (#24).
+The design was set in GitHub issue #22 (milestone "v1.0 redesign"); self-cal with the Pyralysis imager is #24. How agents work on the repository is in `AGENTS.md`.
 
 ## General principles
 
@@ -84,7 +84,7 @@ Don't use it where ordinary polymorphism (a method on the class) is enough.
 ## Parameter budget
 
 - A public constructor takes **at most ~8 parameters**, all of them used. If you need more, group them into a config object or split the class.
-- Don't add a parameter that a preset or the data can supply (spwmap, cell/imsize, noise-based thresholds).
+- Don't add a parameter that theory or the data can supply (spwmap, cell/imsize, noise-based thresholds).
 
 ## Policies and strategies
 
@@ -181,6 +181,32 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 
 ---
 
+<!-- implementation.mdc: Implementation principles — clear purpose, explicit code, known types, data read in samples -->
+
+## Implementation
+
+- Every class, function and module has one clear purpose. If its docstring needs "and", split it.
+- No global or module-level mutable state, and no module-level CASA tool instances (`casa-io.mdc`).
+  Code is as stateless as possible: config objects are frozen, and a run's state lives in the
+  loop and its result.
+- Prefer explicit code over implicit behaviour. No magic methods without a clear reason, no hidden
+  defaults that change the science.
+- **Dispatch on known types with `isinstance` or `multimethod`, never by probing attributes**
+  (`getattr(obj, "geometry", None)`). An optional capability is a base-class attribute or hook with
+  a documented default (e.g. `Imager.geometry = None`, `Imager.provenance()`).
+- **Read measurement sets in samples, never whole columns, when a statistic is enough.** Large
+  datasets have billions of visibilities: sample rows evenly (`selected_rows`), read blocks
+  spread through the selection (`preflight.read_sample`), and keep the cost independent of the
+  dataset's size. Read whole columns only when the operation needs every row (e.g. `uv_extent`
+  for the Nyquist check reads `u`, `v` and `FLAG_ROW`, never the visibilities).
+- Use NumPy vectorisation and broadcasting over Python loops on rows; loop over baselines,
+  spectral windows or tables, not over visibilities.
+- Profile before optimising (`cProfile`, `line_profiler`). Most of a run's time is in CASA tasks
+  and the imager; optimise snow's own code only where a profile shows it matters.
+- Use the dtype's limits (`np.finfo(dtype).eps`) instead of hard-coded small constants.
+
+---
+
 <!-- naming.mdc: Naming conventions and method order (aligned with Pyralysis) -->
 
 ## Naming
@@ -226,10 +252,14 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 
 ## Tests
 
-- Layout: `tests/unit/` mirrors `src/snow/`; `tests/integration/` holds tests that need CASA.
+- Layout: `tests/unit/` mirrors `src/snow/`; `tests/integration/` holds tests that need CASA; `tests/examples/` runs the README and `examples/`.
 - **Unit tests must not need CASA.** Keep argument building, spwmap derivation, config validation and statistics pure, so they can be tested with synthetic inputs (FITS arrays, dataclasses).
 - Mark CASA-dependent tests `@pytest.mark.casa`, GPU tests `@pytest.mark.gpu`, and long tests `@pytest.mark.slow`.
-- **Scientific regression test:** simulate a small MS with Pyralysis, inject known antenna phase/gain errors (`PhaseNoiseInjector`, `AntennaGainInjector`) with a fixed seed, run self-cal, and assert that the recovered gains match the injected ones (up to the reference-antenna phase) and that PSNR improves. Any change to the self-cal loop must keep this passing (#32).
+- **Scientific regression test:** `snow.testing.simulate_point_source_ms` simulates a small MS with seeded antenna phase errors, and `injected_phases` returns them. `tests/integration/test_selfcal_recovers_gains_casa.py` self-calibrates it with each imager and asserts that the recovered phases match the injected ones, up to the reference antenna's phase and a source shift (self-cal can't fix the absolute position), and that the PSNR improves. Any change to the self-cal loop must keep it passing (#32).
+- **Import snow as users get it:** `from snow.x import Y`, never `src.snow.x`, also in `mock.patch` and `monkeypatch` targets. Two import paths give two copies of every class, and `isinstance` fails between them.
+- **Assert values, not just form.** A test of a written, recorded or converted value compares what reads back with the value computed the plain way; asserting only a type, a shape or that a call ran passes broken code. A fixture makes the tested quantity non-trivial: e.g. an imaging test whose cell is coarser than the Nyquist cell runs on data the grid can't hold, so it tests nothing (#60). Simulated data must be physically valid for the check.
+- **Compare with physics in mind:** gains up to the degeneracies self-calibration has (reference phase, position), noise-limited tolerances derived from the simulation (e.g. one solution's phase noise σ / (S √((N−1) n_pol))), not tolerances tuned until the test passes.
+- Mocks declare absent data explicitly. A bare `Mock` attribute pretends a column or a capability exists.
 - Every bug fix comes with a test that fails before the fix.
 - Test the README/example recipes at least by import or a dry run.
 
@@ -262,7 +292,7 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 
 ## Branches, commits and releases
 
-- `development` is the integration branch and `master` the release branch. Work on `feature/<topic>` or `fix/<topic>` branches and open PRs into `development`.
+- `development` is the integration branch and `master` the release branch. Work on `chg/<issue>-<slug>` or `fix/<issue>-<slug>` branches from `development` and open PRs into `development`. Never base a PR on another unmerged PR (squash merges strand it). Direct pushes to `development` and `master` are blocked by `tools/hooks/block-protected-push.sh` for agents.
 - Commit prefixes used in history: `CHG:` (change/feature) and `FIX:` (bug fix).
 - Reference the GitHub issue in commits and PRs (`Closes #25`).
 - Semantic versioning via git tags; releases publish to PyPI.

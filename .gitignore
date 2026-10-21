@@ -130,3 +130,6 @@ dmypy.json
 .pyre/
 # Written by older setuptools-scm configurations; the version now comes from package metadata
 src/snow/_version.py
+
+# Personal agent settings
+.claude/settings.local.json

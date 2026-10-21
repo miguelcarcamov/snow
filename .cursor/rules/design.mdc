@@ -53,7 +53,7 @@ Don't use it where ordinary polymorphism (a method on the class) is enough.
 # Parameter budget
 
 - A public constructor takes **at most ~8 parameters**, all of them used. If you need more, group them into a config object or split the class.
-- Don't add a parameter that a preset or the data can supply (spwmap, cell/imsize, noise-based thresholds).
+- Don't add a parameter that theory or the data can supply (spwmap, cell/imsize, noise-based thresholds).
 
 # Policies and strategies
 
