@@ -4,7 +4,7 @@ about: A new capability, imager, calibration type, check or workflow
 labels: enhancement
 ---
 
-<!-- Search existing issues first: https://github.com/miguelcarcamov/snow/issues -->
+<!-- Search existing issues first: https://github.com/miguelcarcamov/wenuray/issues -->
 
 ## Why
 
@@ -12,7 +12,7 @@ labels: enhancement
 
 ## Proposal
 
-<!-- What snow should do. In snow, defaults come from theory or the data, not from one
+<!-- What Wenuray should do. In Wenuray, defaults come from theory or the data, not from one
 instrument; say which, and how a user would write it in a recipe. -->
 
 ## Alternatives considered

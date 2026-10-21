@@ -1,5 +1,5 @@
 """
-Fetch the CASA data snow needs into a directory, without the full casarundata.
+Fetch the CASA data Wenuray needs into a directory, without the full casarundata.
 
 - The measures (IERS Earth orientation, ephemerides; ~20 MB) come from the measures tarball.
 - The observatory positions come from CASA's maintained ``geodetic/Observatories`` table, which only

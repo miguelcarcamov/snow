@@ -2,7 +2,7 @@ import dataclasses
 
 import pytest
 
-from snow.selfcalibration.caltable import CalStack, CalTable, derive_spwmap
+from wenuray.selfcalibration.caltable import CalStack, CalTable, derive_spwmap
 
 
 class TestDeriveSpwmap:

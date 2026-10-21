@@ -4,11 +4,11 @@ import re
 
 import pytest
 
-from snow.config import ImageGeometry, Selection
-from snow.imaging.backends import Tclean
-from snow.imaging.contract import CallableImager, ImagerContractError, ImagingRequest, ImagingResult
-from snow.testing import ImagerContractSuite, simulate_point_source_ms
-from snow.utils.selfcal_utils import SPEED_OF_LIGHT, uv_extent
+from wenuray.config import ImageGeometry, Selection
+from wenuray.imaging.backends import Tclean
+from wenuray.imaging.contract import CallableImager, ImagerContractError, ImagingRequest, ImagingResult
+from wenuray.testing import ImagerContractSuite, simulate_point_source_ms
+from wenuray.utils.selfcal_utils import SPEED_OF_LIGHT, uv_extent
 
 
 class TestTcleanContract(ImagerContractSuite):

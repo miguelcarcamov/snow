@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # flagdata modes that find outliers in the residuals
 RESIDUAL_MODES = ("rflag", "tfcrop", "clip")
-# flagdata parameters set by snow, and where each comes from
+# flagdata parameters set by Wenuray, and where each comes from
 CONTROLLED = {
     "vis": "the run",
     "field": "the Selection",
@@ -69,7 +69,7 @@ class NoFlagging(Flagging):
 class ResidualFlagging(Flagging):
     """
     Flags outliers of the residuals with flagdata. Options use flagdata's own names and defaults,
-    since a good threshold depends on the data; snow sets only the data column, the selection and
+    since a good threshold depends on the data; Wenuray sets only the data column, the selection and
     the action.
 
     Parameters

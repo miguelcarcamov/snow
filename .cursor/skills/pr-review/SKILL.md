@@ -1,7 +1,7 @@
 ---
 name: pr-review
 description: >-
-  Shallow review of an open snow pull request: check CI, fix failures and review comments within
+  Shallow review of an open Wenuray pull request: check CI, fix failures and review comments within
   the PR's scope, resolve mechanical conflicts, and escalate to the maintainer when a fix needs a
   design decision. Use on an open PR ("use pr-review for PR #N"). For a deep review of a diff
   against the rules, use convention-review.

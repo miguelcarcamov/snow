@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from snow.utils import selfcal_utils
+from wenuray.utils import selfcal_utils
 
 
 class FakeTable:

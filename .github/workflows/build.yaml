@@ -39,7 +39,7 @@ jobs:
       run: |
         yapf --recursive --verbose --diff .
 
-  # The documentation must build without warnings. autoapi reads the source, so neither snow nor
+  # The documentation must build without warnings. autoapi reads the source, so neither Wenuray nor
   # CASA is installed
   docs:
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
     - name: Upload the documentation
       uses: actions/upload-artifact@v4
       with:
-        name: snow-docs
+        name: wenuray-docs
         path: docs/_build/html
 
   build:
@@ -85,7 +85,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: snow-artifacts
+        name: wenuray-artifacts
         path: dist/*
 
   test:
@@ -101,10 +101,10 @@ jobs:
         cache-dependency-path: requirements.txt
     - uses: actions/download-artifact@v4
       with:
-        name: snow-artifacts
+        name: wenuray-artifacts
         path: dist/
     # The tests run against the built wheel with the pinned dependency set, not the source tree
-    - name: Install snow from the built wheel
+    - name: Install wenuray from the built wheel
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt "$(ls dist/*.whl)[test]"
@@ -131,14 +131,14 @@ jobs:
       run: |
         mkdir -p ~/.casa
         printf '%s\n' 'measures_auto_update = False' 'data_auto_update = False' > ~/.casa/config.py
-    - name: Import snow with CASA
+    - name: Import wenuray with CASA
       run: |
-        python -c "import snow, snow.imaging, snow.selfcalibration; print(snow.__version__)"
-        snow --version  # the wheel installs the command
+        python -c "import wenuray, wenuray.imaging, wenuray.selfcalibration; print(wenuray.__version__)"
+        wenuray --version  # the wheel installs the command
     - name: Run tests
       run: pytest tests -q
 
-  # Pyralysis (#24) is optional and heavy, so its tests run in a job of their own. snow needs
+  # Pyralysis (#24) is optional and heavy, so its tests run in a job of their own. Wenuray needs
   # Pyralysis 3.1.0 or later (3.0.0's fit reads DATA, not CORRECTED_DATA), which isn't on PyPI: it
   # comes from its release tag, with ska-ost-array-config from SKA's index.
   test-pyralysis:
@@ -157,11 +157,11 @@ jobs:
         cache-dependency-path: requirements.txt
     - uses: actions/download-artifact@v4
       with:
-        name: snow-artifacts
+        name: wenuray-artifacts
         path: dist/
     # Pyralysis 3.0 pins its dependencies exactly (astropy, multimethod, ...), so they replace the
     # pinned set here; only the CASA packages come from requirements.txt (its casatools wheel URL)
-    - name: Install snow and Pyralysis
+    - name: Install wenuray and Pyralysis
       run: |
         python -m pip install --upgrade pip
         grep '^casa' requirements.txt > casa-requirements.txt

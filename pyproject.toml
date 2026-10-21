@@ -1,5 +1,5 @@
-# pyproject.toml - Python project configuration for SNOW
-# SNOW: A Python object-oriented framework for radio-interferometric self-calibration
+# pyproject.toml - Python project configuration for Wenuray
+# Wenuray: radio-interferometric self-calibration
 #
 # This file follows PEP 518, PEP 517, and PEP 621 standards for Python project metadata
 # and build configuration.
@@ -42,7 +42,7 @@ classifiers = [
   # Additional metadata
   "Natural Language :: English"
 ]
-# Only the packages snow imports, as lower bounds so snow installs next to other packages
+# Only the packages Wenuray imports, as lower bounds so Wenuray installs next to other packages
 # (e.g. Pyralysis). requirements.txt pins a tested set for CI and Docker.
 dependencies = [
   "astropy>=6.1",
@@ -71,36 +71,36 @@ license-files = ["LICENSE"]
 maintainers = [
   {name = "Miguel Cárcamo", email = "miguel.carcamo@usach.cl"}
 ]
-# "snow" on PyPI is another project; the import name stays snow
-name = "snow-selfcal"
+# The distribution, the import and the command are all wenuray
+name = "wenuray"
 readme = "README.md"
 # casatools wheels exist for Python 3.12-3.13 (CASA >= 6.7.2); Pyralysis needs <3.14
 requires-python = ">=3.12, <3.14"
 
 # Imagers built by name from configuration files; third-party packages register theirs here too
-[project.entry-points."snow.imagers"]
-pyralysis = "snow.imaging.backends.pyralysis:Pyralysis"
-tclean = "snow.imaging.backends.tclean:Tclean"
+[project.entry-points."wenuray.imagers"]
+pyralysis = "wenuray.imaging.backends.pyralysis:Pyralysis"
+tclean = "wenuray.imaging.backends.tclean:Tclean"
 
 [project.optional-dependencies]
-# Only snow.selfcalibration.observers.GainPlotObserver needs it
+# Only wenuray.selfcalibration.observers.GainPlotObserver needs it
 plots = ["matplotlib>=3.8"]
 # Pyralysis 3.0.0's fit reads DATA, not CORRECTED_DATA (fixed in 3.1.0). PyPI only has older
 # versions: install it from its release tag, as the README shows. It depends on
 # ska-ost-array-config, published on SKA's index.
 pyralysis = ["pyralysis>=3.1.0"]
-# Only snow.utils.reproject() needs it; it pulls in dask, zarr and image libraries
+# Only wenuray.utils.reproject() needs it; it pulls in dask, zarr and image libraries
 reproject = ["reproject>=0.14"]
 test = ["matplotlib>=3.8", "pytest>=8", "reproject>=0.14"]
 
 [project.scripts]
-snow = "snow.cli:main"
+wenuray = "wenuray.cli:main"
 
 # Project URLs (homepage, repository, documentation, etc.)
 [project.urls]
-Homepage = "https://github.com/miguelcarcamov/snow"
-Repository = "https://github.com/miguelcarcamov/snow"
-Source = "https://github.com/miguelcarcamov/snow"
+Homepage = "https://github.com/miguelcarcamov/wenuray"
+Repository = "https://github.com/miguelcarcamov/wenuray"
+Source = "https://github.com/miguelcarcamov/wenuray"
 
 [tool.pytest]
 
@@ -112,8 +112,8 @@ markers = ["casa: runs real CASA tasks (tests/integration, skipped without CASA)
 
 # Package discovery configuration
 [tool.setuptools.packages.find]
-# Find all packages starting with "snow"
-include = ["snow*"]
+# Find all packages starting with "wenuray"
+include = ["wenuray*"]
 # Don't use namespace packages
 namespaces = false
 # Look for packages in the src directory

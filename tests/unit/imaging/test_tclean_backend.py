@@ -1,13 +1,13 @@
-"""The tclean backend (#23): tclean's own parameter names, and snow's settings in one place."""
+"""The tclean backend (#23): tclean's own parameter names, and Wenuray's settings in one place."""
 import os
 from unittest import mock
 
 import pytest
 
-from snow.config import ImageGeometry, Selection, Weighting
-from snow.imaging.backends import tclean as backend
-from snow.imaging.backends.tclean import Tclean
-from snow.imaging.contract import ImagingRequest
+from wenuray.config import ImageGeometry, Selection, Weighting
+from wenuray.imaging.backends import tclean as backend
+from wenuray.imaging.backends.tclean import Tclean
+from wenuray.imaging.contract import ImagingRequest
 
 GEOMETRY = ImageGeometry(imsize=256, cell="0.1arcsec")
 TCLEAN_PARAMETERS = frozenset(
@@ -59,7 +59,7 @@ class TestOptions:
             ("vis", "request"),
         ]
     )
-    def test_settings_snow_controls_are_rejected(self, name, source):
+    def test_settings_wenuray_controls_are_rejected(self, name, source):
         with pytest.raises(TypeError, match=source):
             Tclean(GEOMETRY, **{name: "x"})
 

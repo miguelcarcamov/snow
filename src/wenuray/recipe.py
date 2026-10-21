@@ -30,13 +30,13 @@ imager=Tclean(ImageGeometry(imsize=1024, cell="0.05arcsec"), niter=1000),
 steps=[Phasecal("inf"), AmpPhasecal("inf", imaging={"threshold": "0.025mJy"})]).
 
 The tables of the imager, the steps, the acceptance policies and the flagging name their class with
-type: a built-in name (see FAMILIES), an imager registered under the "snow.imagers" entry point, or
+type: a built-in name (see FAMILIES), an imager registered under the "wenuray.imagers" entry point, or
 "package.module:Class" for a class of your own.
 
 preset = "setup.toml" lays the recipe over another TOML file, e.g. the solve options and imager
-settings a group shares; tables merge key by key and the recipe wins. snow's own paths in a recipe
+settings a group shares; tables merge key by key and the recipe wins. Wenuray's own paths in a recipe
 (ms, output, preset, the initial_stack tables) are relative to the recipe's directory; the
-imager's options are passed as written. snow ships no presets: its defaults come from theory
+imager's options are passed as written. Wenuray ships no presets: its defaults come from theory
 or the data, not from an instrument.
 
 Classes serialise their dataclass fields, leaving out the values that equal the defaults. A class
@@ -57,31 +57,31 @@ from typing import Any, Iterator, Mapping, Optional
 # Built-in names of each family's classes, imported when needed (the classes import this module)
 FAMILIES = {
     "step": {
-        "phase": "snow.selfcalibration.steps:Phasecal",
-        "amp": "snow.selfcalibration.steps:Ampcal",
-        "ampphase": "snow.selfcalibration.steps:AmpPhasecal",
+        "phase": "wenuray.selfcalibration.steps:Phasecal",
+        "amp": "wenuray.selfcalibration.steps:Ampcal",
+        "ampphase": "wenuray.selfcalibration.steps:AmpPhasecal",
     },
     "acceptance": {
-        "psnr_improves": "snow.selfcalibration.acceptance:PSNRImproves",
-        "flux_not_lost": "snow.selfcalibration.acceptance:FluxNotLost",
-        "enough_antennas": "snow.selfcalibration.acceptance:EnoughAntennas",
-        "beam_stable": "snow.selfcalibration.acceptance:BeamStable",
-        "flagged_fraction_below": "snow.selfcalibration.acceptance:FlaggedFractionBelow",
-        "all_of": "snow.selfcalibration.acceptance:AllOf",
-        "any_of": "snow.selfcalibration.acceptance:AnyOf",
+        "psnr_improves": "wenuray.selfcalibration.acceptance:PSNRImproves",
+        "flux_not_lost": "wenuray.selfcalibration.acceptance:FluxNotLost",
+        "enough_antennas": "wenuray.selfcalibration.acceptance:EnoughAntennas",
+        "beam_stable": "wenuray.selfcalibration.acceptance:BeamStable",
+        "flagged_fraction_below": "wenuray.selfcalibration.acceptance:FlaggedFractionBelow",
+        "all_of": "wenuray.selfcalibration.acceptance:AllOf",
+        "any_of": "wenuray.selfcalibration.acceptance:AnyOf",
     },
     "flagging": {
-        "none": "snow.selfcalibration.flagging:NoFlagging",
-        "residual": "snow.selfcalibration.flagging:ResidualFlagging",
+        "none": "wenuray.selfcalibration.flagging:NoFlagging",
+        "residual": "wenuray.selfcalibration.flagging:ResidualFlagging",
     },
-    # Imagers come from the "snow.imagers" entry points (snow.imaging.registry)
+    # Imagers come from the "wenuray.imagers" entry points (wenuray.imaging.registry)
     "imager": {},
 }
 BASES = {
-    "step": "snow.selfcalibration.steps:CalibrationStep",
-    "acceptance": "snow.selfcalibration.acceptance:AcceptancePolicy",
-    "flagging": "snow.selfcalibration.flagging:Flagging",
-    "imager": "snow.imaging.contract:Imager",
+    "step": "wenuray.selfcalibration.steps:CalibrationStep",
+    "acceptance": "wenuray.selfcalibration.acceptance:AcceptancePolicy",
+    "flagging": "wenuray.selfcalibration.flagging:Flagging",
+    "imager": "wenuray.imaging.contract:Imager",
 }
 
 # Whether encode() writes the values that equal their defaults too
@@ -92,7 +92,7 @@ _WITH_DEFAULTS = contextvars.ContextVar("with_defaults", default=False)
 def with_defaults() -> Iterator[None]:
     """
     Within it, encode() also writes the values that equal their defaults: the fully resolved
-    recipe, e.g. for `snow show --defaults` or a run record
+    recipe, e.g. for `wenuray show --defaults` or a run record
     """
     token = _WITH_DEFAULTS.set(True)
     try:

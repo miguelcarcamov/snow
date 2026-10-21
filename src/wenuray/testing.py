@@ -4,7 +4,7 @@ Test helpers for imagers and self-calibration with real CASA (#23, #32). They ne
 ImagerContractSuite checks that an imager, also a user's own, follows the self-calibration
 contract:
 
-    from snow.testing import ImagerContractSuite
+    from wenuray.testing import ImagerContractSuite
 
     class TestMyImager(ImagerContractSuite):
         imager = MyImager(...)

@@ -13,13 +13,13 @@ from pathlib import Path
 
 from casatasks import flagdata, flagmanager, mstransform, split
 
-from snow.config import ApplyOptions, ImageGeometry, Selection, SolveOptions, Weighting
-from snow.imaging import Tclean
-from snow.selfcalibration import (
+from wenuray.config import ApplyOptions, ImageGeometry, Selection, SolveOptions, Weighting
+from wenuray.imaging import Tclean
+from wenuray.selfcalibration import (
     AmpPhasecal, CalStack, CalTable, GainPlotObserver, LoggingObserver, ResidualFlagging, Selfcal
 )
-from snow.selfcalibration.caltable import derive_spwmap
-from snow.utils import count_spectral_windows, get_spw_ids
+from wenuray.selfcalibration.caltable import derive_spwmap
+from wenuray.utils import count_spectral_windows, get_spw_ids
 
 # Amplitude-phase solution intervals, from long to short, cleaning deeper as calibration improves
 SOLINTS = ["14min", "7min", "3.5min"]
@@ -86,7 +86,7 @@ def flag_residual_rfi(vis: str, spw_groups: list) -> None:
 
 if __name__ == '__main__':
     args = parse_arguments()
-    # snow logs each self-calibration round's metrics at INFO
+    # Wenuray logs each self-calibration round's metrics at INFO
     logging.basicConfig(level=logging.INFO)
 
     # Self-calibration solves against DATA, so the calibrated target is split into DATA first

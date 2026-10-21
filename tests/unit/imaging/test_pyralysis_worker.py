@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from snow.imaging.backends import _pyralysis_worker as worker
+from wenuray.imaging.backends import _pyralysis_worker as worker
 
 
 def dataset(*columns_per_partition):

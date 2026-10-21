@@ -1,12 +1,12 @@
-"""Imagers by name through the snow.imagers entry point group (#23)."""
+"""Imagers by name through the wenuray.imagers entry point group (#23)."""
 from types import SimpleNamespace
 
 import pytest
 
-from snow.config import ImageGeometry
-from snow.imaging import registry
-from snow.imaging.backends import tclean as backend
-from snow.imaging.backends.tclean import Tclean
+from wenuray.config import ImageGeometry
+from wenuray.imaging import registry
+from wenuray.imaging.backends import tclean as backend
+from wenuray.imaging.backends.tclean import Tclean
 
 
 def entry_point(name, loaded):
@@ -19,7 +19,7 @@ def registered(monkeypatch):
     points = [entry_point("tclean", Tclean), entry_point("notanimager", dict)]
 
     def entry_points(group, name=None):
-        assert group == "snow.imagers"
+        assert group == "wenuray.imagers"
         return [point for point in points if name is None or point.name == name]
 
     monkeypatch.setattr(registry, "entry_points", entry_points)

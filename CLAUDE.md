@@ -4,9 +4,9 @@ Guidance for Claude Code when working in this repository.
 
 ## What this project is
 
-snow is a Python framework for radio-interferometric **self-calibration** on top of CASA (`casatasks`/`casatools`), with pluggable imagers (`tclean` today; Pyralysis, which replaces the deprecated GPUvmem, is the target). Its purpose is to let astronomers describe a self-cal procedure **briefly and reproducibly** instead of rewriting a one-off script for every dataset. Every change should make that easier, and stay correct by self-cal theory.
+Wenuray is a Python framework for radio-interferometric **self-calibration** on top of CASA (`casatasks`/`casatools`), with pluggable imagers (`tclean` today; Pyralysis, which replaces the deprecated GPUvmem, is the target). Its purpose is to let astronomers describe a self-cal procedure **briefly and reproducibly** instead of rewriting a one-off script for every dataset. Every change should make that easier, and stay correct by self-cal theory.
 
-Source lives in `src/snow/`: `selfcalibration/` (self-cal loop), `imaging/` (imager backends) and `utils/`. Examples are in `examples/<name>/`: a `recipe.toml` and a `selfcal.py` that build the same run.
+Source lives in `src/wenuray/`: `selfcalibration/` (self-cal loop), `imaging/` (imager backends) and `utils/`. Examples are in `examples/<name>/`: a `recipe.toml` and a `selfcal.py` that build the same run.
 
 ## Agents, skills and hooks
 
@@ -42,7 +42,7 @@ Highlights to keep in mind:
 
 ## Roadmap and issues
 
-The redesign is tracked on GitHub (`miguelcarcamov/snow`), milestone **"v1.0 redesign"**:
+The redesign is tracked on GitHub (`miguelcarcamov/wenuray`), milestone **"v1.0 redesign"**:
 
 - Epic: #22.
 - Imager interface: #23.
@@ -69,8 +69,8 @@ pre-commit install
 - CASA wheels exist only for specific Python versions; check `requires-python` in `pyproject.toml`.
 - CASA needs measures data (`casaconfig`) the first time `casatools` is imported. Without network access, provide a measures directory. The base image ships it in `/opt/casa/data`.
 - `requirements.txt` installs casatools from its `manylinux_2_28` wheel: the `manylinux_2_34` wheel fails to import outside RHEL-like systems (`OPENSSL_3.0.1 not found`).
-- The Docker images (`ghcr.io/miguelcarcamov/snow:base`, `:latest`) are optional and kept small: `python:3.12-slim`, the pinned dependencies, CASA measures data only, no CUDA (Pyralysis brings that in #24). Build locally with `docker build .`; `--build-arg MEASURES_SITE=<url>` picks another measures server.
-- `reproject` is an optional extra (`snow-selfcal[reproject]`), imported inside `snow.utils.reproject()` only.
+- The Docker images (`ghcr.io/miguelcarcamov/wenuray:base`, `:latest`) are optional and kept small: `python:3.12-slim`, the pinned dependencies, CASA measures data only, no CUDA (Pyralysis brings that in #24). Build locally with `docker build .`; `--build-arg MEASURES_SITE=<url>` picks another measures server.
+- `reproject` is an optional extra (`wenuray[reproject]`), imported inside `wenuray.utils.reproject()` only.
 
 ## Tests and linting
 
@@ -81,7 +81,7 @@ pre-commit run --all-files             # yapf, YAML/TOML formatting, markdownlin
 python tools/sync_conventions.py --check
 ```
 
-When you add behaviour, add the test under `tests/unit/` mirroring `src/snow/`; anything that needs CASA goes in `tests/integration/` on `snow.testing`'s simulated data. Run CASA tests in the Docker image where `casatools` can't import natively (`AGENTS.md`).
+When you add behaviour, add the test under `tests/unit/` mirroring `src/wenuray/`; anything that needs CASA goes in `tests/integration/` on `wenuray.testing`'s simulated data. Run CASA tests in the Docker image where `casatools` can't import natively (`AGENTS.md`).
 
 ## Commits and branches
 

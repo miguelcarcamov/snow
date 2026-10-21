@@ -1,7 +1,7 @@
 ---
 name: docs-maintainer
 description: >-
-  Improve snow's documentation: README, Sphinx pages (MyST Markdown, Read the Docs), examples and
+  Improve Wenuray's documentation: README, Sphinx pages (MyST Markdown, Read the Docs), examples and
   docstrings, keeping docs and code in step. Docs-only PRs. Use for documentation issues or when
   asked to audit or improve the docs.
 ---
@@ -23,7 +23,7 @@ or use `feature-dev`.
 ## Goals, in order
 
 1. **Correctness:** every snippet runs against the current API; names, defaults and file paths
-   match the code; instrument values in examples are marked as the example's, not snow's.
+   match the code; instrument values in examples are marked as the example's, not Wenuray's.
 2. **Parity:** every public class and option is documented; recipes and scripts in `examples/`
    build equal runs (a test checks it).
 3. **Structure:** pages in the right toctree, no duplication (the README is included, not copied).

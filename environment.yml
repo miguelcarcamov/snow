@@ -1,5 +1,4 @@
-# Conda environment file for the SNOW (Self-calibration) project
-# SNOW: A Python object-oriented framework for radio-interferometric self-calibration
+# Conda environment file for Wenuray, radio-interferometric self-calibration
 #
 # To create this environment:
 #   conda env create -f environment.yml
@@ -8,9 +7,9 @@
 #   conda env update -f environment.yml --prune
 #
 # To activate this environment:
-#   conda activate snow-env
+#   conda activate wenuray-env
 
-name: snow-env
+name: wenuray-env
 
 channels:
 - conda-forge

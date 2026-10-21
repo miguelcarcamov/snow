@@ -37,5 +37,5 @@ These are domain rules, not style preferences. Code that breaks them produces wr
 
 ## Reproducibility
 
-- Each run records: the fully resolved config (presets and defaults expanded), snow/CASA/backend versions, an input MS fingerprint, the accepted table stack, and per-round metrics.
+- Each run records: the fully resolved config (presets and defaults expanded), Wenuray/CASA/backend versions, an input MS fingerprint, the accepted table stack, and per-round metrics.
 - No hidden randomness. If a backend is stochastic, a seed is part of the config.

@@ -24,5 +24,5 @@ alwaysApply: true
 - Use NumPy vectorisation and broadcasting over Python loops on rows; loop over baselines,
   spectral windows or tables, not over visibilities.
 - Profile before optimising (`cProfile`, `line_profiler`). Most of a run's time is in CASA tasks
-  and the imager; optimise snow's own code only where a profile shows it matters.
+  and the imager; optimise Wenuray's own code only where a profile shows it matters.
 - Use the dtype's limits (`np.finfo(dtype).eps`) instead of hard-coded small constants.

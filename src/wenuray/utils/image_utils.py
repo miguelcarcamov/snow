@@ -189,12 +189,12 @@ def reproject(fits_file_to_resamp: str = "",
         mask_WCS = WCS(header=header_mask).celestial
 
         logger.info("Resampling %s onto the grid of %s", fits_file_to_resamp, fits_file_model)
-        # Optional dependency (snow-selfcal[reproject]), imported here so the core stays light
+        # Optional dependency (wenuray[reproject]), imported here so the core stays light
         try:
             from reproject import reproject_interp
         except ImportError as error:
             raise ImportError(
-                "reproject() needs the reproject package: pip install 'snow-selfcal[reproject]'"
+                "reproject() needs the reproject package: pip install 'wenuray[reproject]'"
             ) from error
         reprojected_array = reproject_interp(
             (data_mask, mask_WCS),

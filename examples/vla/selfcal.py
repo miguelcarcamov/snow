@@ -8,9 +8,9 @@ import logging
 
 from casatasks import split
 
-from snow.config import ImageGeometry, SolveOptions, Weighting
-from snow.imaging import Tclean
-from snow.selfcalibration import AmpPhasecal, GainPlotObserver, LoggingObserver, Phasecal, Selfcal
+from wenuray.config import ImageGeometry, SolveOptions, Weighting
+from wenuray.imaging import Tclean
+from wenuray.selfcalibration import AmpPhasecal, GainPlotObserver, LoggingObserver, Phasecal, Selfcal
 
 
 def parse_arguments():
@@ -23,7 +23,7 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    # snow logs each self-calibration round's metrics at INFO
+    # Wenuray logs each self-calibration round's metrics at INFO
     logging.basicConfig(level=logging.INFO)
 
     # tclean's own parameter names. Automasking values for the VLA:

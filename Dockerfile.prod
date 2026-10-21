@@ -1,15 +1,15 @@
 # BASE_IMAGE lets a locally built base be tested: docker build --build-arg BASE_IMAGE=<tag>
-ARG BASE_IMAGE=ghcr.io/miguelcarcamov/snow:base
+ARG BASE_IMAGE=ghcr.io/miguelcarcamov/wenuray:base
 FROM ${BASE_IMAGE}
 
-# Install the snow wheel from dist/: in CI this is the wheel built and tested from the same commit
+# Install the Wenuray wheel from dist/: in CI this is the wheel built and tested from the same commit
 # (see .github/workflows/build_latest_container.yaml). Locally, run `python3 -m build --wheel`
 # before `docker build -f Dockerfile.prod .`.
 COPY dist/*.whl /tmp/dist/
 # The base image already holds the pinned dependencies and the CASA data in /opt/casa/data
 RUN python3 -m pip install --no-cache-dir /tmp/dist/*.whl && \
     rm -rf /tmp/dist && \
-    python3 -c "import snow.imaging, snow.selfcalibration; print('snow', snow.__version__)"
-LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
-LABEL org.opencontainers.image.description="Container image for SNOW"
+    python3 -c "import wenuray.imaging, wenuray.selfcalibration; print('wenuray', wenuray.__version__)"
+LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/wenuray"
+LABEL org.opencontainers.image.description="Container image for Wenuray, radio-interferometric self-calibration"
 LABEL org.opencontainers.image.licenses=GPL-3.0-or-later

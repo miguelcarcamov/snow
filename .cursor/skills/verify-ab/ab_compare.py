@@ -1,5 +1,5 @@
 """
-Compares two runs recorded by ab_run.py (or any two snow output directories):
+Compares two runs recorded by ab_run.py (or any two Wenuray output directories):
 
     python ab_compare.py <branch_out> <dev_out> [--rtol 1e-6]
 

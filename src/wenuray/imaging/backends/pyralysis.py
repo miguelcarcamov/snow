@@ -1,5 +1,5 @@
 """
-Pyralysis as a self-calibration imager (#24). Install it with snow's "pyralysis" extra.
+Pyralysis as a self-calibration imager (#24). Install it with Wenuray's "pyralysis" extra.
 
     Pyralysis(ImageGeometry(imsize=512, cell="0.1arcsec"), Weighting("briggs", robust=0.5),
               terms=["chi_squared", "l1norm:1e-3"], optimizer="lbfgsb", max_iter=200)
@@ -12,7 +12,7 @@ default reconstruction: which terms and optimizer suit the data is the user's ch
 Constrain where the model may have flux, e.g. with mask_mode="file" and a mask_path around the
 sources, as CLEAN boxes do: with every pixel free, the model can absorb antenna-based gain errors
 instead of leaving them for gaincal, so self-calibration corrects little while the PSNR still
-rises. snow warns when no mask is set.
+rises. Wenuray warns when no mask is set.
 
 Each reconstruction runs in a separate Python process (_pyralysis_worker.py), because casatools
 and python-casacore, which Pyralysis reads measurement sets with, crash in one process.
@@ -41,7 +41,7 @@ from ..contract import Imager, ImagingRequest, ImagingResult
 logger = logging.getLogger(__name__)
 
 WORKER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_pyralysis_worker.py")
-# Pyralysis CLI options that snow sets, and where each comes from
+# Pyralysis CLI options that Wenuray sets, and where each comes from
 CONTROLLED = {
     "input_path": "the request",
     "input_format": "the request",
@@ -61,7 +61,7 @@ CONTROLLED = {
     "hermitian_symmetry": "the imager (off: it folds the visibilities in place)",
 }
 
-# snow's weighting schemes and their Pyralysis names
+# Wenuray's weighting schemes and their Pyralysis names
 WEIGHTINGS = {"natural": "natural", "uniform": "uniform", "briggs": "robust"}
 
 
@@ -235,8 +235,9 @@ def _run(request: dict, cwd: str = None) -> None:
         return
     if reply.get("error", "").startswith("ModuleNotFoundError"):
         raise ImportError(
-            "The Pyralysis imager needs Pyralysis: pip install 'snow-selfcal[pyralysis]' ({0})".
-            format(reply["error"])
+            "The Pyralysis imager needs Pyralysis: pip install 'wenuray[pyralysis]' ({0})".format(
+                reply["error"]
+            )
         )
     message = reply.get("error") or process.stderr.strip()[-2000:]
     if reply.get("error", "").startswith("ThreadingLayerError"):

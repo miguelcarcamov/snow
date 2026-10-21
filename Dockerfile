@@ -1,5 +1,5 @@
-# Base image: Python, snow's pinned dependencies and CASA's measures data, kept small.
-# - No CUDA: nothing in snow uses the GPU yet. GPUvmem was removed and Pyralysis (#24) brings its
+# Base image: Python, Wenuray's pinned dependencies and CASA's measures data, kept small.
+# - No CUDA: nothing in Wenuray uses the GPU yet. GPUvmem was removed and Pyralysis (#24) brings its
 #   own CUDA requirements when it is added.
 # - The casatools wheels bundle casacore, so nothing is compiled.
 # - Python 3.12 is supported by both CASA (>= 6.7.2) and Pyralysis (#30).
@@ -74,6 +74,6 @@ COPY --from=measures /opt/casa /opt/casa
 RUN python -c "import casatasks, casatools; print('casatools', casatools.version_string()); \
 me = casatools.measures(); assert all(me.observatory(t) for t in ('VLA', 'ALMA'))"
 
-LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/snow"
-LABEL org.opencontainers.image.description="Container image for SNOW"
+LABEL org.opencontainers.image.source="https://github.com/miguelcarcamov/wenuray"
+LABEL org.opencontainers.image.description="Container image for Wenuray, radio-interferometric self-calibration"
 LABEL org.opencontainers.image.licenses=GPL-3.0-or-later

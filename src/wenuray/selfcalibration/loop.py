@@ -1,6 +1,6 @@
 """
-The self-calibration loop (#22): the only one in snow. Steps provide data and hooks, the imager
-follows the contract of snow.imaging.contract, the acceptance policies decide, and CalStack builds
+The self-calibration loop (#22): the only one in Wenuray. Steps provide data and hooks, the imager
+follows the contract of wenuray.imaging.contract, the acceptance policies decide, and CalStack builds
 every table list::
 
     result = Selfcal(
@@ -56,7 +56,7 @@ from .workspace import MSWorkspace
 logger = logging.getLogger(__name__)
 
 RESULT_FILE = "selfcal.toml"
-# The run as a resolved recipe: `snow run <output>/recipe.toml --output <new>` reruns it
+# The run as a resolved recipe: `wenuray run <output>/recipe.toml --output <new>` reruns it
 RECIPE_FILE = "recipe.toml"
 
 
@@ -151,7 +151,7 @@ class Selfcal:
     @classmethod
     def from_recipe(cls, table: Mapping) -> Selfcal:
         """
-        Builds a run from a recipe table (snow.recipe) whose paths are absolute or relative to the
+        Builds a run from a recipe table (wenuray.recipe) whose paths are absolute or relative to the
         working directory
         """
         table = recipe.decode_configs(
@@ -171,7 +171,7 @@ class Selfcal:
     @classmethod
     def from_toml(cls, path: Union[str, os.PathLike]) -> Selfcal:
         """
-        Builds a run from a TOML recipe and its presets; see snow.recipe. Paths in the recipe are
+        Builds a run from a TOML recipe and its presets; see wenuray.recipe. Paths in the recipe are
         relative to its directory
         """
         return cls.from_recipe(recipe.read(os.fspath(path)))
@@ -325,7 +325,7 @@ class Selfcal:
             with open(recipe_path, "wb") as file:
                 tomli_w.dump(table, file)
         versions = {"python": platform.python_version()}
-        for distribution in ("snow-selfcal", "casatools", "casatasks", "numpy", "astropy"):
+        for distribution in ("wenuray", "casatools", "casatasks", "numpy", "astropy"):
             try:
                 versions[distribution] = metadata.version(distribution)
             except metadata.PackageNotFoundError:

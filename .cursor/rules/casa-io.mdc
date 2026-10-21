@@ -14,7 +14,7 @@ alwaysApply: false
 
 # Files and directories
 
-- Never run shell commands to delete files (`os.system("rm -rf ...")`). Remove only paths snow created itself, with `shutil.rmtree`/`Path.unlink`.
+- Never run shell commands to delete files (`os.system("rm -rf ...")`). Remove only paths Wenuray created itself, with `shutil.rmtree`/`Path.unlink`.
 - Put temporary products in a per-run directory (`tempfile.mkdtemp` under the output directory), never in the current working directory with fixed names.
 - Build paths with `pathlib.Path`. Don't concatenate strings or `partition(".ms")`.
 - A Measurement Set comes with a sibling `<ms>.flagversions` directory. Copying, moving or deleting the MS must handle both.

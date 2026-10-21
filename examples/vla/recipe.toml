@@ -2,7 +2,7 @@
 # form of selfcal.py, which builds the same run. The values suit this example's data; adapt them
 # to yours.
 #
-# snow run recipe.toml --ms target.ms --output target_selfcal
+# wenuray run recipe.toml --ms target.ms --output target_selfcal
 
 ms = "target.ms"
 output = "target_selfcal"

@@ -1,5 +1,5 @@
 """
-Runs one seeded self-calibration with the snow on PYTHONPATH and records it for ab_compare.py:
+Runs one seeded self-calibration with the Wenuray on PYTHONPATH and records it for ab_compare.py:
 
     PYTHONPATH=<tree>/src python ab_run.py <out> [--recipe recipe.toml] [--imager tclean|pyralysis]
 
@@ -63,10 +63,10 @@ def main() -> None:
     parser.add_argument("--imager", choices=sorted(IMAGERS), default="tclean")
     args = parser.parse_args()
 
-    import snow
-    from snow import recipe
-    from snow.selfcalibration import Selfcal
-    from snow.testing import simulate_point_source_ms
+    import wenuray
+    from wenuray import recipe
+    from wenuray.selfcalibration import Selfcal
+    from wenuray.testing import simulate_point_source_ms
 
     work = args.out.with_name(args.out.name + "_work")
     work.mkdir(parents=True, exist_ok=False)
@@ -85,7 +85,7 @@ def main() -> None:
     seconds = time.perf_counter() - start
 
     record = {
-        "snow": snow.__version__,
+        "wenuray": wenuray.__version__,
         "seconds": seconds,
         "peak_rss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024,
         "children_peak_rss_mb": resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024,

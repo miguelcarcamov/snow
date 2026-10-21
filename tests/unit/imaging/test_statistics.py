@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from snow.imaging.statistics import ImageStatistics
+from wenuray.imaging.statistics import ImageStatistics
 
 
 @pytest.fixture

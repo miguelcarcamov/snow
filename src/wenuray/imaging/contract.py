@@ -11,11 +11,11 @@ selected data (#60): the grid can't hold the longest baselines, so their model w
 
 Imager.image() enforces the second point around every call: it removes any model left from before,
 runs the imager, and checks that a model was written for the selected data. The first point can't
-be observed cheaply, so snow.testing.ImagerContractSuite proves it on simulated data where only
+be observed cheaply, so wenuray.testing.ImagerContractSuite proves it on simulated data where only
 CORRECTED_DATA is clean.
 
 Plug in an imager by subclassing Imager and implementing _reconstruct, by wrapping a function with
-CallableImager, or by name through the "snow.imagers" entry point (snow.imaging.registry).
+CallableImager, or by name through the "wenuray.imagers" entry point (wenuray.imaging.registry).
 """
 from __future__ import annotations
 

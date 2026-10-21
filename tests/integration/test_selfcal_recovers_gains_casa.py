@@ -12,11 +12,11 @@ import importlib.util
 import numpy as np
 import pytest
 
-from snow.config import ImageGeometry, SolveOptions
-from snow.imaging.backends import Pyralysis, Tclean
-from snow.selfcalibration import Phasecal, Selfcal
-from snow.testing import injected_phases, simulate_point_source_ms
-from snow.utils.selfcal_utils import SPEED_OF_LIGHT, open_table
+from wenuray.config import ImageGeometry, SolveOptions
+from wenuray.imaging.backends import Pyralysis, Tclean
+from wenuray.selfcalibration import Phasecal, Selfcal
+from wenuray.testing import injected_phases, simulate_point_source_ms
+from wenuray.utils.selfcal_utils import SPEED_OF_LIGHT, open_table
 
 GEOMETRY = ImageGeometry(imsize=128, cell="1arcsec")
 

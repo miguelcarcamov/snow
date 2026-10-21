@@ -1,10 +1,10 @@
 # Cursor project rules
 
-Conventions for snow contributors and AI agents. Cursor loads every `.mdc` file in this directory according to its `description`, `globs` and `alwaysApply` frontmatter. `CONVENTIONS.md` at the repo root mirrors these files for other tools. Claude Code reads them through `CLAUDE.md`.
+Conventions for Wenuray contributors and AI agents. Cursor loads every `.mdc` file in this directory according to its `description`, `globs` and `alwaysApply` frontmatter. `CONVENTIONS.md` at the repo root mirrors these files for other tools. Claude Code reads them through `CLAUDE.md`.
 
 | File | Topic |
 |------|-------|
-| [`general.mdc`](general.mdc) | Purpose of snow and general principles — read first |
+| [`general.mdc`](general.mdc) | Purpose of Wenuray and general principles — read first |
 | [`design.mdc`](design.mdc) | Parameter budget, config objects, rounds, policies, backends |
 | [`selfcal-domain.mdc`](selfcal-domain.mdc) | Self-calibration theory invariants |
 | [`casa-io.mdc`](casa-io.mdc) | CASA tools, Measurement Sets, files, subprocesses, FITS |

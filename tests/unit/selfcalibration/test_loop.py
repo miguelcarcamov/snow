@@ -9,19 +9,19 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from snow.config import Selection, SolveOptions
-from snow.imaging import contract
-from snow.imaging.contract import Imager, ImagingResult
-from snow.imaging.statistics import ImageStatistics
-from snow.selfcalibration import loop, observers, workspace
-from snow.selfcalibration.acceptance import AllOf, PSNRImproves
-from snow.selfcalibration.caltable import CalStack, CalTable
-from snow.selfcalibration.flagging import Flagging
-from snow.selfcalibration.loop import Selfcal
-from snow.selfcalibration.observers import GainPlotObserver, SelfcalObserver
-from snow.selfcalibration.result import SelfcalResult
-from snow.selfcalibration.schedule import ScheduleError
-from snow.selfcalibration.steps import AmpPhasecal, Ampcal, Phasecal
+from wenuray.config import Selection, SolveOptions
+from wenuray.imaging import contract
+from wenuray.imaging.contract import Imager, ImagingResult
+from wenuray.imaging.statistics import ImageStatistics
+from wenuray.selfcalibration import loop, observers, workspace
+from wenuray.selfcalibration.acceptance import AllOf, PSNRImproves
+from wenuray.selfcalibration.caltable import CalStack, CalTable
+from wenuray.selfcalibration.flagging import Flagging
+from wenuray.selfcalibration.loop import Selfcal
+from wenuray.selfcalibration.observers import GainPlotObserver, SelfcalObserver
+from wenuray.selfcalibration.result import SelfcalResult
+from wenuray.selfcalibration.schedule import ScheduleError
+from wenuray.selfcalibration.steps import AmpPhasecal, Ampcal, Phasecal
 
 
 @dataclasses.dataclass(frozen=True)
@@ -157,8 +157,8 @@ class TestAcceptedRounds:
         ]
         saved = [name for mode, name in modes if mode == "save"]
         assert saved == [
-            "snow_selfcal_round0", "snow_selfcal_round1", "snow_selfcal_round2",
-            "snow_selfcal_round3"
+            "wenuray_selfcal_round0", "wenuray_selfcal_round1", "wenuray_selfcal_round2",
+            "wenuray_selfcal_round3"
         ]
         assert sorted(name for mode, name in modes if mode == "delete") == sorted(saved)
 
@@ -190,7 +190,7 @@ class TestRejection:
             call.kwargs["versionname"] for call in casa.flagmanager.call_args_list
             if call.kwargs["mode"] == "restore"
         ]
-        assert restored == ["snow_selfcal_round1"]
+        assert restored == ["wenuray_selfcal_round1"]
         assert table_names(casa.workspace_applycal.call_args) == ["round1_p.cal"]
 
     def test_the_accepted_model_is_imaged_again(self, run):
@@ -252,7 +252,7 @@ def test_the_step_policy_wins_over_the_run_policy(casa):
 def test_corrected_data_that_differs_from_data_is_reset_with_a_warning(casa, caplog):
     casa.corrected_matches = False
 
-    with caplog.at_level(logging.WARNING, logger="snow"):
+    with caplog.at_level(logging.WARNING, logger="wenuray"):
         Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run()
 
     assert "differs from DATA" in caplog.text
@@ -292,17 +292,17 @@ class TestObservers:
         ]
 
     def test_logging_is_the_default(self, casa, caplog):
-        with caplog.at_level(logging.INFO, logger="snow"):
+        with caplog.at_level(logging.INFO, logger="wenuray"):
             Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run()
 
         assert "Round 1 Phasecal('inf') - PSNR: 2000.000" in caplog.text
         assert "1 of 1 steps accepted" in caplog.text
 
     def test_no_observers_means_no_logging(self, casa, caplog):
-        with caplog.at_level(logging.INFO, logger="snow.selfcalibration.observers"):
+        with caplog.at_level(logging.INFO, logger="wenuray.selfcalibration.observers"):
             Selfcal(casa.ms, imager(1.0, 2.0), [Phasecal("inf")]).run(observers=())
 
-        assert [r for r in caplog.records if r.name == "snow.selfcalibration.observers"] == []
+        assert [r for r in caplog.records if r.name == "wenuray.selfcalibration.observers"] == []
 
 
 class TestResume:
@@ -466,7 +466,7 @@ class TestPredictedSolutionSNR:
 
     @staticmethod
     def sample(noise):
-        from snow.selfcalibration.preflight import VisibilitySample
+        from wenuray.selfcalibration.preflight import VisibilitySample
         return VisibilitySample(1.0, noise, 8, 60.0, 7200.0, 7200.0, (1, ), 2)
 
     def test_is_recorded_for_each_step(self, casa):

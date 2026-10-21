@@ -3,9 +3,9 @@ import math
 
 import pytest
 
-from snow.config import SolveOptions
-from snow.selfcalibration.preflight import VisibilitySample, predict
-from snow.selfcalibration.steps import Ampcal, Phasecal
+from wenuray.config import SolveOptions
+from wenuray.selfcalibration.preflight import VisibilitySample, predict
+from wenuray.selfcalibration.steps import Ampcal, Phasecal
 
 # 1 Jy over 0.1 Jy noise with 10 antennas: 10 * 3 = 30 for one integration, channel and hand
 SAMPLE = VisibilitySample(

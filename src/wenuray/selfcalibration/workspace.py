@@ -33,7 +33,7 @@ class MSWorkspace:
     ms: str
     selection: Selection
     apply: ApplyOptions
-    prefix: str = "snow_selfcal"
+    prefix: str = "wenuray_selfcal"
 
     def _version(self, name: str) -> str:
         return "{0}_{1}".format(self.prefix, name)

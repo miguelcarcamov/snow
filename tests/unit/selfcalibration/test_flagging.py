@@ -1,12 +1,12 @@
-"""Optional residual flagging (#57): flagdata's own names, snow's settings in one place."""
+"""Optional residual flagging (#57): flagdata's own names, Wenuray's settings in one place."""
 from unittest import mock
 
 import pytest
 
-from snow.config import Selection
-from snow.selfcalibration import flagging
-from snow.selfcalibration.flagging import NoFlagging, ResidualFlagging
-from snow.selfcalibration.steps import AmpPhasecal, Phasecal
+from wenuray.config import Selection
+from wenuray.selfcalibration import flagging
+from wenuray.selfcalibration.flagging import NoFlagging, ResidualFlagging
+from wenuray.selfcalibration.steps import AmpPhasecal, Phasecal
 
 FLAGDATA_PARAMETERS = frozenset(
     {
@@ -52,7 +52,7 @@ class TestOptions:
         "name, source",
         [("datacolumn", "residual"), ("spw", "Selection"), ("flagbackup", "snapshots")]
     )
-    def test_settings_snow_controls_are_rejected(self, name, source):
+    def test_settings_wenuray_controls_are_rejected(self, name, source):
         with pytest.raises(TypeError, match=source):
             ResidualFlagging("rflag", **{name: "x"})
 
@@ -60,7 +60,7 @@ class TestOptions:
         with pytest.raises(TypeError, match="timedev_scale"):
             ResidualFlagging("rflag", timedev_scale=3.0)
 
-    def test_no_default_thresholds_of_snows_own(self):
+    def test_no_default_thresholds_of_wenurays_own(self):
         """A good threshold depends on the data, so flagdata's defaults apply."""
         assert dict(ResidualFlagging().options) == {}
 

@@ -1,14 +1,14 @@
 ---
 name: feature-dev
 description: >-
-  Implement a snow GitHub issue end to end: plan, branch from development, code per the repo's
+  Implement a Wenuray GitHub issue end to end: plan, branch from development, code per the repo's
   rules, test (CASA tests in Docker when needed), pre-commit, push and open a PR. Use when asked to
   implement or develop an issue, typically labelled enhancement.
 ---
 
 # Feature development
 
-Implement one GitHub issue of snow (`github.com/miguelcarcamov/snow`).
+Implement one GitHub issue of Wenuray (`github.com/miguelcarcamov/wenuray`).
 
 ## Before coding
 
@@ -45,8 +45,8 @@ Follow `.cursor/rules/`. In particular:
 
 | Change | Tests | Where |
 | --- | --- | --- |
-| Logic in one module | Unit tests, CASA-free (mock the CASA tasks the module imports) | `tests/unit/<area>/` mirroring `src/snow/` |
-| Anything touching CASA tasks or a measurement set | Integration tests on `snow.testing.simulate_point_source_ms` | `tests/integration/` |
+| Logic in one module | Unit tests, CASA-free (mock the CASA tasks the module imports) | `tests/unit/<area>/` mirroring `src/wenuray/` |
+| Anything touching CASA tasks or a measurement set | Integration tests on `wenuray.testing.simulate_point_source_ms` | `tests/integration/` |
 | The self-cal loop, solving, applying, acceptance | Keep `test_selfcal_recovers_gains_casa.py` passing; extend it if behaviour changes | `tests/integration/` |
 | Recipes, CLI, examples | Recipe and script build equal objects | `tests/unit/test_recipe.py`, `tests/examples/` |
 
@@ -57,8 +57,8 @@ pre-commit run --files <changed files>     # git add new files first
 pytest tests/unit/<area> tests/examples
 # CASA tests where casatools can't import natively (see AGENTS.md):
 docker run --rm -v $PWD:/src:ro -e HOME=/tmp -e SETUPTOOLS_SCM_PRETEND_VERSION=0.0.dev0 \
-  ghcr.io/miguelcarcamov/snow:base bash -c \
-  "cp -r /src /tmp/snow && cd /tmp/snow && pip install -q -e '.[test]' && pytest tests -q"
+  ghcr.io/miguelcarcamov/wenuray:base bash -c \
+  "cp -r /src /tmp/wenuray && cd /tmp/wenuray && pip install -q -e '.[test]' && pytest tests -q"
 ```
 
 Docs or docstrings changed: `sphinx-build -W -b html docs docs/_build/html`.
