@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 snow is a Python framework for radio-interferometric **self-calibration** on top of CASA (`casatasks`/`casatools`), with pluggable imagers (`tclean` today; Pyralysis, which replaces the deprecated GPUvmem, is the target). Its purpose is to let astronomers describe a self-cal procedure **briefly and reproducibly** instead of rewriting a one-off script for every dataset. Every change should make that easier, and stay correct by self-cal theory.
 
-Source lives in `src/snow/`: `selfcalibration/` (self-cal loop), `imaging/` (imager backends) and `utils/`. Example scripts are in `main_files/`.
+Source lives in `src/snow/`: `selfcalibration/` (self-cal loop), `imaging/` (imager backends) and `utils/`. Examples are in `examples/<name>/`: a `recipe.toml` and a `selfcal.py` that build the same run.
 
 ## Canonical conventions — read these first
 

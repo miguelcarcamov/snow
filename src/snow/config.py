@@ -29,7 +29,7 @@ def _require_str(config: object, *names: str) -> None:
 def to_dict(config: object) -> dict:
     """
     Returns a configuration object as a dictionary that TOML can hold: tuples become lists and
-    unset (None) values are left out. type(config)(**to_dict(config)) rebuilds an equal object.
+    unset (None) values are left out. ``type(config)(**to_dict(config))`` rebuilds an equal object.
     """
     return {
         name: list(value) if isinstance(value, tuple) else value

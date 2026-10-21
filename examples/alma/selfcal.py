@@ -1,7 +1,7 @@
 """
 Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tclean.
 
-Usage: python main_ALMA.py <visfile> <output_directory> [--plot]
+Usage: python selfcal.py <visfile> <output_directory> [--plot]
 """
 import argparse
 import logging

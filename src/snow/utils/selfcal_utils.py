@@ -231,7 +231,7 @@ def uv_extent(ms_name: str,
               spw: str = "",
               uvrange: str = "") -> Tuple[np.ndarray, np.ndarray]:
     """
-    Function that returns, for each unflagged row of a selection, the larger of |u| and |v| in
+    Function that returns, for each unflagged row of a selection, the larger of ``|u|`` and ``|v|`` in
     metres and the highest selected frequency of the row's spectral window. Their product over the
     speed of light is how far out the uv plane, in wavelengths, an image of the selection reaches
 
