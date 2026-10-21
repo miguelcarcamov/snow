@@ -7,10 +7,10 @@ import numpy as np
 import pytest
 from astropy.io import fits
 
-from snow.config import ImageGeometry, Selection
-from snow.imaging import contract
-from snow.utils.selfcal_utils import SPEED_OF_LIGHT
-from snow.imaging.contract import (
+from wenuray.config import ImageGeometry, Selection
+from wenuray.imaging import contract
+from wenuray.utils.selfcal_utils import SPEED_OF_LIGHT
+from wenuray.imaging.contract import (
     CallableImager, Imager, ImagerContractError, ImagingRequest, ImagingResult
 )
 

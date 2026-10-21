@@ -1,7 +1,7 @@
 ---
 name: qa-explorer
 description: >-
-  Find gaps in snow's tests and add high-value ones, above all self-calibration invariants on
+  Find gaps in Wenuray's tests and add high-value ones, above all self-calibration invariants on
   simulated data; file a bug issue when a test finds a defect. Use when asked to improve tests or
   coverage, or when idle.
 ---
@@ -10,7 +10,7 @@ description: >-
 
 ## Goals, in order
 
-1. **Self-calibration invariants** on simulated data (`snow.testing`), which hold for any array:
+1. **Self-calibration invariants** on simulated data (`wenuray.testing`), which hold for any array:
    - recovered gains match injected ones up to the reference phase and a source shift;
    - phase-only calibration doesn't change amplitudes, and keeps the model flux (or raises it);
    - a rejected round leaves `CORRECTED_DATA`, `MODEL_DATA`, the flags and the table stack as they
@@ -20,7 +20,7 @@ description: >-
    - a recipe and its script build equal objects; a recorded recipe reproduces the run.
 2. **Regression safety** for untested paths in the loop, `CalStack`, acceptance, preflight,
    recipes and the CLI.
-3. **Coverage gaps** in `src/snow` (`pytest --cov=snow tests/unit`).
+3. **Coverage gaps** in `src/wenuray` (`pytest --cov=wenuray tests/unit`).
 
 ## Workflow
 

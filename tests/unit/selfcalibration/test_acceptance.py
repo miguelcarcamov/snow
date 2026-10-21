@@ -3,12 +3,12 @@ import math
 
 import pytest
 
-from snow.imaging.statistics import ImageStatistics
-from snow.selfcalibration.acceptance import (
+from wenuray.imaging.statistics import ImageStatistics
+from wenuray.selfcalibration.acceptance import (
     AllOf, AnyOf, BeamStable, Check, EnoughAntennas, FlaggedFractionBelow, FluxNotLost,
     PSNRImproves, RoundMetrics, solution_snr
 )
-from snow.selfcalibration.steps import AmpPhasecal, Phasecal
+from wenuray.selfcalibration.steps import AmpPhasecal, Phasecal
 
 
 def metrics(

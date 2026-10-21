@@ -1,10 +1,10 @@
 """
-Runs one Pyralysis reconstruction for snow's Pyralysis imager (#24), in a process of its own.
+Runs one Pyralysis reconstruction for Wenuray's Pyralysis imager (#24), in a process of its own.
 
 casatools and python-casacore (which Pyralysis reads measurement sets with) each bundle a casacore
-build, and the two crash in one process. snow therefore runs this file as a script, so it imports
-neither snow nor casatools. It reads a JSON request from stdin and prints a JSON reply as the last
-line of its output (Pyralysis prints its progress before it):
+build, and the two crash in one process. Wenuray therefore runs this file as a script, so it
+imports neither wenuray nor casatools. It reads a JSON request from stdin and prints a JSON reply
+as the last line of its output (Pyralysis prints its progress before it):
 
     {"check": true, "options": {...}}                    -> {"error": ""} (validates the options)
     {"ms": ..., "taql": ..., "options": {...}, "outputs": {"model": ..., "residual": ..., "restored": ...}}
@@ -17,7 +17,7 @@ import json
 import os
 import sys
 
-# snow's pyralysis.py lives next to this file and would shadow the pyralysis package
+# Wenuray's pyralysis.py lives next to this file and would shadow the pyralysis package
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:] = [path for path in sys.path if os.path.abspath(path or ".") != _HERE]
 from dataclasses import dataclass
@@ -238,7 +238,7 @@ def main() -> int:
             parse(request["options"], ["--input-path", "check.ms"])
         else:
             run(request)
-    except Exception as error:  # reported to snow, which raises it
+    except Exception as error:  # reported to Wenuray, which raises it
         print(json.dumps({"error": "{0}: {1}".format(type(error).__name__, error)}))
         return 1
     print(json.dumps({"error": ""}))

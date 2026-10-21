@@ -1,11 +1,11 @@
 """Schedule validation (#22): one test per transition rule, all without CASA."""
 import pytest
 
-from snow.selfcalibration.caltable import CalStack, CalTable
-from snow.selfcalibration.schedule import (
+from wenuray.selfcalibration.caltable import CalStack, CalTable
+from wenuray.selfcalibration.schedule import (
     Finding, ScheduleError, ScheduleWarning, Severity, check_transition, validate_schedule
 )
-from snow.selfcalibration.steps import AmpPhasecal, Ampcal, Phasecal
+from wenuray.selfcalibration.steps import AmpPhasecal, Ampcal, Phasecal
 
 PHASE_STACK = CalStack([CalTable("pcal", "p")])
 

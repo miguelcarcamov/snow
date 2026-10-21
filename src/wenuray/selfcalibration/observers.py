@@ -50,7 +50,7 @@ class SelfcalObserver:
 
 class LoggingObserver(SelfcalObserver):
     """
-    Logs the run at INFO through the snow logger: each round's metrics and decision
+    Logs the run at INFO through the `wenuray` logger: each round's metrics and decision
     """
 
     def on_start(self, selfcal: Selfcal) -> None:
@@ -84,7 +84,7 @@ class GainPlotObserver(SelfcalObserver):
     """
     Plots each solved table next to it (<table>.png): one line per antenna against time, the
     phase for phase steps and the amplitude for amplitude steps (the step's plot_yaxis). Needs
-    matplotlib (pip install "snow-selfcal[plots]").
+    matplotlib (pip install "wenuray[plots]").
     """
 
     def on_solved(self, step: CalibrationStep, table: CalTable) -> None:

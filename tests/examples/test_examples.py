@@ -15,8 +15,8 @@ from unittest import mock
 
 import pytest
 
-import snow.utils
-from snow.selfcalibration import (
+import wenuray.utils
+from wenuray.selfcalibration import (
     AmpPhasecal, CalStack, GainPlotObserver, LoggingObserver, Phasecal, Selfcal, SelfcalResult
 )
 
@@ -114,8 +114,8 @@ class TestEmerlinExample:
 
     @pytest.fixture(autouse=True)
     def eight_spws(self, monkeypatch):
-        monkeypatch.setattr(snow.utils, "get_spw_ids", lambda ms, spw="": list(range(8)))
-        monkeypatch.setattr(snow.utils, "count_spectral_windows", lambda ms: 8)
+        monkeypatch.setattr(wenuray.utils, "get_spw_ids", lambda ms, spw="": list(range(8)))
+        monkeypatch.setattr(wenuray.utils, "count_spectral_windows", lambda ms: 8)
 
     def run(self, *args):
         run_example("emerlin", "target.ms", "out", "1252+5634", *args)
@@ -201,8 +201,8 @@ def by_name(selfcal: Selfcal) -> Selfcal:
     ]
 )
 def test_each_recipe_builds_its_script_run(name, args, runs, casatasks_module, monkeypatch):
-    monkeypatch.setattr(snow.utils, "get_spw_ids", lambda ms, spw="": list(range(8)))
-    monkeypatch.setattr(snow.utils, "count_spectral_windows", lambda ms: 8)
+    monkeypatch.setattr(wenuray.utils, "get_spw_ids", lambda ms, spw="": list(range(8)))
+    monkeypatch.setattr(wenuray.utils, "count_spectral_windows", lambda ms: 8)
     run_example(name, *args)
 
     from_recipe = Selfcal.from_toml(EXAMPLES / name / "recipe.toml")

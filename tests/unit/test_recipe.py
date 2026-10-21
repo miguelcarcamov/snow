@@ -5,17 +5,17 @@ import textwrap
 
 import pytest
 
-from snow import recipe
-from snow.config import ImageGeometry, Selection, SolveOptions, Weighting
-from snow.imaging.backends import Tclean
-from snow.imaging.backends import pyralysis as pyralysis_backend
-from snow.imaging.backends.pyralysis import Pyralysis
-from snow.recipe import RecipeError
-from snow.selfcalibration import (
+from wenuray import recipe
+from wenuray.config import ImageGeometry, Selection, SolveOptions, Weighting
+from wenuray.imaging.backends import Tclean
+from wenuray.imaging.backends import pyralysis as pyralysis_backend
+from wenuray.imaging.backends.pyralysis import Pyralysis
+from wenuray.recipe import RecipeError
+from wenuray.selfcalibration import (
     AllOf, AmpPhasecal, CalStack, CalTable, Check, EnoughAntennas, FluxNotLost, Phasecal,
     PSNRImproves, ResidualFlagging, ScheduleError, Selfcal
 )
-from snow.selfcalibration.acceptance import AcceptancePolicy, Decision
+from wenuray.selfcalibration.acceptance import AcceptancePolicy, Decision
 
 GEOMETRY = ImageGeometry(imsize=1024, cell="0.05arcsec")
 

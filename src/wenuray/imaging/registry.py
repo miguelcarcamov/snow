@@ -1,8 +1,8 @@
 """
 Imagers by name, for configuration files (#23, #36): "tclean", or a third-party imager that a
-package registers under the "snow.imagers" entry point group:
+package registers under the "wenuray.imagers" entry point group:
 
-    [project.entry-points."snow.imagers"]
+    [project.entry-points."wenuray.imagers"]
     myimager = "mypackage.imaging:MyImager"
 """
 from __future__ import annotations
@@ -11,7 +11,7 @@ from importlib.metadata import entry_points
 
 from .contract import Imager
 
-GROUP = "snow.imagers"
+GROUP = "wenuray.imagers"
 
 
 def available_imagers() -> list:

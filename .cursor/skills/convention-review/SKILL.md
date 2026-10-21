@@ -1,7 +1,7 @@
 ---
 name: convention-review
 description: >-
-  Deep review of a snow diff (branch or PR) against the repository's rules: self-calibration
+  Deep review of a Wenuray diff (branch or PR) against the repository's rules: self-calibration
   invariants, genericity across arrays, CASA I/O, design budget, tests and docs. Reports findings
   ranked by severity, each with a concrete failure scenario. Use before opening or merging a PR, or
   when asked to review code. For CI failures and review threads use pr-review.
@@ -55,7 +55,7 @@ scenario, no finding. Cite the rule file.
 - Assertions about values, fixtures where the tested quantity is non-trivial and the simulated
   data are physically valid (Nyquist-sampled cells, enough S/N).
 - Tolerances derived from the simulation's noise, and the degeneracies of self-cal respected.
-- Unit tests stay CASA-free; patch targets are `snow.…`, never `src.snow.…`.
+- Unit tests stay CASA-free; patch targets are `wenuray.…`, never `src.wenuray.…`.
 
 **Docs** (`documentation.mdc`)
 

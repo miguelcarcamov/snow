@@ -1,10 +1,10 @@
 ---
 name: Bug report
-about: snow does something wrong, crashes, or calibrates wrongly
+about: Wenuray does something wrong, crashes, or calibrates wrongly
 labels: bug
 ---
 
-<!-- Search existing issues first: https://github.com/miguelcarcamov/snow/issues?q=label%3Abug -->
+<!-- Search existing issues first: https://github.com/miguelcarcamov/wenuray/issues?q=label%3Abug -->
 
 ## Summary
 
@@ -20,14 +20,14 @@ labels: bug
 
 ## Steps to reproduce
 
-<!-- Ordered steps. Best: a recipe or a script on snow.testing.simulate_point_source_ms, or a
+<!-- Ordered steps. Best: a recipe or a script on wenuray.testing.simulate_point_source_ms, or a
 pytest command. -->
 
 1.
 
 ## Environment
 
-- snow version (`snow --version`):
+- Wenuray version (`wenuray --version`):
 - CASA (`casatools`, `casatasks`) versions:
 - Imager and its version (e.g. Pyralysis):
 - Python and operating system:

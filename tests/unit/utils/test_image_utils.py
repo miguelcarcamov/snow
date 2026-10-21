@@ -4,7 +4,7 @@ import pytest
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from snow.utils import get_hdu, reproject
+from wenuray.utils import get_hdu, reproject
 
 NAXIS1, NAXIS2 = 100, 60  # non-square: columns != rows
 

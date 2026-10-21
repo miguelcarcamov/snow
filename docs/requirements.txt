@@ -1,5 +1,5 @@
-# The documentation's build dependencies. autoapi reads snow's source without importing it, so
-# neither snow nor CASA has to be installed.
+# The documentation's build dependencies. autoapi reads Wenuray's source without importing it, so
+# neither Wenuray nor CASA has to be installed.
 myst-parser>=4
 setuptools-scm>=8
 sphinx>=8

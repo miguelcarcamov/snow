@@ -1,7 +1,7 @@
 ---
 name: verify-ab
 description: >-
-  Check that a snow branch gives the same self-calibration results as development, and is not
+  Check that a Wenuray branch gives the same self-calibration results as development, and is not
   slower or heavier: run the same simulated self-calibration with each tree's code and compare
   every round's metrics, decisions and gain solutions, plus time and peak memory. Use before
   merging anything that can change a run's results or speed.
@@ -22,7 +22,7 @@ Compare the branch with `development` directly.
 
 ## 1. Results
 
-`ab_run.py` simulates the seeded test MS (`snow.testing.simulate_point_source_ms`), runs a
+`ab_run.py` simulates the seeded test MS (`wenuray.testing.simulate_point_source_ms`), runs a
 self-calibration and reports the time and the peak memory:
 
 ```bash

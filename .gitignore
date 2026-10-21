@@ -129,7 +129,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 # Written by older setuptools-scm configurations; the version now comes from package metadata
-src/snow/_version.py
+src/wenuray/_version.py
 
 # Sphinx output and the API pages autoapi generates
 docs/_build/

@@ -19,7 +19,7 @@ from ...config import ImageGeometry, Weighting, updated
 from ...recipe import grid_tables
 from ..contract import Imager, ImagingRequest, ImagingResult
 
-# tclean parameters set by snow, and where each comes from
+# tclean parameters set by Wenuray, and where each comes from
 CONTROLLED = {
     "vis": "the request",
     "imagename": "the request",
@@ -37,7 +37,7 @@ CONTROLLED = {
     "uvtaper": "Weighting",
 }
 
-# Options of the Tclean class before snow 1.0, and where they went
+# Options of the Tclean class in snow, before Wenuray 1.0, and where they went
 LEGACY_OPTIONS = {
     "inputvis": "Selfcal(ms=...)",
     "output": "Selfcal(output=...)",
@@ -160,7 +160,7 @@ def _check_options(options: Mapping) -> None:
     legacy = sorted(set(options) & set(LEGACY_OPTIONS))
     if legacy:
         raise TypeError(
-            "Tclean options use tclean's own names since snow 1.0: " +
+            "Tclean options use tclean's own names since Wenuray 1.0: " +
             "; ".join("{0} -> {1}".format(name, LEGACY_OPTIONS[name])
                       for name in legacy) + ". See docs/migration.md"
         )

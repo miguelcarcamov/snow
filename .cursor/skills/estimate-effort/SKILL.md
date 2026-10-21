@@ -1,7 +1,7 @@
 ---
 name: estimate-effort
 description: >-
-  Estimate the effort of a snow GitHub issue and set its effort:N label (Fibonacci). Use when an
+  Estimate the effort of a Wenuray GitHub issue and set its effort:N label (Fibonacci). Use when an
   issue has no effort label, or when asked to size or prioritise issues.
 ---
 

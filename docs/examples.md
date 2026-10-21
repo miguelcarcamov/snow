@@ -1,7 +1,7 @@
 # Examples
 
 Each example is a self-calibration procedure as a recipe and as the Python script that builds the same run; a test checks that they agree.
-The values belong to each example's data, not to snow: adapt them to yours.
+The values belong to each example's data, not to wenuray: adapt them to yours.
 
 ## ALMA
 

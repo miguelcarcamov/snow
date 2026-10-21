@@ -10,12 +10,12 @@ import numpy as np
 import pytest
 from astropy.io import fits
 
-from snow.config import ImageGeometry, SolveOptions
-from snow.imaging import Pyralysis
-from snow.imaging.contract import ImagingRequest
-from snow.selfcalibration import Phasecal, Selfcal
-from snow.testing import ImagerContractSuite, simulate_point_source_ms
-from snow.utils.selfcal_utils import open_table
+from wenuray.config import ImageGeometry, SolveOptions
+from wenuray.imaging import Pyralysis
+from wenuray.imaging.contract import ImagingRequest
+from wenuray.selfcalibration import Phasecal, Selfcal
+from wenuray.testing import ImagerContractSuite, simulate_point_source_ms
+from wenuray.utils.selfcal_utils import open_table
 
 pytestmark = pytest.mark.skipif(
     importlib.util.find_spec("pyralysis") is None, reason="Pyralysis isn't installed"
@@ -45,7 +45,7 @@ def test_options_are_checked_by_pyralysis():
         pyralysis_imager(maxiter=10)
 
 
-def test_settings_snow_controls_are_rejected():
+def test_settings_wenuray_controls_are_rejected():
     with pytest.raises(TypeError, match="ImageGeometry"):
         pyralysis_imager(imsize=256)
 

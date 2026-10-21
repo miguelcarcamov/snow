@@ -4,8 +4,8 @@ import math
 
 import pytest
 
-from snow.config import Selection, SolveOptions
-from snow.selfcalibration.steps import (
+from wenuray.config import Selection, SolveOptions
+from wenuray.selfcalibration.steps import (
     AmpPhasecal, Ampcal, CalibrationStep, Phasecal, Severity, _AmplitudeStep, solint_seconds
 )
 

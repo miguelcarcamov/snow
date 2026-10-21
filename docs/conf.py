@@ -1,11 +1,11 @@
-"""Sphinx configuration of snow's documentation: sphinx-build -W -b html docs docs/_build/html"""
+"""Sphinx configuration of Wenuray's documentation: sphinx-build -W -b html docs docs/_build/html"""
 from pathlib import Path
 
 from setuptools_scm import get_version
 
 ROOT = Path(__file__).resolve().parents[1]
 
-project = "snow"
+project = "wenuray"
 author = "Miguel Cárcamo"
 copyright = "Miguel Cárcamo"
 try:
@@ -24,8 +24,8 @@ extensions = [
 source_suffix = {".md": "markdown", ".rst": "restructuredtext"}
 exclude_patterns = ["_build"]
 
-# The API reference, from the source: snow isn't imported, so CASA isn't needed
-autoapi_dirs = [str(ROOT / "src" / "snow")]
+# The API reference, from the source: Wenuray isn't imported, so CASA isn't needed
+autoapi_dirs = [str(ROOT / "src" / "wenuray")]
 autoapi_root = "api"
 autoapi_add_toctree_entry = False
 autoapi_options = ["members", "undoc-members", "show-inheritance", "show-module-summary"]
@@ -39,9 +39,9 @@ myst_heading_anchors = 3
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 html_theme = "sphinx_book_theme"
-html_title = "snow {0}".format(release)
+html_title = "wenuray {0}".format(release)
 html_theme_options = {
-    "repository_url": "https://github.com/miguelcarcamov/snow",
+    "repository_url": "https://github.com/miguelcarcamov/wenuray",
     "repository_branch": "development",
     "use_repository_button": True,
     "use_issues_button": True,

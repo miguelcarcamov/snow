@@ -6,24 +6,26 @@ import pytest
 from casatasks import flagmanager
 from casatools import table
 
-from snow.config import ImageGeometry, SolveOptions
-from snow.imaging.backends import Tclean
-from snow.selfcalibration.acceptance import AllOf, PSNRImproves
-from snow.selfcalibration.flagging import ResidualFlagging
-from snow.selfcalibration.loop import Selfcal
-from snow.selfcalibration.observers import GainPlotObserver, LoggingObserver
-from snow.selfcalibration.result import SelfcalResult
-from snow.selfcalibration.steps import AmpPhasecal, Phasecal
-from snow.testing import simulate_point_source_ms
-from snow.utils.selfcal_utils import model_column_problem, open_table
+from wenuray.config import ImageGeometry, SolveOptions
+from wenuray.imaging.backends import Tclean
+from wenuray.selfcalibration.acceptance import AllOf, PSNRImproves
+from wenuray.selfcalibration.flagging import ResidualFlagging
+from wenuray.selfcalibration.loop import Selfcal
+from wenuray.selfcalibration.observers import GainPlotObserver, LoggingObserver
+from wenuray.selfcalibration.result import SelfcalResult
+from wenuray.selfcalibration.steps import AmpPhasecal, Phasecal
+from wenuray.testing import simulate_point_source_ms
+from wenuray.utils.selfcal_utils import model_column_problem, open_table
 
 IMAGER = Tclean(ImageGeometry(imsize=128, cell="1arcsec"), niter=200, nsigma=3.0)
 SOLVE = SolveOptions(refant="A0", minblperant=3)
 
 
-def snow_flag_versions(ms: str) -> list:
+def wenuray_flag_versions(ms: str) -> list:
     versions = flagmanager(vis=ms, mode="list")
-    return [v["name"] for k, v in versions.items() if k != "MS" and v["name"].startswith("snow_")]
+    return [
+        v["name"] for k, v in versions.items() if k != "MS" and v["name"].startswith("wenuray_")
+    ]
 
 
 @pytest.fixture(scope="module")
@@ -46,7 +48,7 @@ def test_the_measurement_set_holds_the_accepted_state(accepted):
     assert model_column_problem(accepted.ms) == ""
     with open_table(accepted.ms) as ms_table:
         assert not np.allclose(ms_table.getcell("DATA", 0), ms_table.getcell("CORRECTED_DATA", 0))
-    assert snow_flag_versions(accepted.ms) == []
+    assert wenuray_flag_versions(accepted.ms) == []
 
 
 def test_the_result_record_round_trips(accepted):
@@ -67,7 +69,7 @@ def test_a_rejected_round_is_rolled_back(tmp_path):
         # No calibration accepted: CORRECTED_DATA is DATA again, and the round-0 model is back
         assert np.allclose(ms_table.getcell("DATA", 0), ms_table.getcell("CORRECTED_DATA", 0))
     assert model_column_problem(ms) == ""
-    assert snow_flag_versions(ms) == []
+    assert wenuray_flag_versions(ms) == []
 
 
 def test_gain_plots_are_written_next_to_the_tables(accepted):
@@ -125,9 +127,9 @@ def test_residual_flagging(tmp_path, policy, kept):
 
 def test_the_solution_snr_sample_reads_the_simulated_noise(tmp_path):
     """0.05 Jy noise on a 1 Jy source, 8 antennas, 60 s integrations over 2 h, RR and LL"""
-    from snow.imaging.contract import ImagingRequest
-    from snow.selfcalibration.preflight import read_sample
-    from snow.config import Selection
+    from wenuray.imaging.contract import ImagingRequest
+    from wenuray.selfcalibration.preflight import read_sample
+    from wenuray.config import Selection
 
     ms = simulate_point_source_ms(str(tmp_path / "target.ms"), phase_errors_in=())
     IMAGER.image(ImagingRequest(ms, str(tmp_path / "model")))
@@ -147,9 +149,9 @@ def test_each_round_records_its_predicted_snr(accepted):
 
 
 def test_the_recorded_recipe_reproduces_the_run(accepted, tmp_path):
-    """#36: snow run <output>/recipe.toml on the same input data gives the same rounds."""
-    from snow import cli
-    from snow.utils.selfcal_utils import ms_fingerprint
+    """#36: wenuray run <output>/recipe.toml on the same input data gives the same rounds."""
+    from wenuray import cli
+    from wenuray.utils.selfcal_utils import ms_fingerprint
 
     output = os.path.dirname(accepted.final.image)
     fresh = simulate_point_source_ms(str(tmp_path / "fresh.ms"))
@@ -171,7 +173,7 @@ def test_the_recorded_recipe_reproduces_the_run(accepted, tmp_path):
 
 
 def test_the_fingerprint_changes_with_the_data(tmp_path):
-    from snow.utils.selfcal_utils import ms_fingerprint
+    from wenuray.utils.selfcal_utils import ms_fingerprint
 
     ms = simulate_point_source_ms(str(tmp_path / "target.ms"))
     before = ms_fingerprint(ms)

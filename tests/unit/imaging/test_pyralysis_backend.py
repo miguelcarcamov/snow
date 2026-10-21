@@ -6,10 +6,10 @@ from unittest import mock
 
 import pytest
 
-from snow.config import ImageGeometry, Selection, Weighting
-from snow.imaging.backends import pyralysis as backend
-from snow.imaging.backends.pyralysis import Pyralysis
-from snow.imaging.contract import ImagingRequest
+from wenuray.config import ImageGeometry, Selection, Weighting
+from wenuray.imaging.backends import pyralysis as backend
+from wenuray.imaging.backends.pyralysis import Pyralysis
+from wenuray.imaging.contract import ImagingRequest
 
 GEOMETRY = ImageGeometry(imsize=128, cell="2arcsec")
 
@@ -67,7 +67,7 @@ class TestConstruction:
         "name, source",
         [("imsize", "ImageGeometry"), ("term", "terms"), ("hermitian_symmetry", "folds")]
     )
-    def test_settings_snow_controls_are_rejected(self, name, source):
+    def test_settings_wenuray_controls_are_rejected(self, name, source):
         with pytest.raises(TypeError, match=source):
             imager(**{name: 1})
 
@@ -159,7 +159,7 @@ class TestReconstruct:
             "error": "ModuleNotFoundError: No module named 'pyralysis'"
         }, 1
 
-        with pytest.raises(ImportError, match=r"snow-selfcal\[pyralysis\]"):
+        with pytest.raises(ImportError, match=r"wenuray\[pyralysis\]"):
             imager()
 
     def test_a_missing_numba_threading_layer_says_what_to_install(self, worker):

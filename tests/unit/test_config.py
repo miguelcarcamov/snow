@@ -5,7 +5,9 @@ import tomllib
 import pytest
 import tomli_w
 
-from snow.config import (ApplyOptions, ImageGeometry, Selection, SolveOptions, Weighting, to_dict)
+from wenuray.config import (
+    ApplyOptions, ImageGeometry, Selection, SolveOptions, Weighting, to_dict
+)
 
 CONFIGS = [Selection, SolveOptions, ApplyOptions, ImageGeometry, Weighting]
 

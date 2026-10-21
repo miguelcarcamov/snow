@@ -23,7 +23,8 @@ from ..config import Selection, SolveOptions
 from .acceptance import AcceptancePolicy, AllOf, EnoughAntennas, FluxNotLost, PSNRImproves
 from .flagging import Flagging, NoFlagging
 
-# Constructor arguments of the classes before snow 1.0, which now belong to Selfcal or its options
+# Constructor arguments of the classes in snow, before Wenuray 1.0, which now belong to Selfcal or
+# its options
 LEGACY_ARGUMENTS = frozenset(
     {
         "visfile", "imager", "previous_selfcal", "input_caltable", "refant", "spwmap",
@@ -129,7 +130,7 @@ class CalibrationStep(ABC):
         legacy = sorted(set(kwargs) & LEGACY_ARGUMENTS)
         if legacy or (args and isinstance(args[0], (list, tuple))):
             raise TypeError(
-                "{0} is a calibration step since snow 1.0; {1} belong to the run. One step per "
+                "{0} is a calibration step since Wenuray 1.0; {1} belong to the run. One step per "
                 "solution interval, run by Selfcal:\n"
                 "    Selfcal(ms, imager, [Phasecal(\"inf\"), Phasecal(\"60s\"), AmpPhasecal(\"inf\")],\n"
                 "            solve=SolveOptions(refant=...)).run()\n"
@@ -168,7 +169,7 @@ class CalibrationStep(ABC):
     @classmethod
     def from_recipe(cls, table: Mapping) -> CalibrationStep:
         """
-        Builds the step from its recipe table (snow.recipe), whose acceptance and flagging are
+        Builds the step from its recipe table (wenuray.recipe), whose acceptance and flagging are
         typed tables
         """
         table = dict(table)
@@ -238,7 +239,7 @@ class CalibrationStep(ABC):
     def check(self) -> list:
         """
         Findings about this step on its own; transitions between steps are checked by
-        snow.selfcalibration.schedule.check_transition
+        wenuray.selfcalibration.schedule.check_transition
         """
         return []
 

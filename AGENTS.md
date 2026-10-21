@@ -1,7 +1,7 @@
 # Agent-assisted development
 
-How AI agents (Claude Code, Cursor, Codex, Aider, ...) work on snow
-(`github.com/miguelcarcamov/snow`). Humans follow the same rules; see
+How AI agents (Claude Code, Cursor, Codex, Aider, ...) work on Wenuray
+(`github.com/miguelcarcamov/wenuray`). Humans follow the same rules; see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Overview
@@ -17,15 +17,15 @@ How AI agents (Claude Code, Cursor, Codex, Aider, ...) work on snow
 The `.mdc` files are the source of truth. After editing one, run
 `python tools/sync_conventions.py` to regenerate `CONVENTIONS.md`; CI checks it.
 
-## What snow is, in one paragraph
+## What Wenuray is, in one paragraph
 
 A framework for radio-interferometric **self-calibration** on CASA, so astronomers describe a
 procedure briefly and reproducibly (a TOML recipe or a few Python objects) instead of
 rewriting a script per dataset. Every change must keep it **correct by self-calibration theory**
 (`selfcal-domain.mdc`) and **generic across arrays**: limits come from theory or the data, never
-from one instrument, and snow ships no instrument presets.
+from one instrument, and Wenuray ships no instrument presets.
 
-Read the rules before the first change: start with `general.mdc` (what snow is for) and
+Read the rules before the first change: start with `general.mdc` (what Wenuray is for) and
 `selfcal-domain.mdc` (the self-calibration invariants no change may break).
 
 ## Workflow
@@ -51,7 +51,7 @@ issue (enhancement | bug | documentation, effort:N, acceptance criteria)
 - **Ask when in doubt.** Decisions about API semantics, defaults, behaviour changes or scope
   belong to the maintainer: ask with a recommendation and record the answer in the issue or PR.
 - **Upstream bugs** (CASA, Pyralysis) get an issue upstream with a minimal reproduction, and a
-  workaround in snow that names it.
+  workaround in Wenuray that names it.
 
 ## Labels
 
@@ -90,14 +90,14 @@ Ask for one by name, e.g. *"use the feature-dev skill for issue #65"*.
 
   ```bash
   docker run --rm -v $PWD:/src:ro -e HOME=/tmp -e SETUPTOOLS_SCM_PRETEND_VERSION=0.0.dev0 \
-    ghcr.io/miguelcarcamov/snow:base bash -c \
-    "cp -r /src /tmp/snow && cd /tmp/snow && pip install -q -e '.[test]' && pytest tests -q"
+    ghcr.io/miguelcarcamov/wenuray:base bash -c \
+    "cp -r /src /tmp/wenuray && cd /tmp/wenuray && pip install -q -e '.[test]' && pytest tests -q"
   ```
 
 - **Pyralysis** (optional extra) runs in a worker process; Numba there needs OpenMP
   (`libgomp1`) or TBB.
 - **Tests:** `pytest tests/unit` needs no CASA (CASA modules are stubbed when missing);
-  `tests/integration` needs CASA and simulates its data with `snow.testing`. The full suite takes
+  `tests/integration` needs CASA and simulates its data with `wenuray.testing`. The full suite takes
   about ten minutes. Run the narrowest paths first.
 - **Lint:** `pre-commit run --files <changed files>`. It skips untracked files, so `git add`
   new files first, and re-add after yapf rewrites them.

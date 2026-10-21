@@ -1,9 +1,9 @@
 # Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tclean: the recipe
 # form of selfcal.py, which builds the same run. The values suit this example's data; adapt them
-# to yours (snow's own defaults come from theory or the data, not from an instrument).
+# to yours (Wenuray's own defaults come from theory or the data, not from an instrument).
 #
-# snow validate recipe.toml
-# snow run recipe.toml --ms target.ms --output target_selfcal --plots
+# wenuray validate recipe.toml
+# wenuray run recipe.toml --ms target.ms --output target_selfcal --plots
 
 ms = "target.ms"  # the calibrated target data in DATA
 output = "target_selfcal"

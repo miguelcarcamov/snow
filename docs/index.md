@@ -13,5 +13,5 @@ migration
 :hidden:
 :caption: Reference
 
-api/snow/index
+api/wenuray/index
 ```

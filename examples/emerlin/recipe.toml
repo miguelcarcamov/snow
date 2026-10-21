@@ -5,7 +5,7 @@
 # splits the calibrated target into DATA (target.flagged.ms) and can flag residual RFI. Do that,
 # then:
 #
-# snow run recipe.toml --output target_selfcal
+# wenuray run recipe.toml --output target_selfcal
 
 ms = "target.flagged.ms"
 output = "target_selfcal"

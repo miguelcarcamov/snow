@@ -1,7 +1,7 @@
 ---
 name: bug-fix
 description: >-
-  Fix a snow bug: reproduce it with a failing test, fix the root cause, keep the regression test,
+  Fix a Wenuray bug: reproduce it with a failing test, fix the root cause, keep the regression test,
   run pre-commit and pytest, push and open a PR. Use for issues labelled bug or when asked to fix a
   defect.
 ---
@@ -13,8 +13,8 @@ description: >-
 1. Read the issue: steps to reproduce, expected vs actual behaviour, environment, logs.
 2. Read `AGENTS.md` and `.cursor/rules/`. Search for duplicates and for the tests that cover the
    area.
-3. Decide whether the bug is snow's or upstream's (CASA, Pyralysis). An upstream bug gets an
-   upstream issue with a minimal reproduction and, if needed, a workaround in snow that names the
+3. Decide whether the bug is Wenuray's or upstream's (CASA, Pyralysis). An upstream bug gets an
+   upstream issue with a minimal reproduction and, if needed, a workaround in Wenuray that names the
    upstream issue.
 
 ## Reproduce first

@@ -1,10 +1,10 @@
 """
-The snow command (#36), a thin layer over the recipes of snow.recipe:
+The wenuray command (#36), a thin layer over the recipes of wenuray.recipe:
 
-    snow init > selfcal.toml            a generic recipe to start from
-    snow validate selfcal.toml          builds the run and checks it, without touching the data
-    snow show selfcal.toml              the recipe with its presets laid in (--defaults: all values)
-    snow run selfcal.toml               runs it
+    wenuray init > selfcal.toml         a generic recipe to start from
+    wenuray validate selfcal.toml       builds the run and checks it, without touching the data
+    wenuray show selfcal.toml           the recipe with its presets laid in (--defaults: all values)
+    wenuray run selfcal.toml            runs it
 
 --ms and --output reuse a recipe for another dataset. Errors are the constructors' own, as from
 Python, and exit with status 1.
@@ -21,8 +21,8 @@ from typing import Optional, Sequence
 import tomli_w
 
 TEMPLATE = '''\
-# A snow self-calibration recipe. Each table is a constructor and its keys are that class's
-# arguments; see https://github.com/miguelcarcamov/snow#the-same-run-as-a-toml-recipe
+# A Wenuray self-calibration recipe. Each table is a constructor and its keys are that class's
+# arguments; see https://github.com/miguelcarcamov/wenuray#the-same-run-as-a-toml-recipe
 # Paths are relative to this file.
 
 ms = "target.ms"               # the calibrated target data in DATA (split them first)
@@ -66,9 +66,9 @@ def _parser() -> argparse.ArgumentParser:
     from . import __version__
 
     parser = argparse.ArgumentParser(
-        prog="snow", description="Radio-interferometric self-calibration from TOML recipes"
+        prog="wenuray", description="Radio-interferometric self-calibration from TOML recipes"
     )
-    parser.add_argument("--version", action="version", version="snow " + __version__)
+    parser.add_argument("--version", action="version", version="wenuray " + __version__)
     parser.add_argument(
         "--traceback", action="store_true", help="show the full traceback of an error"
     )
@@ -163,7 +163,7 @@ COMMANDS = {"run": _run, "validate": _validate, "show": _show, "init": _init}
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """
-    Runs the snow command; returns its exit status
+    Runs the wenuray command; returns its exit status
     """
     args = _parser().parse_args(argv)
     try:
@@ -172,7 +172,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # Recipe, schedule and constructor errors (RecipeError and ScheduleError are ValueErrors)
         if args.traceback:
             raise
-        print("snow: error: {0}".format(error), file=sys.stderr)
+        print("wenuray: error: {0}".format(error), file=sys.stderr)
         return 1
 
 
