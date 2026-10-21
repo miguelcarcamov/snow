@@ -39,6 +39,32 @@ jobs:
       run: |
         yapf --recursive --verbose --diff .
 
+  # The documentation must build without warnings. autoapi reads the source, so neither snow nor
+  # CASA is installed
+  docs:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # setuptools-scm gives the documented version
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: pip
+        cache-dependency-path: docs/requirements.txt
+    - name: Build the documentation
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r docs/requirements.txt
+        sphinx-build -W --keep-going -b html docs docs/_build/html
+    - name: Upload the documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: snow-docs
+        path: docs/_build/html
+
   build:
     runs-on: ubuntu-latest
     needs: lint

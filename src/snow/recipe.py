@@ -40,7 +40,7 @@ imager's options are passed as written. snow ships no presets: its defaults come
 or the data, not from an instrument.
 
 Classes serialise their dataclass fields, leaving out the values that equal the defaults. A class
-whose constructor differs from its fields (e.g. one taking **options) provides to_recipe() and the
+whose constructor differs from its fields (e.g. one taking ``**options``) provides to_recipe() and the
 classmethod from_recipe(table) instead.
 """
 from __future__ import annotations

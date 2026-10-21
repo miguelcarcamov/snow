@@ -17,7 +17,7 @@
 
 - **Python**: `>=3.12, <3.14`, the versions with both CASA wheels and Pyralysis support
 - **Dependencies**: casatools, casatasks (CASA >= 6.7), numpy, astropy and reproject. The
-  package declares lower bounds; [`requirements.txt`](requirements.txt) pins the set tested in CI
+  package declares lower bounds; [`requirements.txt`](https://github.com/miguelcarcamov/snow/blob/development/requirements.txt) pins the set tested in CI
   and used in the Docker images.
 - **CASA data**: CASA downloads its measures data the first time `casatools` is imported
   (see [External Data](https://casadocs.readthedocs.io/en/stable/notebooks/external-data.html)).
@@ -101,13 +101,13 @@ also pass `-e HOME=/tmp`.
 ### Basic Usage Example
 
 Phase, then amplitude-phase self-calibration of an ALMA dataset. This is
-[`main_files/main_ALMA.py`](main_files/main_ALMA.py); a test keeps the two identical.
+[`examples/alma/selfcal.py`](https://github.com/miguelcarcamov/snow/blob/development/examples/alma/selfcal.py); a test keeps the two identical.
 
 ```python
 """
 Phase, then amplitude-phase self-calibration of an ALMA dataset imaged with tclean.
 
-Usage: python main_ALMA.py <visfile> <output_directory> [--plot]
+Usage: python selfcal.py <visfile> <output_directory> [--plot]
 """
 import argparse
 import logging
@@ -175,7 +175,7 @@ if __name__ == '__main__':
 Run the script:
 
 ```bash
-python main_files/main_ALMA.py target.ms target_selfcal
+python examples/alma/selfcal.py target.ms target_selfcal
 ```
 
 ### The same run as a TOML recipe
@@ -293,8 +293,9 @@ What the input must look like:
 - **`applymode`.** The default `ApplyOptions(applymode="calflag")` flags data whose solutions fail
   `minsnr`. `"calonly"` leaves those data uncalibrated but unflagged.
 
-More examples for VLA and e-MERLIN are in [`main_files/`](main_files/). Code written for snow
-< 1.0 raises an error that shows the new call; see the [migration guide](docs/migration.md).
+More examples, for the VLA and e-MERLIN too, are in [`examples/`](https://github.com/miguelcarcamov/snow/tree/development/examples), each as a recipe and
+the script that builds the same run. Code written for snow
+< 1.0 raises an error that shows the new call; see the [migration guide](https://github.com/miguelcarcamov/snow/blob/development/docs/migration.md).
 
 ## API Overview
 
@@ -354,8 +355,8 @@ snow/
 │   ├── selfcalibration/  # The Selfcal loop, steps, schedule rules, acceptance, observers
 │   ├── testing.py        # Simulated data and the imager contract suite
 │   └── utils/            # Utility functions
-├── main_files/           # Example scripts for different telescopes
-├── docs/                 # Migration guide
+├── examples/             # Recipe + script pairs (ALMA, VLA, e-MERLIN)
+├── docs/                 # Sphinx documentation and the migration guide
 ├── requirements.txt      # Pinned dependencies tested in CI
 └── pyproject.toml        # Project metadata and build configuration
 ```

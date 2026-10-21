@@ -1,1 +1,1 @@
-recursive-exclude main_files *
+recursive-exclude examples *
